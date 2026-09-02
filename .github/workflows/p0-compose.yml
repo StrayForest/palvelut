@@ -1,0 +1,111 @@
+name: Compose stack
+
+on:
+  pull_request:
+    paths:
+      - "compose.yml"
+      - "Dockerfile"
+      - ".dockerignore"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "palvelut/**"
+      - "infra/nginx/**"
+      - "tests/test_compose_contract.py"
+      - ".github/workflows/p0-compose.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  compose-stack:
+    name: compose-stack
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Fetch exact PR head
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          git init repo
+          cd repo
+          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git fetch --depth=1 origin "${HEAD_SHA}"
+          git checkout --detach FETCH_HEAD
+
+      - name: Install pinned uv
+        working-directory: repo
+        run: python3 -m pip install --disable-pip-version-check --no-input "uv==0.10.0"
+
+      - name: Resolve and verify Python dependencies
+        working-directory: repo
+        run: |
+          uv lock --refresh
+          uv lock --check
+          uv run python -m unittest -v tests.test_bootstrap_contract tests.test_compose_contract
+          echo "UV_LOCK_BEGIN"
+          base64 -w0 uv.lock
+          echo
+          echo "UV_LOCK_END"
+
+      - name: Resolve container image digests
+        working-directory: repo
+        run: |
+          for image in \
+            python:3.13-slim \
+            postgres:18-alpine \
+            valkey/valkey:8-alpine \
+            nginx:alpine \
+            axllent/mailpit:latest \
+            quay.io/minio/minio:latest
+          do
+            docker pull "$image"
+            printf '%s -> ' "$image"
+            docker image inspect "$image" --format '{{index .RepoDigests 0}}'
+          done
+
+      - name: Validate and exercise Compose stack
+        working-directory: repo
+        run: |
+          docker compose config >/tmp/palvelut-compose.yml
+          docker compose build web
+          docker compose up -d postgres valkey mailpit minio
+
+          ready=0
+          for _ in $(seq 1 60); do
+            if docker compose exec -T postgres pg_isready -U palvelut -d palvelut >/dev/null \
+              && test "$(docker compose exec -T valkey valkey-cli ping | tr -d '\r')" = "PONG" \
+              && curl -fsS http://127.0.0.1:8025/ >/dev/null \
+              && curl -fsS http://127.0.0.1:9000/minio/health/live >/dev/null; then
+              ready=1
+              break
+            fi
+            sleep 2
+          done
+          test "$ready" = "1"
+
+          docker compose run --rm web python manage.py migrate --noinput
+          docker compose run --rm web python -c "from django.core.cache import cache; cache.set('p0-compose','ok',30); assert cache.get('p0-compose') == 'ok'"
+          docker compose run --rm web python -c "from django.core.mail import send_mail; assert send_mail('P0 compose probe','ok',None,['dev@local.invalid']) == 1"
+          curl -fsS http://127.0.0.1:8025/api/v1/messages | grep -q "P0 compose probe"
+
+          docker compose up -d web worker nginx
+          web_ready=0
+          for _ in $(seq 1 60); do
+            status="$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/ || true)"
+            if test "$status" = "404"; then
+              web_ready=1
+              break
+            fi
+            sleep 2
+          done
+          test "$web_ready" = "1"
+
+          docker compose exec -T postgres psql -U palvelut -d palvelut -Atc "show server_version;" | grep -E '^18\.'
+          docker compose exec -T valkey valkey-cli INFO server | tr -d '\r' | grep -E '^valkey_version:8\.'
+          docker compose ps worker --status running --services | grep -x worker
+          docker compose ps
+
+      - name: Cleanup Compose stack
+        if: always()
+        working-directory: repo
+        run: docker compose down -v --remove-orphans
