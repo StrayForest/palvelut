@@ -4,7 +4,7 @@ Read: `DECISIONS.md`, `docs/05-architecture.md`, `docs/06-quality.md`, `docs/07-
 
 ## Build
 
-- Add project-scoped `make bootstrap`, `make dev`, `make reset`, `make test`, `make e2e` and `make smoke`. CI calls only the last three non-interactive gates.
+- Add `make e2e` as the browser gate; once it exists, CI calls only `make test`, `make e2e` and `make smoke` as non-interactive gates.
 - Document Windows 11 setup through WSL2 + Docker Desktop integration; keep the command path identical to Linux.
 - Add Tailwind build, HTMX, minimal Alpine.js, RU/FI/EN i18n skeleton and accessible base layout.
 - Own local and production routes under `/palvelut/{locale}/` in Django's root URLconf; test prefix-preserving proxy behaviour, static URLs, redirects, cookies, canonical and hreflang generation.
