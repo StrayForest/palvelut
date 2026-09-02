@@ -3,7 +3,7 @@ name: palvelut
 x-app-environment: &app-environment
   DJANGO_SETTINGS_MODULE: palvelut.settings
   DJANGO_DEBUG: "1"
-  DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,[::1]
+  DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,[::1],nginx
   POSTGRES_DB: palvelut
   POSTGRES_USER: palvelut
   POSTGRES_PASSWORD: palvelut-local-only
@@ -103,6 +103,16 @@ services:
       - "127.0.0.1:8000:8080"
     volumes:
       - ./infra/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+
+  e2e:
+    build:
+      context: .
+      dockerfile: Dockerfile.e2e
+    depends_on:
+      nginx:
+        condition: service_started
+    ipc: host
+    profiles: ["e2e"]
 
 volumes:
   postgres_data:

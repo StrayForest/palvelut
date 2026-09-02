@@ -6,9 +6,12 @@ on:
       - "Makefile"
       - "compose.yml"
       - "Dockerfile"
+      - "Dockerfile.e2e"
       - ".dockerignore"
       - "pyproject.toml"
       - "uv.lock"
+      - "playwright.config.js"
+      - "e2e/**"
       - "palvelut/**"
       - "infra/nginx/**"
       - "infra/scripts/**"
@@ -52,6 +55,10 @@ jobs:
       - name: Run canonical non-browser test gate
         working-directory: repo
         run: make test
+
+      - name: Run canonical browser gate
+        working-directory: repo
+        run: make e2e
 
       - name: Run canonical disposable smoke gate
         working-directory: repo
