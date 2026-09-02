@@ -37,6 +37,14 @@
 - Local reset/seed commands must be project-scoped and refuse production-like settings.
 - GitHub Actions use read-only default permissions and full commit SHAs for third-party actions. Protect `main` with PRs, required green checks, resolved conversations, and blocked force-push/deletion after P0 creates the checks.
 
+## Task state discipline
+
+- Active `tasks/Px-*.md` files contain only unfinished work.
+- Implement one bounded atomic step at a time when the stage is larger than one reviewable change.
+- Archive a step under `tasks/archive/` only after its relevant checks pass on the exact head; then remove that completed step from the active task.
+- Archived records are historical evidence. They never replace unfinished acceptance criteria or stage-level gates.
+- Do not archive failed, partially verified, or merely planned work.
+
 ## Change discipline
 
 - One roadmap stage per branch/PR.
