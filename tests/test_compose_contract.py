@@ -33,9 +33,12 @@ class ComposeContractTests(unittest.TestCase):
 
     def test_runtime_dependencies_are_declared(self) -> None:
         project = tomllib.loads((self.root / "pyproject.toml").read_text())
-        deps = "\n".join(project["project"]["dependencies"]).lower()
+        dependencies = project["project"]["dependencies"]
+        deps = "\n".join(dependencies).lower()
         for dependency in ("celery", "gunicorn", "psycopg", "uvicorn-worker"):
             self.assertIn(dependency, deps)
+        uvicorn_worker = next(dep for dep in dependencies if dep.lower().startswith("uvicorn-worker"))
+        self.assertEqual(uvicorn_worker, "uvicorn-worker>=0.4,<0.5")
 
     def test_django_is_wired_to_postgres_valkey_mailpit_and_minio(self) -> None:
         self.assertEqual(settings.DATABASES["default"]["ENGINE"], "django.db.backends.postgresql")
