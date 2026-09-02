@@ -1,11 +1,12 @@
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Temporary bootstrap key only. Production environment validation is a later P0 step.
-SECRET_KEY = "p0-bootstrap-only-not-for-production"
-DEBUG = True
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "[::1]"]
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "p0-bootstrap-only-not-for-production")
+DEBUG = os.getenv("DJANGO_DEBUG", "1") == "1"
+ALLOWED_HOSTS = [host for host in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,[::1]").split(",") if host]
 
 DOMAIN_APPS = [
     "palvelut.apps.accounts.apps.AccountsConfig",
@@ -57,8 +58,38 @@ TEMPLATES = [
 WSGI_APPLICATION = "palvelut.wsgi.application"
 ASGI_APPLICATION = "palvelut.asgi.application"
 
-# Database wiring is deliberately deferred to the next P0 infrastructure step.
-DATABASES = {"default": {"ENGINE": "django.db.backends.dummy"}}
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("POSTGRES_DB", "palvelut"),
+        "USER": os.getenv("POSTGRES_USER", "palvelut"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD", "palvelut-local-only"),
+        "HOST": os.getenv("POSTGRES_HOST", "postgres"),
+        "PORT": int(os.getenv("POSTGRES_PORT", "5432")),
+    }
+}
+
+VALKEY_URL = os.getenv("VALKEY_URL", "redis://valkey:6379/0")
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": VALKEY_URL,
+    }
+}
+
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://valkey:6379/1")
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://valkey:6379/2")
+CELERY_TIMEZONE = "Europe/Helsinki"
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = os.getenv("EMAIL_HOST", "mailpit")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "1025"))
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "palvelut@local.invalid")
+
+OBJECT_STORAGE_ENDPOINT_URL = os.getenv("S3_ENDPOINT_URL", "http://minio:9000")
+OBJECT_STORAGE_ACCESS_KEY_ID = os.getenv("S3_ACCESS_KEY_ID", "palvelut-local")
+OBJECT_STORAGE_SECRET_ACCESS_KEY = os.getenv("S3_SECRET_ACCESS_KEY", "palvelut-local-only")
+OBJECT_STORAGE_BUCKET_NAME = os.getenv("S3_BUCKET_NAME", "palvelut-local")
 
 LANGUAGE_CODE = "en"
 TIME_ZONE = "Europe/Helsinki"
