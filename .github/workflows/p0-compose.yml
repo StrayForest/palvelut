@@ -38,32 +38,12 @@ jobs:
         working-directory: repo
         run: python3 -m pip install --disable-pip-version-check --no-input "uv==0.10.0"
 
-      - name: Resolve and verify Python dependencies
+      - name: Verify locked Python dependencies
         working-directory: repo
         run: |
-          uv lock --refresh
           uv lock --check
+          uv sync --locked
           uv run python -m unittest -v tests.test_bootstrap_contract tests.test_compose_contract
-          echo "UV_LOCK_BEGIN"
-          base64 -w0 uv.lock
-          echo
-          echo "UV_LOCK_END"
-
-      - name: Resolve container image digests
-        working-directory: repo
-        run: |
-          for image in \
-            python:3.13-slim \
-            postgres:18-alpine \
-            valkey/valkey:8-alpine \
-            nginx:alpine \
-            axllent/mailpit:latest \
-            quay.io/minio/minio:latest
-          do
-            docker pull "$image"
-            printf '%s -> ' "$image"
-            docker image inspect "$image" --format '{{index .RepoDigests 0}}'
-          done
 
       - name: Validate and exercise Compose stack
         working-directory: repo
@@ -87,7 +67,6 @@ jobs:
 
           docker compose run --rm web python manage.py migrate --noinput
           docker compose run --rm web python manage.py check
-          docker compose run --rm web python -c "import uvicorn_worker; print(uvicorn_worker.UvicornWorker)"
           docker compose run --rm web gunicorn --check-config -k uvicorn_worker.UvicornWorker --bind 0.0.0.0:8000 --workers 2 palvelut.asgi:application
           docker compose run --rm web python -c "from django.core.cache import cache; cache.set('p0-compose','ok',30); assert cache.get('p0-compose') == 'ok'"
           docker compose run --rm web python -c "from django.core.mail import send_mail; assert send_mail('P0 compose probe','ok',None,['dev@local.invalid']) == 1"
