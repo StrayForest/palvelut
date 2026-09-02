@@ -4,7 +4,6 @@ Read: `DECISIONS.md`, `docs/05-architecture.md`, `docs/06-quality.md`, `docs/07-
 
 ## Build
 
-- Bootstrap Python 3.13/Django 5.2 LTS with `uv` lock and apps matching domain modules.
 - Add PostgreSQL 18, Valkey 8.x, worker, Nginx and local mail/object-storage substitutes through Compose.
 - Add project-scoped `make bootstrap`, `make dev`, `make reset`, `make test`, `make e2e` and `make smoke`. CI calls only the last three non-interactive gates.
 - Document Windows 11 setup through WSL2 + Docker Desktop integration; keep the command path identical to Linux.
