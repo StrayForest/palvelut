@@ -3,6 +3,7 @@ name: Compose stack
 on:
   pull_request:
     paths:
+      - "Makefile"
       - "compose.yml"
       - "Dockerfile"
       - ".dockerignore"
@@ -10,7 +11,10 @@ on:
       - "uv.lock"
       - "palvelut/**"
       - "infra/nginx/**"
+      - "infra/scripts/**"
+      - "tests/test_bootstrap_contract.py"
       - "tests/test_compose_contract.py"
+      - "tests/test_make_contract.py"
       - "tasks/P0-foundation.md"
       - "tasks/archive/**"
       - ".github/workflows/p0-compose.yml"
@@ -38,87 +42,22 @@ jobs:
         working-directory: repo
         run: python3 -m pip install --disable-pip-version-check --no-input "uv==0.10.0"
 
-      - name: Verify locked Python dependencies
+      - name: Verify dependency and command contracts
         working-directory: repo
         run: |
           uv lock --check
           uv sync --locked
-          uv run python -m unittest -v tests.test_bootstrap_contract tests.test_compose_contract
+          uv run python -m unittest -v tests.test_bootstrap_contract tests.test_compose_contract tests.test_make_contract
 
-      - name: Validate and exercise Compose stack
+      - name: Run canonical non-browser test gate
         working-directory: repo
-        run: |
-          docker compose config >/tmp/palvelut-compose.yml
-          docker compose build web
-          docker compose up -d postgres valkey mailpit minio
+        run: make test
 
-          ready=0
-          for _ in $(seq 1 60); do
-            if docker compose exec -T postgres pg_isready -U palvelut -d palvelut >/dev/null \
-              && test "$(docker compose exec -T valkey valkey-cli ping | tr -d '\r')" = "PONG" \
-              && curl -fsS http://127.0.0.1:8025/ >/dev/null \
-              && curl -fsS http://127.0.0.1:9000/minio/health/live >/dev/null; then
-              ready=1
-              break
-            fi
-            sleep 2
-          done
-          test "$ready" = "1"
-
-          docker compose run --rm web python manage.py migrate --noinput
-          docker compose run --rm web python manage.py check
-          docker compose run --rm web gunicorn --check-config -k uvicorn_worker.UvicornWorker --bind 0.0.0.0:8000 --workers 2 palvelut.asgi:application
-          docker compose run --rm web python -c "from django.core.cache import cache; cache.set('p0-compose','ok',30); assert cache.get('p0-compose') == 'ok'"
-          docker compose run --rm web python -c "from django.core.mail import send_mail; assert send_mail('P0 compose probe','ok',None,['dev@local.invalid']) == 1"
-          curl -fsS http://127.0.0.1:8025/api/v1/messages | grep -q "P0 compose probe"
-
-          docker compose up -d web
-          web_ready=0
-          for _ in $(seq 1 30); do
-            if test "$(docker inspect -f '{{.State.Running}}' palvelut-web-1 2>/dev/null || true)" != "true"; then
-              docker compose logs --no-color web
-              exit 1
-            fi
-            if test "$(docker inspect -f '{{.State.Health.Status}}' palvelut-web-1 2>/dev/null || true)" = "healthy"; then
-              web_ready=1
-              break
-            fi
-            sleep 2
-          done
-          if test "$web_ready" != "1"; then
-            docker compose logs --no-color web
-            exit 1
-          fi
-
-          docker compose up -d worker
-          sleep 3
-          if ! docker compose ps worker --status running --services | grep -x worker; then
-            docker compose logs --no-color worker
-            exit 1
-          fi
-
-          docker compose up -d nginx
-          nginx_ready=0
-          for _ in $(seq 1 30); do
-            status="$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/ || true)"
-            case "$status" in
-              2??|3??|404)
-                nginx_ready=1
-                break
-                ;;
-            esac
-            sleep 2
-          done
-          if test "$nginx_ready" != "1"; then
-            docker compose logs --no-color web nginx
-            exit 1
-          fi
-
-          docker compose exec -T postgres psql -U palvelut -d palvelut -Atc "show server_version;" | grep -E '^18\.'
-          docker compose exec -T valkey valkey-cli INFO server | tr -d '\r' | grep -E '^valkey_version:8\.'
-          docker compose ps
+      - name: Run canonical disposable smoke gate
+        working-directory: repo
+        run: make smoke
 
       - name: Cleanup Compose stack
         if: always()
         working-directory: repo
-        run: docker compose down -v --remove-orphans
+        run: docker compose --project-name palvelut down -v --remove-orphans
