@@ -16,7 +16,7 @@ reset:
 
 test:
 	$(COMPOSE) build web
-	$(COMPOSE) run --rm --no-deps web python -m unittest discover -s tests -p 'test_*.py' -v
+	$(COMPOSE) run --rm --no-deps -v "$(CURDIR):/workspace:ro" -w /workspace web python -m unittest discover -s tests -p 'test_*.py' -v
 
 smoke:
 	bash infra/scripts/smoke.sh
