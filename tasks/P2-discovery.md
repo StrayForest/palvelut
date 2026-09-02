@@ -5,6 +5,7 @@ Depends: P1. Read: `docs/03-experience.md`, `docs/04-design.md`, `docs/05-archit
 ## Build
 
 - Home, city/category landing, normalized search, result cards and provider profile.
+- Serve every surface at canonical `/palvelut/{locale}/...` routes with the same prefix in local/proxy tests.
 - Category/city/language/service-mode filters, typo-tolerant synonyms and honest empty alternatives.
 - Structured contact redirect with server-side destination resolution and minimal event.
 - Canonicals, hreflang, sitemap, robots, structured data, old-slug redirects and thin-page noindex rule.
@@ -17,7 +18,8 @@ Depends: P1. Read: `docs/03-experience.md`, `docs/04-design.md`, `docs/05-archit
 - No unpublished/suspended provider appears in HTML, schema, sitemap or cache.
 - Ranking is deterministic/tested; arbitrary filter pages are not indexed.
 - Meets performance budgets with beta-sized fixtures.
+- PR evidence includes the required home/results/empty/profile screenshots at 360, 768 and 1440px and passes the design review checklist.
 
 ## Gates
 
-Search relevance fixtures, SQL/query-plan checks, cache isolation tests, metadata/schema tests, Playwright at required widths, axe, Lighthouse and warm/cold load smoke.
+Search relevance fixtures, SQL/query-plan checks, cache isolation tests, metadata/schema tests, Playwright at required widths, retained visual evidence, axe, Lighthouse and warm/cold load smoke.

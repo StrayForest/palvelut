@@ -2,7 +2,7 @@
 
 ## Security baseline
 
-Use OWASP ASVS Level 2 as the release checklist.
+Use OWASP ASVS 5.0.0 Level 2 as the release checklist. References to individual controls include the version, for example `v5.0.0-1.2.5`.
 
 - HTTPS only; HSTS after domain validation; strict allowed hosts and origin checks.
 - HttpOnly, Secure, SameSite cookies; CSRF on every state change; session rotation on auth changes.
@@ -13,6 +13,7 @@ Use OWASP ASVS Level 2 as the release checklist.
 - Images only: byte-signature check, decode/re-encode, metadata removal, pixel/size limits.
 - Append-only security/moderation audit trail with actor, target, action, time and request ID.
 - Daily database backups, encrypted off-site copies, monthly restore test.
+- GitHub Actions default to `contents: read`; elevate per job only when required. Pin third-party actions to full commit SHAs and container images to immutable digests.
 
 Run `manage.py check --deploy` in CI against production-like settings.
 
@@ -64,6 +65,8 @@ Budgets are CI/release gates, not aspirations. Test with production-like images 
 Every request has a request ID and structured log. Dashboards cover traffic, latency, errors, cache hit ratio, DB pool/slow queries, queue age/failures, email delivery, media failures and backups. Alerts must point to a runbook and avoid personal data.
 
 Business funnel: `search_submitted → results_viewed → profile_viewed → contact_clicked`. Also track `zero_results`, onboarding completion, moderation time, profile freshness and provider-reported genuine enquiries.
+
+Session, geography, bot filtering, contact deduplication, genuine enquiry and user sample are defined in `docs/01-product.md`. Event schema versions are immutable; dashboards show the rule/schema version and exclude staff, synthetic and health-check traffic. Raw events must reconcile to daily aggregates within 0.5% before a P6 decision.
 
 ## References
 

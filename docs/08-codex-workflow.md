@@ -8,7 +8,17 @@ Use this prompt, replacing the stage:
 
 ## Review a stage
 
-> Review the current PR against its `tasks/Px-*.md`, `DECISIONS.md`, security, privacy, SEO, accessibility, cache safety, migrations and rollback. Reproduce the gates. Report blockers with evidence; do not add features.
+Start a fresh Codex session without the implementer's rationale:
+
+> Use `$palvelut-review` to review exact PR head `<SHA>` against its `tasks/Px-*.md`, `DECISIONS.md`, security, privacy, SEO, accessibility, cache safety, migrations and rollback. Inspect the diff first and reproduce every gate. Report blockers with evidence; do not fix or add features.
+
+A self-review may catch defects but does not count as independent approval. Review is stale after any new commit and must be rerun on the new head.
+
+## Correct foundation contracts
+
+Use only when the user explicitly requests a bounded correction:
+
+> Correct the named foundation contract in one PR. Change only affected decisions/docs/tasks/skills, validate all links and skills, then review the exact diff in a fresh session. Do not start product implementation.
 
 ## Close a stage
 
@@ -20,5 +30,5 @@ Read the current task, decisions and only docs linked by that task. Search code 
 
 Repository skills:
 
-- `$palvelut-build` implements one bounded stage.
+- `$palvelut-build` implements one bounded stage or explicitly requested foundation correction.
 - `$palvelut-review` independently evaluates a stage/PR.

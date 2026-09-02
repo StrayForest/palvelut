@@ -53,3 +53,7 @@ Status and next required action first. Use a progress checklist, autosaved draft
 ## Responsive/accessibility checks
 
 Required widths: 360, 390, 768, 1024, 1440. Support 200% zoom, keyboard-only use, reduced motion, screen-reader labels, RU/FI text expansion and error summaries. Target WCAG 2.2 AA.
+
+## Visual acceptance
+
+P2 PRs retain full-page screenshots for home, results, empty state, profile and provider CTA at 360, 768 and 1440px. Review against this document for hierarchy, token use, text expansion, focus/error states, image treatment and horizontal overflow. A fresh review session must approve the evidence; pixel-perfect snapshots are not a substitute for accessibility or responsive checks.
