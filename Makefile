@@ -12,11 +12,11 @@ dev:
 	$(COMPOSE) up --build
 
 reset:
-	./infra/scripts/reset-local.sh
+	bash infra/scripts/reset-local.sh
 
 test:
 	$(COMPOSE) build web
 	$(COMPOSE) run --rm --no-deps web python -m unittest discover -s tests -p 'test_*.py' -v
 
 smoke:
-	./infra/scripts/smoke.sh
+	bash infra/scripts/smoke.sh
