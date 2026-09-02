@@ -4,7 +4,6 @@ Read: `DECISIONS.md`, `docs/05-architecture.md`, `docs/06-quality.md`, `docs/07-
 
 ## Build
 
-- Document Windows 11 setup through WSL2 + Docker Desktop integration; keep the command path identical to Linux.
 - Add Tailwind build, HTMX, minimal Alpine.js, RU/FI/EN i18n skeleton and accessible base layout.
 - Own local and production routes under `/palvelut/{locale}/` in Django's root URLconf; test prefix-preserving proxy behaviour, static URLs, redirects, cookies, canonical and hreflang generation.
 - Add environment validation, `/palvelut/health/live`, `/palvelut/health/ready`, JSON logs and request IDs.
