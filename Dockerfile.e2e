@@ -1,0 +1,11 @@
+# Playwright 1.62.1 on Ubuntu 24.04 (Noble), resolved 2026-09-03; digest is authoritative.
+FROM mcr.microsoft.com/playwright:v1.62.1-noble@sha256:dcc5531e97840b9b5e794f2814476b21571c5124a3fca2267d73041f56e7580e
+
+WORKDIR /tests
+
+RUN npm install --global --omit=optional "@playwright/test@1.62.1"
+
+COPY playwright.config.js ./
+COPY e2e ./e2e
+
+CMD ["playwright", "test"]
