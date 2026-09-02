@@ -1,17 +1,9 @@
 name: P0 bootstrap verify
 
 on:
-  pull_request:
-    paths:
-      - ".python-version"
-      - "pyproject.toml"
-      - "uv.lock"
-      - "manage.py"
-      - "palvelut/**"
-      - "tests/**"
-      - "tasks/P0-foundation.md"
-      - "tasks/archive/P0-01-django-bootstrap.md"
-      - ".github/workflows/p0-bootstrap-verify.yml"
+  push:
+    branches:
+      - "codex/p0-bootstrap"
 
 permissions:
   contents: read
@@ -19,15 +11,13 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-24.04
-    env:
-      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
     steps:
-      - name: Fetch exact PR head
+      - name: Fetch exact branch head
         run: |
           git init repo
           cd repo
           git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
-          git fetch --depth=1 origin "${HEAD_SHA}"
+          git fetch --depth=1 origin "${GITHUB_SHA}"
           git checkout --detach FETCH_HEAD
 
       - name: Install pinned uv
@@ -41,7 +31,7 @@ jobs:
           uv sync --locked
           .venv/bin/python manage.py check
           .venv/bin/python -m unittest -v tests.test_bootstrap_contract
-          python -m compileall -q manage.py palvelut tests
+          .venv/bin/python -m compileall -q manage.py palvelut tests
 
       - name: Emit generated lock
         working-directory: repo
