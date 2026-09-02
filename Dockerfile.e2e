@@ -3,9 +3,10 @@ FROM mcr.microsoft.com/playwright:v1.62.1-noble@sha256:dcc5531e97840b9b5e794f281
 
 WORKDIR /tests
 
-RUN npm install --global --omit=optional "@playwright/test@1.62.1"
+RUN npm init -y >/dev/null \
+    && npm install --omit=optional --save-exact "@playwright/test@1.62.1"
 
 COPY playwright.config.js ./
 COPY e2e ./e2e
 
-CMD ["playwright", "test"]
+CMD ["./node_modules/.bin/playwright", "test"]
