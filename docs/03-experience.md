@@ -3,7 +3,7 @@
 ## Information architecture
 
 ```text
-/{locale}/
+/palvelut/{locale}/
 ├── services/{category}/
 ├── {city}/{category}/
 ├── professionals/{provider-slug}/
@@ -14,7 +14,7 @@
 └── account/{login,onboarding,profile,analytics}/
 ```
 
-Only `/{city}/{category}/` pages meeting the supply/content threshold are indexed. Arbitrary search/filter URLs are canonicalized or `noindex,follow`.
+Canonical origin is `https://finrix.fi`; the Django app is mounted at `/palvelut`. Only `/{city}/{category}/` pages inside that mount meeting the supply/content threshold are indexed. Arbitrary search/filter URLs are canonicalized or `noindex,follow`.
 
 ## Public journey
 
@@ -48,7 +48,7 @@ Never show a generic `Verified professional` badge. Examples: `Y-tunnus found in
 ## Provider onboarding
 
 1. Verify email and accept provider terms.
-2. Choose individual/company; enter Y-tunnus when applicable.
+2. Choose individual/company and satisfy the provider eligibility contract.
 3. Add category, cities, remote/on-site mode and languages.
 4. Add public identity, description, prices, photos and contacts.
 5. Preview exact public page.
@@ -56,6 +56,10 @@ Never show a generic `Verified professional` badge. Examples: `Y-tunnus found in
 7. Publish or return structured corrections.
 
 Edits to a live profile create a pending revision; the current approved version remains public.
+
+## Claim an existing draft
+
+Imported records are never public. A provider signs in, selects the draft, and proves control through registry signatory evidence, a matching business-domain email, or staff-reviewed equivalent. Staff compares legal identity, records evidence metadata, approves/rejects, and audits every transition. Email possession alone never transfers ownership.
 
 ## Empty states
 

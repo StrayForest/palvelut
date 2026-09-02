@@ -4,16 +4,16 @@ Snapshot: 2026-09-02. Facts can age; verify them before changing strategy.
 
 ## What strong MVPs did
 
-| Example | Early behaviour | Rule for Palvelut |
+| Example | Verified early implementation/structure | Rule for Palvelut |
 |---|---|---|
-| Airbnb | Started around one constrained event; its 2008 launch produced 80 bookings. | Prove one geography/use case before national breadth. |
-| DoorDash | Founders delivered themselves using Google Voice, Find My Friends and cars. | Manual recruitment/moderation is valid until repeatable demand exists. |
-| YC guidance | Recruit and delight early users with work that does not scale. | Personally onboard the first 50 providers and interview users. |
-| Shopify | Chose a modular monolith to gain boundaries without many deploy units. | Separate domains inside one deployable application. |
-| GitHub | Its Rails monolith grew to ~2M lines and 1,000+ engineers. | Do not introduce microservices for hypothetical scale. |
-| Basecamp | Shapes bounded work and uses fixed time with variable scope. | Each roadmap stage has exclusions and a hard acceptance gate. |
+| Airbnb | Constrained event launch; company timeline records 80 bookings in 2008. The cited source does not establish an exact early stack. | Prove one geography/use case; do not repeat unsupported stack folklore. |
+| DoorDash | Founders were the delivery operation, using Google Voice, Find My Friends and their cars. | Manual provider recruitment/moderation is valid until demand repeats. |
+| YC guidance | Founders recruit and delight early users with work that does not scale. | Personally onboard the first 50 providers and interview users. |
+| Shopify | Public engineering history shows a Rails monolith later divided into explicit components. | One deployable modular monolith; enforce domain boundaries in code. |
+| GitHub | Public engineering history shows a long-lived Rails monolith at very large team/code scale. | Microservices are not a prerequisite for growth. |
+| Basecamp | Bounded scopes, fixed time and variable optional scope. | Each roadmap stage has exclusions and a hard acceptance gate. |
 
-The transferable pattern is narrow demand, manual learning, simple architecture, explicit boundaries and measurement—not copying an old company's exact framework version.
+The evidence supports narrow demand, manual learning, simple deploys, explicit boundaries and measurement. Historical framework versions are not selection criteria. Palvelut uses current supported Django/PostgreSQL releases because they fit server-rendered discovery, admin-heavy moderation, SEO and a solo team.
 
 ## Competitive audit
 
@@ -21,7 +21,8 @@ The transferable pattern is narrow demand, manual learning, simple architecture,
 |---|---|---|
 | Google Maps/Search | Reach, maps, reviews, SEO | No reliable Russian-language/service-mode filter. |
 | Facebook/Telegram | Existing Russian-speaking supply | Poor structured comparison, freshness and verification. |
-| ServiceMap | Closest product: city/category/language, profiles and booking | On snapshot: only 16 businesses/8 cities/25 categories; adds requests/booking and hides direct contacts on Free. |
+| ServiceMap | Closest product: city/category/language, profiles and booking | Snapshot: 16 businesses/8 cities/25 used categories; adds requests/booking, while Free hides direct contacts and Pro costs €15/month. |
+| Yelp | Mature directory and provider-claim model | Reuse clear profile ownership/editing patterns; defer its review/advertising complexity. |
 | Remppatori/Urakkamaailma | Rich profiles and social proof | Focused on renovation and marketplace workflows, not language-first discovery. |
 | Thumbtack/Teot | Mature trust and transaction patterns | Their lead/order model is outside our scope; reuse only profile/trust UX lessons. |
 
@@ -43,7 +44,10 @@ The transferable pattern is narrow demand, manual learning, simple architecture,
 - [GitHub: Building GitHub with Ruby and Rails](https://github.blog/engineering/architecture-optimization/building-github-with-ruby-and-rails/)
 - [Basecamp Shape Up](https://basecamp.com/shapeup)
 - [ServiceMap product](https://servicemap.fi/) and [pricing](https://servicemap.fi/pricing/)
+- [Yelp business resources](https://business.yelp.com/resources/)
 - [Urakkamaailma provider fee](https://www.urakkamaailma.fi/palvelumaksu-urakoitsijalle)
 - [PRH/YTJ open data](https://www.ytj.fi/en/index/opendata.html)
 - [YTJ company search fields](https://www.ytj.fi/en/index/companysearch.html)
 - [Valvira JulkiTerhikki](https://julkiterhikki.valvira.fi/)
+- [Django 5.2 deployment documentation](https://docs.djangoproject.com/en/5.2/howto/deployment/)
+- [PostgreSQL 18 UUID functions](https://www.postgresql.org/docs/18/functions-uuid.html)

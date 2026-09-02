@@ -19,7 +19,16 @@ The product shortens `need → compare → direct contact`. It does not particip
 - Geography: Helsinki, Espoo, Vantaa.
 - Supply target: 8 high-intent categories first—accounting, legal, car repair, renovation, electrical, plumbing, psychology, massage/physiotherapy.
 - Demand: Russian-speaking residents; Finnish-speaking relatives/employers may use FI pages later.
-- Supply: solo professionals and companies legally offering services in Finland.
+- Supply: owner-confirmed solo professionals and companies legally offering services in Finland under the eligibility contract below.
+
+## Provider eligibility
+
+- A commercial provider needs an active Finnish Y-tunnus and a public legal identity matching YTJ/PRH.
+- Russian must be a provider-declared service language; the UI labels it as declared unless separately evidenced.
+- An employed regulated professional may list only with verified identity, applicable official professional right, and employer authorization.
+- Regulated services publish only after the applicable register/source is reviewed; an unavailable source produces no positive label.
+- Staff-created/imported records stay non-public and `unclaimed` until a provider proves control and staff approves the claim.
+- Informal, anonymous, prohibited, suspended, or unverifiable providers are not published. Policy/legal uncertainty blocks publication.
 
 ## Value
 
@@ -69,7 +78,7 @@ Reviews/ratings, user accounts, favourites, chat, leads, requests, quotes, booki
 Before public launch:
 
 - 50 published providers;
-- at least 5 providers in each of 8 priority category/area clusters;
+- at least 5 providers in each of the 8 priority categories across the Helsinki–Espoo–Vantaa launch metro, with each category serving at least two launch cities;
 - 100% published profiles manually reviewed and owner-confirmed;
 - no indexed zero-result/thin page.
 
@@ -82,3 +91,12 @@ Thirty days after launch, continue only if:
 - at least 60% of sampled users say the catalog reduced search effort.
 
 If traffic is low, test distribution before changing product. If traffic is adequate but contacts are low, fix density/trust/UX before adding features.
+
+### Metric definitions
+
+- `Discovery session`: non-bot public visit containing home, results, or profile view; an opaque first-party ID expires after 30 minutes of inactivity and is never joined to an account or fingerprint.
+- `Finland-based`: Cloudflare country signal equals `FI`; retain only event/aggregate country, never IP. Local/CI use a deterministic fixture.
+- `Search session`: a discovery session with at least one normalized search; contact conversion deduplicates `(session, provider, channel)` for 30 minutes.
+- `Genuine enquiry`: distinct provider-confirmed customer enquiry attributable to a tracked contact, not a completed job.
+- `Sampled users`: at least 20 non-provider, non-staff respondents recruited through more than one channel.
+- Bot exclusion uses Cloudflare verified-bot data plus a versioned user-agent list; the applied rule version is recorded with aggregates.

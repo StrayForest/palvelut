@@ -24,4 +24,4 @@ Production-first каталог специалистов, с которыми м
 
 ## Статус
 
-Foundation approved; implementation not started. Следующий этап: `P0`.
+Foundation corrected and audited on 2026-09-02; implementation not started. Следующий этап: `P0`.
