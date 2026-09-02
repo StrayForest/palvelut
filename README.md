@@ -18,7 +18,8 @@ Production-first каталог специалистов, с которыми м
 3. [docs/03-experience.md](docs/03-experience.md) — страницы и сценарии.
 4. [docs/05-architecture.md](docs/05-architecture.md) — система и данные.
 5. [docs/06-quality.md](docs/06-quality.md) — security, SEO, performance и QA.
-6. [ROADMAP.md](ROADMAP.md) и `tasks/` — порядок реализации.
+6. [docs/09-development.md](docs/09-development.md) — локальная разработка на Linux и Windows 11 через WSL2.
+7. [ROADMAP.md](ROADMAP.md) и `tasks/` — порядок реализации.
 
 Для работы Codex начни с [AGENTS.md](AGENTS.md) и читай только документ текущего этапа.
 
