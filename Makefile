@@ -1,6 +1,6 @@
 COMPOSE := docker compose --project-name palvelut
 
-.PHONY: bootstrap dev reset test smoke
+.PHONY: bootstrap dev reset test e2e smoke
 
 bootstrap:
 	@command -v docker >/dev/null || { echo "Docker is required" >&2; exit 1; }
@@ -17,6 +17,9 @@ reset:
 test:
 	$(COMPOSE) build web
 	$(COMPOSE) run --rm --no-deps -v "$(CURDIR):/workspace:ro" -w /workspace web python -m unittest discover -s tests -p 'test_*.py' -v
+
+e2e:
+	bash infra/scripts/e2e.sh
 
 smoke:
 	bash infra/scripts/smoke.sh
