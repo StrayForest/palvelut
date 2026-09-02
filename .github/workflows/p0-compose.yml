@@ -122,10 +122,12 @@ jobs:
           nginx_ready=0
           for _ in $(seq 1 30); do
             status="$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/ || true)"
-            if test "$status" = "404"; then
-              nginx_ready=1
-              break
-            fi
+            case "$status" in
+              2??|3??|404)
+                nginx_ready=1
+                break
+                ;;
+            esac
             sleep 2
           done
           if test "$nginx_ready" != "1"; then
