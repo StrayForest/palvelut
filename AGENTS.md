@@ -27,6 +27,14 @@
 - UI text is localized; code, identifiers, logs, and technical docs are English. Product docs may be Russian.
 - Never claim completion without running the gates in the current task and reporting exact failures.
 
+## Local and CI contract
+
+- Canonical targets are `make dev`, `make test`, `make e2e`, `make reset`, and, from P1 onward, `make seed-demo`; document them and make CI call the same targets.
+- Every P0–P4 completion gate must run locally and in GitHub Actions without staging, production, SSH, or persistent external infrastructure. Use pinned disposable services and deterministic fakes/fixtures.
+- CI starts fresh PostgreSQL 18 and Valkey 8.x state for each run; no shared database, cache, credentials, or production data.
+- Browser CI retains its HTML report and failure screenshots, traces, and console logs as GitHub Actions artifacts.
+- Local reset/seed commands must be project-scoped and refuse production-like settings.
+
 ## Change discipline
 
 - One roadmap stage per branch/PR.
