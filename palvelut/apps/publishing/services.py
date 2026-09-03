@@ -32,8 +32,14 @@ def revision_diff(revision: ProfileRevision) -> dict[str, dict[str, Any]]:
 
 
 @transaction.atomic
-def approve_revision(*, revision: ProfileRevision, actor: AbstractBaseUser) -> ProfileRevision:
-    revision = ProfileRevision.objects.select_for_update().select_related("provider").get(pk=revision.pk)
+def approve_revision(
+    *, revision: ProfileRevision, actor: AbstractBaseUser
+) -> ProfileRevision:
+    revision = (
+        ProfileRevision.objects.select_for_update()
+        .select_related("provider")
+        .get(pk=revision.pk)
+    )
     provider = Provider.objects.select_for_update().get(pk=revision.provider_id)
 
     if revision.status != ProfileRevision.Status.PENDING:
@@ -52,7 +58,9 @@ def approve_revision(*, revision: ProfileRevision, actor: AbstractBaseUser) -> P
     revision.reviewed_at = timezone.now()
     revision.save(update_fields=("status", "reviewed_at"))
 
-    provider, previous = set_provider_lifecycle(provider=provider, lifecycle=Provider.Lifecycle.PUBLISHED)
+    provider, previous = set_provider_lifecycle(
+        provider=provider, lifecycle=Provider.Lifecycle.PUBLISHED
+    )
     record_audit(
         actor=actor,
         provider=provider,
@@ -63,8 +71,14 @@ def approve_revision(*, revision: ProfileRevision, actor: AbstractBaseUser) -> P
 
 
 @transaction.atomic
-def request_revision_changes(*, revision: ProfileRevision, actor: AbstractBaseUser) -> ProfileRevision:
-    revision = ProfileRevision.objects.select_for_update().select_related("provider").get(pk=revision.pk)
+def request_revision_changes(
+    *, revision: ProfileRevision, actor: AbstractBaseUser
+) -> ProfileRevision:
+    revision = (
+        ProfileRevision.objects.select_for_update()
+        .select_related("provider")
+        .get(pk=revision.pk)
+    )
     provider = Provider.objects.select_for_update().get(pk=revision.provider_id)
     if revision.status != ProfileRevision.Status.PENDING:
         raise ValidationError("Only pending revisions can request changes")
