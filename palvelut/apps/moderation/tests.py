@@ -28,7 +28,9 @@ class StaffModerationServiceTests(TestCase):
             legal_name="Example Oy",
             display_name="Example",
             claim_status=(
-                Provider.ClaimStatus.APPROVED if claimed else Provider.ClaimStatus.UNCLAIMED
+                Provider.ClaimStatus.APPROVED
+                if claimed
+                else Provider.ClaimStatus.UNCLAIMED
             ),
         )
 
@@ -44,7 +46,11 @@ class StaffModerationServiceTests(TestCase):
         provider = self._provider()
         revision = self._revision(provider)
 
-        result = moderate_provider(provider_id=provider.pk, actor=self.staff, action="approve")
+        result = moderate_provider(
+            provider_id=provider.pk,
+            actor=self.staff,
+            action="approve",
+        )
 
         provider.refresh_from_db()
         revision.refresh_from_db()
@@ -60,8 +66,15 @@ class StaffModerationServiceTests(TestCase):
         provider = self._provider(claimed=False)
         revision = self._revision(provider)
 
-        with self.assertRaisesMessage(ValidationError, "Only an approved claim can be published"):
-            moderate_provider(provider_id=provider.pk, actor=self.staff, action="approve")
+        with self.assertRaisesMessage(
+            ValidationError,
+            "Only an approved claim can be published",
+        ):
+            moderate_provider(
+                provider_id=provider.pk,
+                actor=self.staff,
+                action="approve",
+            )
 
         provider.refresh_from_db()
         revision.refresh_from_db()
@@ -72,7 +85,11 @@ class StaffModerationServiceTests(TestCase):
         provider = self._provider()
         revision = self._revision(provider)
 
-        moderate_provider(provider_id=provider.pk, actor=self.staff, action="request_changes")
+        moderate_provider(
+            provider_id=provider.pk,
+            actor=self.staff,
+            action="request_changes",
+        )
 
         provider.refresh_from_db()
         revision.refresh_from_db()
@@ -91,19 +108,30 @@ class StaffModerationServiceTests(TestCase):
         provider.lifecycle = Provider.Lifecycle.PENDING
         provider.save(update_fields=("lifecycle", "updated_at"))
 
-        moderate_provider(provider_id=provider.pk, actor=self.staff, action="suspend")
+        moderate_provider(
+            provider_id=provider.pk,
+            actor=self.staff,
+            action="suspend",
+        )
 
         provider.refresh_from_db()
         self.assertEqual(provider.lifecycle, Provider.Lifecycle.SUSPENDED)
         event = AuditEvent.objects.get(provider=provider, action="provider.suspended")
-        self.assertEqual(event.metadata["previous_lifecycle"], Provider.Lifecycle.PENDING)
+        self.assertEqual(
+            event.metadata["previous_lifecycle"],
+            Provider.Lifecycle.PENDING,
+        )
 
     def test_non_staff_cannot_moderate(self) -> None:
         provider = self._provider()
         self._revision(provider)
 
         with self.assertRaises(PermissionDenied):
-            moderate_provider(provider_id=provider.pk, actor=self.user, action="approve")
+            moderate_provider(
+                provider_id=provider.pk,
+                actor=self.user,
+                action="approve",
+            )
 
 
 class StaffAdminRegistrationTests(TestCase):
