@@ -17,7 +17,7 @@ class StaffWorkflowTests(TestCase):
         self.staff = user_model.objects.create_superuser(
             username="staff",
             email="staff@example.invalid",
-            password="test-password",
+            password="test-password",  # test-only
         )
         self.owner = user_model.objects.create_user(username="owner")
         self.provider = Provider.objects.create(
@@ -111,12 +111,12 @@ class StaffAdminPermissionTests(TestCase):
         user_model = get_user_model()
         regular = user_model.objects.create_user(
             username="regular",
-            password="test-password",
+            password="test-password",  # test-only
         )
         staff = user_model.objects.create_superuser(
             username="admin",
             email="admin@example.invalid",
-            password="test-password",
+            password="test-password",  # test-only
         )
 
         self.client.force_login(regular)
