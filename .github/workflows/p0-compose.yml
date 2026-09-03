@@ -276,6 +276,12 @@ jobs:
           docker compose --project-name "$COMPOSE_PROJECT_NAME" run --rm web \
             python manage.py test palvelut.apps.taxonomy --verbosity 2
 
+      - name: Run staff admin workflow tests
+        working-directory: repo
+        run: |
+          docker compose --project-name "$COMPOSE_PROJECT_NAME" run --rm web \
+            python manage.py test palvelut.apps.moderation --verbosity 2
+
       - name: Run Django deploy checks
         working-directory: repo
         run: |
