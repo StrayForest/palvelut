@@ -1,5 +1,4 @@
 import os
-import unittest
 from pathlib import Path
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "palvelut.settings")
@@ -9,10 +8,11 @@ import django
 django.setup()
 
 from django.conf import settings
-from django.test import Client
+from django.test import Client, SimpleTestCase, override_settings
 
 
-class RoutingContractTests(unittest.TestCase):
+@override_settings(ALLOWED_HOSTS=["testserver"])
+class RoutingContractTests(SimpleTestCase):
     def setUp(self):
         self.client = Client()
 
@@ -29,16 +29,12 @@ class RoutingContractTests(unittest.TestCase):
     def test_static_url_keeps_public_mount_prefix(self):
         self.assertEqual(settings.STATIC_URL, "/palvelut/static/")
         response = self.client.get("/palvelut/en/")
-        self.assertContains(response, '/palvelut/static/css/app.css')
-        self.assertContains(response, '/palvelut/static/vendor/htmx.min.js')
-        self.assertContains(response, '/palvelut/static/vendor/alpine.min.js')
+        self.assertContains(response, "/palvelut/static/css/app.css")
+        self.assertContains(response, "/palvelut/static/vendor/htmx.min.js")
+        self.assertContains(response, "/palvelut/static/vendor/alpine.min.js")
 
     def test_nginx_proxy_does_not_rewrite_public_prefix(self):
         config = Path("infra/nginx/default.conf").read_text()
         self.assertIn("proxy_pass http://web:8000;", config)
         self.assertNotIn("rewrite ", config)
         self.assertNotIn("proxy_pass http://web:8000/;", config)
-
-
-if __name__ == "__main__":
-    unittest.main()
