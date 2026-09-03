@@ -4,8 +4,6 @@ Read: `DECISIONS.md`, `docs/05-architecture.md`, `docs/06-quality.md`, `docs/07-
 
 ## Build
 
-- Add `.env.example` containing placeholder configuration only.
-
 ## Accept
 
 - `make dev` starts the complete clean local environment without a separately provisioned server.
