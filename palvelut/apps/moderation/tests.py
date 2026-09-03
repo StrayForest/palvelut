@@ -30,9 +30,7 @@ class StaffAdminWorkflowTests(TestCase):
             password="test-only-password",
         )
 
-    def create_provider(
-        self, *, lifecycle: str = Provider.Lifecycle.UNCLAIMED
-    ) -> Provider:
+    def create_provider(self, *, lifecycle: str = "unclaimed") -> Provider:
         return Provider.objects.create(
             provider_type=Provider.Type.BUSINESS,
             lifecycle=lifecycle,
@@ -110,7 +108,7 @@ class StaffAdminWorkflowTests(TestCase):
         )
 
     def test_owner_confirmed_staff_created_provider_can_publish(self) -> None:
-        provider = self.create_provider(lifecycle=Provider.Lifecycle.DRAFT)
+        provider = self.create_provider(lifecycle="draft")
         ProviderMembership.objects.create(
             provider=provider,
             account=self.owner,
@@ -132,7 +130,7 @@ class StaffAdminWorkflowTests(TestCase):
     def test_pending_edit_diff_and_changes_request_leave_approved_revision_live(
         self,
     ) -> None:
-        provider = self.create_provider(lifecycle=Provider.Lifecycle.PUBLISHED)
+        provider = self.create_provider(lifecycle="published")
         ProviderMembership.objects.create(
             provider=provider,
             account=self.owner,
@@ -166,10 +164,10 @@ class StaffAdminWorkflowTests(TestCase):
         self.assertEqual(provider.lifecycle, Provider.Lifecycle.CHANGES_REQUESTED)
 
     def test_suspend_and_duplicate_merge_are_audited_and_deterministic(self) -> None:
-        first = self.create_provider(lifecycle=Provider.Lifecycle.DRAFT)
+        first = self.create_provider(lifecycle="draft")
         first.display_name = "First"
         first.save(update_fields=("display_name", "updated_at"))
-        second = self.create_provider(lifecycle=Provider.Lifecycle.DRAFT)
+        second = self.create_provider(lifecycle="draft")
         second.display_name = "Second"
         second.save(update_fields=("display_name", "updated_at"))
 
