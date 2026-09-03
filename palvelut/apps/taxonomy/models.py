@@ -87,6 +87,58 @@ class Category(UuidV7Model):
         return self.name
 
 
+class CategoryLabel(UuidV7Model):
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.CASCADE,
+        related_name="labels",
+    )
+    locale = models.CharField(max_length=2)
+    label = models.CharField(max_length=120)
+
+    class Meta:
+        ordering = ("category_id", "locale")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(locale__in=("ru", "fi", "en")),
+                name="taxonomy_category_label_supported_locale",
+            ),
+            models.UniqueConstraint(
+                fields=("category", "locale"),
+                name="taxonomy_category_label_locale_unique",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.category.slug}/{self.locale} — {self.label}"
+
+
+class CategorySynonym(UuidV7Model):
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.CASCADE,
+        related_name="synonyms",
+    )
+    locale = models.CharField(max_length=2)
+    value = models.CharField(max_length=120)
+
+    class Meta:
+        ordering = ("category_id", "locale", "value")
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(locale__in=("ru", "fi", "en")),
+                name="taxonomy_category_synonym_supported_locale",
+            ),
+            models.UniqueConstraint(
+                fields=("category", "locale", "value"),
+                name="taxonomy_category_synonym_unique",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.category.slug}/{self.locale} — {self.value}"
+
+
 class Language(UuidV7Model):
     code = models.CharField(max_length=16, unique=True)
     name = models.CharField(max_length=120)
