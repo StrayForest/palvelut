@@ -13,9 +13,7 @@ from palvelut.apps.verification.models import ProviderClaim
 
 
 @transaction.atomic
-def approve_claim(
-    *, claim: ProviderClaim, actor: AbstractBaseUser
-) -> ProviderClaim:
+def approve_claim(*, claim: ProviderClaim, actor: AbstractBaseUser) -> ProviderClaim:
     claim = (
         ProviderClaim.objects.select_for_update()
         .select_related("provider", "claimant")
@@ -52,9 +50,7 @@ def approve_claim(
 
 
 @transaction.atomic
-def reject_claim(
-    *, claim: ProviderClaim, actor: AbstractBaseUser
-) -> ProviderClaim:
+def reject_claim(*, claim: ProviderClaim, actor: AbstractBaseUser) -> ProviderClaim:
     claim = (
         ProviderClaim.objects.select_for_update()
         .select_related("provider")
