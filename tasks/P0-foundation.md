@@ -4,7 +4,6 @@ Read: `DECISIONS.md`, `docs/05-architecture.md`, `docs/06-quality.md`, `docs/07-
 
 ## Build
 
-- Add Playwright coverage for the base page at 360px and 1440px, keyboard focus and browser-console errors.
 - Add CI for lint, format, types, tests, migrations, `check --deploy`, dependency/secret scan, frontend build, container build and Playwright.
 - Set workflow default permissions to `contents: read`; pin third-party actions to full commit SHAs and service/build images to immutable digests with version comments.
 - Run CI with fresh pinned PostgreSQL 18 and Valkey 8.x services; it must not access staging, production, SSH or persistent external infrastructure.
@@ -20,7 +19,6 @@ Read: `DECISIONS.md`, `docs/05-architecture.md`, `docs/06-quality.md`, `docs/07-
 - `make reset` rebuilds only this project's disposable local state and refuses production-like settings.
 - `make test`, `make e2e` and `make smoke` pass in GitHub Actions with no persistent external dependency; CI never calls `dev`, `reset` or seed targets.
 - A clean database migrates; static build is reproducible.
-- Base page works at 360px and 1440px with keyboard focus and no console error.
 - GitHub check names are stable and `main` protection/ruleset is enabled after their first green run.
 
 ## Gates
