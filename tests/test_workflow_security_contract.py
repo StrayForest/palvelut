@@ -13,6 +13,7 @@ class WorkflowSecurityContractTests(unittest.TestCase):
         self.dockerfiles = []
         self.dockerfiles.append((self.root / "Dockerfile").read_text())
         self.dockerfiles.append((self.root / "Dockerfile.e2e").read_text())
+        self.dockerfiles.append((self.root / "Dockerfile.quality").read_text())
 
     def test_workflow_default_permissions_are_read_only(self) -> None:
         lines = self.workflow.splitlines()
