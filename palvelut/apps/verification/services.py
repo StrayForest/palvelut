@@ -5,13 +5,22 @@ from django.utils import timezone
 
 from palvelut.apps.moderation.services import record_audit
 from palvelut.apps.providers.models import Provider
-from palvelut.apps.providers.services import activate_owner_membership, set_provider_lifecycle
+from palvelut.apps.providers.services import (
+    activate_owner_membership,
+    set_provider_lifecycle,
+)
 from palvelut.apps.verification.models import ProviderClaim
 
 
 @transaction.atomic
-def approve_claim(*, claim: ProviderClaim, actor: AbstractBaseUser) -> ProviderClaim:
-    claim = ProviderClaim.objects.select_for_update().select_related("provider", "claimant").get(pk=claim.pk)
+def approve_claim(
+    *, claim: ProviderClaim, actor: AbstractBaseUser
+) -> ProviderClaim:
+    claim = (
+        ProviderClaim.objects.select_for_update()
+        .select_related("provider", "claimant")
+        .get(pk=claim.pk)
+    )
     if claim.status != ProviderClaim.Status.PENDING:
         raise ValidationError("Only pending claims can be approved")
     if claim.provider.lifecycle != Provider.Lifecycle.UNCLAIMED:
@@ -26,7 +35,9 @@ def approve_claim(*, claim: ProviderClaim, actor: AbstractBaseUser) -> ProviderC
     claim.reviewed_at = timezone.now()
     claim.save(update_fields=("status", "reviewed_by", "reviewed_at"))
 
-    provider, _ = set_provider_lifecycle(provider=claim.provider, lifecycle=Provider.Lifecycle.DRAFT)
+    provider, _ = set_provider_lifecycle(
+        provider=claim.provider, lifecycle=Provider.Lifecycle.DRAFT
+    )
     record_audit(
         actor=actor,
         provider=provider,
@@ -41,8 +52,14 @@ def approve_claim(*, claim: ProviderClaim, actor: AbstractBaseUser) -> ProviderC
 
 
 @transaction.atomic
-def reject_claim(*, claim: ProviderClaim, actor: AbstractBaseUser) -> ProviderClaim:
-    claim = ProviderClaim.objects.select_for_update().select_related("provider").get(pk=claim.pk)
+def reject_claim(
+    *, claim: ProviderClaim, actor: AbstractBaseUser
+) -> ProviderClaim:
+    claim = (
+        ProviderClaim.objects.select_for_update()
+        .select_related("provider")
+        .get(pk=claim.pk)
+    )
     if claim.status != ProviderClaim.Status.PENDING:
         raise ValidationError("Only pending claims can be rejected")
 
