@@ -3,23 +3,27 @@ from django.db import IntegrityError, connection, transaction
 from django.db.models.deletion import ProtectedError
 from django.test import TestCase
 
-from .models import Country, Municipality, Region, UuidV7Model
+from .models import (
+    Category,
+    CategoryLabel,
+    CategorySynonym,
+    Country,
+    Municipality,
+    Region,
+    UuidV7Model,
+)
 
 
 class GeographyTaxonomyTests(TestCase):
     def setUp(self) -> None:
-        self.finland = Country.objects.create(code="FI", name="Finland")
-        self.region = Region.objects.create(
-            country=self.finland,
-            code="07",
-            name="Central Ostrobothnia",
-        )
+        self.finland = Country.objects.get(code="FI")
+        self.region = self.finland.regions.get(code="16")
 
     def test_database_generates_uuidv7_primary_keys(self) -> None:
         municipality = Municipality.objects.create(
             region=self.region,
-            code="217",
-            name="Kannus",
+            code="998",
+            name="Test municipality",
         )
 
         self.assertEqual(self.finland.id.version, 7)
@@ -67,27 +71,98 @@ class GeographyTaxonomyTests(TestCase):
             )
 
     def test_municipality_code_is_unique_within_region(self) -> None:
-        Municipality.objects.create(region=self.region, code="217", name="Kannus")
-
         with self.assertRaises(IntegrityError), transaction.atomic():
             Municipality.objects.create(
                 region=self.region,
                 code="217",
-                name="Duplicate",
+                name="Duplicate Kannus",
             )
 
     def test_parent_rows_are_protected_from_deletion(self) -> None:
-        municipality = Municipality.objects.create(
-            region=self.region,
-            code="217",
-            name="Kannus",
-        )
-
         with self.assertRaises(ProtectedError):
             self.region.delete()
         with self.assertRaises(ProtectedError):
             self.finland.delete()
 
-        municipality.delete()
-        self.region.delete()
-        self.finland.delete()
+
+class SeededTaxonomyTests(TestCase):
+    launch_slugs = {
+        "accounting",
+        "legal",
+        "car-repair",
+        "renovation",
+        "electrical",
+        "plumbing",
+        "psychology",
+        "massage-physiotherapy",
+    }
+
+    def test_all_2026_finnish_municipalities_are_seeded(self) -> None:
+        finland = Country.objects.get(code="FI")
+        municipalities = Municipality.objects.filter(region__country=finland)
+
+        self.assertEqual(finland.regions.count(), 19)
+        self.assertEqual(municipalities.count(), 308)
+        self.assertEqual(
+            dict(
+                municipalities.filter(code__in=("049", "091", "092")).values_list(
+                    "code", "name"
+                )
+            ),
+            {"049": "Espoo", "091": "Helsinki", "092": "Vantaa"},
+        )
+        self.assertFalse(
+            municipalities.filter(code__in=("049", "091", "092"))
+            .exclude(region__code="01")
+            .exists()
+        )
+
+    def test_launch_categories_have_ru_fi_en_labels_and_synonyms(self) -> None:
+        categories = Category.objects.filter(slug__in=self.launch_slugs)
+        self.assertEqual(categories.count(), 8)
+
+        for category in categories:
+            self.assertEqual(
+                set(category.labels.values_list("locale", flat=True)),
+                {"ru", "fi", "en"},
+                category.slug,
+            )
+            for locale in ("ru", "fi", "en"):
+                self.assertGreaterEqual(
+                    category.synonyms.filter(locale=locale).count(),
+                    2,
+                    f"{category.slug}/{locale}",
+                )
+
+        accounting = Category.objects.get(slug="accounting")
+        self.assertEqual(
+            accounting.labels.get(locale="ru").label,
+            "Бухгалтерия",
+        )
+        self.assertTrue(
+            accounting.synonyms.filter(locale="fi", value="kirjanpitäjä").exists()
+        )
+
+    def test_category_terms_reject_unsupported_locale_and_duplicates(self) -> None:
+        category = Category.objects.get(slug="accounting")
+
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            CategoryLabel.objects.create(
+                category=category, locale="sv", label="Bokföring"
+            )
+
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            CategoryLabel.objects.create(
+                category=category,
+                locale="en",
+                label="Duplicate accounting",
+            )
+
+        synonym = category.synonyms.filter(locale="en").first()
+        self.assertIsNotNone(synonym)
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            CategorySynonym.objects.create(
+                category=category,
+                locale=synonym.locale,
+                value=synonym.value,
+            )
