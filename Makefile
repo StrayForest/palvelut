@@ -15,7 +15,7 @@ dev:
 	$(COMPOSE) up --build
 
 reset:
-	bash infra/scripts/reset-local.sh
+	COMPOSE_PROJECT_NAME="$(COMPOSE_PROJECT_NAME)" bash infra/scripts/reset-local.sh
 
 test:
 	$(COMPOSE) --profile quality build quality
