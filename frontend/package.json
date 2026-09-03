@@ -1,0 +1,9 @@
+{
+  "name": "palvelut-frontend",
+  "private": true,
+  "version": "0.0.0",
+  "dependencies": {
+    "alpinejs": "3.14.8",
+    "htmx.org": "2.0.4"
+  }
+}
