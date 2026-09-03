@@ -114,8 +114,8 @@ services:
     ipc: host
     profiles: ["e2e"]
     volumes:
-      - ./playwright-report:/workspace/playwright-report
-      - ./test-results:/workspace/test-results
+      - ./playwright-report:/tests/playwright-report
+      - ./test-results:/tests/test-results
 
 volumes:
   postgres_data:
