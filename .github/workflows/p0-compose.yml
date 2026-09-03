@@ -19,6 +19,7 @@ on:
       - "infra/scripts/**"
       - "tests/**"
       - "tasks/P0-foundation.md"
+      - "tasks/P1-domain.md"
       - "tasks/archive/**"
       - ".github/workflows/p0-compose.yml"
 
@@ -268,6 +269,12 @@ jobs:
         run: |
           docker compose --project-name "$COMPOSE_PROJECT_NAME" run --rm web python manage.py makemigrations --check --dry-run
           docker compose --project-name "$COMPOSE_PROJECT_NAME" run --rm web python manage.py migrate --noinput
+
+      - name: Run geography taxonomy model tests
+        working-directory: repo
+        run: |
+          docker compose --project-name "$COMPOSE_PROJECT_NAME" run --rm web \
+            python manage.py test palvelut.apps.taxonomy --verbosity 2
 
       - name: Run Django deploy checks
         working-directory: repo
