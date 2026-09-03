@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import path
 
 from palvelut.views import health_live, health_ready, localized_home, public_mount_root
@@ -8,3 +10,6 @@ urlpatterns = [
     path("palvelut/", public_mount_root, name="public-mount-root"),
     path("palvelut/<str:locale>/", localized_home, name="localized-home"),
 ]
+
+if settings.DEBUG:
+    urlpatterns += staticfiles_urlpatterns()

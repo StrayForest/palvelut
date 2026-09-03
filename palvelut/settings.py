@@ -147,6 +147,7 @@ USE_TZ = True
 STATIC_URL = "/palvelut/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin" if ENVIRONMENT in {"staging", "production"} else None
 
 LOGGING = {
     "version": 1,
