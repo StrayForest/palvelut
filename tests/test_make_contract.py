@@ -9,9 +9,13 @@ class MakeContractTests(unittest.TestCase):
         self.reset_script = (self.root / "infra/scripts/reset-local.sh").read_text()
         self.smoke_script = (self.root / "infra/scripts/smoke.sh").read_text()
         self.e2e_script = (self.root / "infra/scripts/e2e.sh").read_text()
+        self.test_script = (
+            self.root / "infra/scripts/test-in-container.sh"
+        ).read_text()
         self.compose = (self.root / "compose.yml").read_text()
         self.workflow = (self.root / ".github/workflows/p0-compose.yml").read_text()
         self.e2e_dockerfile = (self.root / "Dockerfile.e2e").read_text()
+        self.quality_dockerfile = (self.root / "Dockerfile.quality").read_text()
 
     def test_current_local_targets_are_declared(self) -> None:
         for target in ("bootstrap", "dev", "reset", "test", "e2e", "smoke"):
@@ -73,6 +77,32 @@ class MakeContractTests(unittest.TestCase):
             self.assertIn(value, self.reset_script)
         self.assertIn("DJANGO_DEBUG:-1", self.reset_script)
         self.assertIn("down -v --remove-orphans", self.reset_script)
+
+    def test_make_test_runs_every_non_browser_gate_in_container(self) -> None:
+        test_block = self.makefile.split("\ntest:\n", 1)[1].split("\ne2e:\n", 1)[0]
+        self.assertIn("--profile quality build quality", test_block)
+        self.assertIn(
+            "--profile quality run --rm --no-deps quality ",
+            test_block,
+        )
+        self.assertIn("bash infra/scripts/test-in-container.sh", test_block)
+        self.assertIn("dockerfile: Dockerfile.quality", self.compose)
+        self.assertIn('profiles: ["quality"]', self.compose)
+        self.assertIn("python:3.13-slim@sha256:", self.quality_dockerfile)
+
+        required_commands = (
+            "uv lock --check",
+            "ruff check",
+            "ruff format --check",
+            "mypy ",
+            "pip-audit --disable-pip",
+            "detect-secrets scan",
+            "makemigrations --check --dry-run",
+            "check --deploy --fail-level ERROR",
+            "unittest discover",
+        )
+        for command in required_commands:
+            self.assertIn(command, self.test_script)
 
     def test_smoke_is_disposable_and_cleans_up(self) -> None:
         self.assertIn("trap cleanup EXIT", self.smoke_script)
