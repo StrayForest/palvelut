@@ -3,7 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "dependencies": {
+    "@tailwindcss/cli": "4.3.3",
     "alpinejs": "3.14.8",
-    "htmx.org": "2.0.4"
+    "htmx.org": "2.0.4",
+    "tailwindcss": "4.3.3"
   }
 }

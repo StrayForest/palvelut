@@ -6,18 +6,34 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class FrontendVendorContractTests(unittest.TestCase):
-    def test_interaction_dependencies_are_exactly_pinned(self):
+    def test_frontend_dependencies_are_exactly_pinned(self):
         package = json.loads((ROOT / "frontend" / "package.json").read_text())
         self.assertEqual(package["dependencies"]["htmx.org"], "2.0.4")
         self.assertEqual(package["dependencies"]["alpinejs"], "3.14.8")
+        self.assertEqual(package["dependencies"]["tailwindcss"], "4.3.3")
+        self.assertEqual(package["dependencies"]["@tailwindcss/cli"], "4.3.3")
 
-    def test_app_image_vendors_both_libraries_without_runtime_cdn(self):
+    def test_app_image_builds_tailwind_and_vendors_interaction_libraries(self):
         dockerfile = (ROOT / "Dockerfile").read_text()
         self.assertIn("node_modules/htmx.org/dist/htmx.min.js", dockerfile)
         self.assertIn("node_modules/alpinejs/dist/cdn.min.js", dockerfile)
+        self.assertIn("npx @tailwindcss/cli", dockerfile)
+        self.assertIn("/frontend-dist/css/app.css", dockerfile)
         self.assertIn("COPY --from=frontend /frontend-dist ./static", dockerfile)
         self.assertNotIn("unpkg.com", dockerfile)
         self.assertNotIn("cdn.jsdelivr.net", dockerfile)
+
+    def test_tailwind_sources_templates_and_base_layout_uses_built_assets(self):
+        stylesheet = (ROOT / "frontend" / "app.css").read_text()
+        template = (ROOT / "templates" / "base.html").read_text()
+        self.assertIn('@import "tailwindcss";', stylesheet)
+        self.assertIn('@source "../templates";', stylesheet)
+        self.assertIn("{% load i18n static %}", template)
+        self.assertIn("{% static 'css/app.css' %}", template)
+        self.assertIn("{% static 'vendor/htmx.min.js' %}", template)
+        self.assertIn("{% static 'vendor/alpine.min.js' %}", template)
+        self.assertEqual(template.count("<script "), 2)
+        self.assertEqual(template.count(" defer></script>"), 2)
 
     def test_django_staticfiles_discovers_generated_vendor_directory(self):
         settings = (ROOT / "palvelut" / "settings.py").read_text()
