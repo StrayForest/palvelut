@@ -40,7 +40,7 @@ class MakeContractTests(unittest.TestCase):
         self.assertIn("palvelut-ci-*)", self.workflow)
         self.assertIn("down -v --remove-orphans || true", self.workflow)
         self.assertIn("pull postgres valkey", self.workflow)
-        self.assertIn("up -d --force-recreate postgres valkey", self.workflow)
+        self.assertIn("up -d --force-recreate --wait postgres valkey", self.workflow)
         self.assertIn("show server_version;", self.workflow)
         self.assertIn("grep -E '^18\\.'", self.workflow)
         self.assertIn("valkey-cli INFO server", self.workflow)
