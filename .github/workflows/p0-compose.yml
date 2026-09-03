@@ -84,9 +84,10 @@ jobs:
       - name: Secret scan
         working-directory: repo
         run: |
-          detect-secrets scan --all-files \
-            --exclude-files '(^|/)(\.git/|\.venv/|uv\.lock$|frontend/package-lock\.json$)' \
+          mapfile -t tracked_files < <(git ls-files | grep -Ev '^(uv\.lock|frontend/package-lock\.json)$')
+          detect-secrets scan \
             --exclude-lines 'local-only|bootstrap-only|test-only|ci-only' \
+            "${tracked_files[@]}" \
             > /tmp/detect-secrets.json
           python3 - <<'PY'
           import json
