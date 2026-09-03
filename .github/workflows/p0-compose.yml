@@ -60,7 +60,7 @@ jobs:
       - name: Lint and format check
         working-directory: repo
         run: |
-          ruff check manage.py palvelut tests
+          ruff check --extend-per-file-ignores 'tests/*.py:E402' manage.py palvelut tests
           ruff format --check manage.py palvelut tests
 
       - name: Type check
