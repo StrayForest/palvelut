@@ -1,6 +1,10 @@
 from django.contrib import admin
 
-from palvelut.apps.moderation.models import AuditEvent, ModerationCase, ModerationEvent
+from palvelut.apps.moderation.models import (
+    AuditEvent,
+    ModerationCase,
+    ModerationEvent,
+)
 
 
 class ReadOnlyAdmin(admin.ModelAdmin):
@@ -26,7 +30,14 @@ class AuditEventAdmin(ReadOnlyAdmin):
 
 @admin.register(ModerationCase)
 class ModerationCaseAdmin(ReadOnlyAdmin):
-    list_display = ("provider", "reason", "status", "opened_by", "opened_at", "closed_at")
+    list_display = (
+        "provider",
+        "reason",
+        "status",
+        "opened_by",
+        "opened_at",
+        "closed_at",
+    )
     list_filter = ("status",)
     search_fields = ("provider__display_name", "reason")
 
