@@ -121,7 +121,7 @@ jobs:
           esac
           docker compose --project-name "$COMPOSE_PROJECT_NAME" down -v --remove-orphans || true
           docker compose --project-name "$COMPOSE_PROJECT_NAME" pull postgres valkey
-          docker compose --project-name "$COMPOSE_PROJECT_NAME" up -d --force-recreate postgres valkey
+          docker compose --project-name "$COMPOSE_PROJECT_NAME" up -d --force-recreate --wait postgres valkey
           docker compose --project-name "$COMPOSE_PROJECT_NAME" exec -T postgres \
             psql -U palvelut -d palvelut -Atc "show server_version;" | grep -E '^18\.'
           docker compose --project-name "$COMPOSE_PROJECT_NAME" exec -T valkey \
