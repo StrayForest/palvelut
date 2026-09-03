@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from urllib.parse import urlsplit
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -7,6 +8,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "p0-bootstrap-only-not-for-production")
 DEBUG = os.getenv("DJANGO_DEBUG", "1") == "1"
 ALLOWED_HOSTS = [host for host in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,[::1]").split(",") if host]
+
+
+def _public_base_url() -> str:
+    value = os.getenv("PUBLIC_BASE_URL", "http://localhost:8000/palvelut").rstrip("/")
+    parsed = urlsplit(value)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        raise RuntimeError("PUBLIC_BASE_URL must be an absolute http(s) URL")
+    if parsed.path != "/palvelut" or parsed.query or parsed.fragment:
+        raise RuntimeError("PUBLIC_BASE_URL must end at the /palvelut mount with no query or fragment")
+    return value
+
+
+PUBLIC_BASE_URL = _public_base_url()
+PUBLIC_MOUNT_PATH = "/palvelut/"
 
 DOMAIN_APPS = [
     "palvelut.apps.accounts.apps.AccountsConfig",
@@ -99,6 +114,9 @@ LANGUAGES = [
     ("en", "English"),
 ]
 LOCALE_PATHS = [BASE_DIR / "locale"]
+LANGUAGE_COOKIE_PATH = PUBLIC_MOUNT_PATH
+SESSION_COOKIE_PATH = PUBLIC_MOUNT_PATH
+CSRF_COOKIE_PATH = PUBLIC_MOUNT_PATH
 TIME_ZONE = "Europe/Helsinki"
 USE_I18N = True
 USE_TZ = True
