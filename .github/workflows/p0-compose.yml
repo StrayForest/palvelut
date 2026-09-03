@@ -85,7 +85,7 @@ jobs:
         working-directory: repo
         run: |
           detect-secrets scan --all-files \
-            --exclude-files '(^|/)(\.git/|uv\.lock$|frontend/package-lock\.json$)' \
+            --exclude-files '(^|/)(\.git/|\.venv/|uv\.lock$|frontend/package-lock\.json$)' \
             --exclude-lines 'local-only|bootstrap-only|test-only|ci-only' \
             > /tmp/detect-secrets.json
           python3 - <<'PY'
