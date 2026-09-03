@@ -41,7 +41,10 @@ class WorkflowSecurityContractTests(unittest.TestCase):
         self.assertIn("repo/test-results/", self.workflow)
         self.assertIn("if-no-files-found: error", self.workflow)
         self.assertIn('outputDir: "test-results"', self.playwright)
-        self.assertIn('["html", { outputFolder: "playwright-report", open: "never" }]', self.playwright)
+        self.assertIn(
+            '["html", { outputFolder: "playwright-report", open: "never" }]',
+            self.playwright,
+        )
         self.assertIn('screenshot: "only-on-failure"', self.playwright)
         self.assertIn('trace: "retain-on-failure"', self.playwright)
 
