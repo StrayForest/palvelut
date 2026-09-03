@@ -4,7 +4,6 @@ Depends: P0. Read: `docs/01-product.md`, `docs/03-experience.md`, `docs/05-archi
 
 ## Build
 
-- Build staff admin for non-public create/import, revision diff, approve/request changes, suspend and merge duplicates. Model claim state/evidence so unclaimed imports cannot publish.
 - Generate public read/search document only from approved state.
 
 ## Accept
