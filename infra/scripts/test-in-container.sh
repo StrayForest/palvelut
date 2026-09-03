@@ -7,10 +7,10 @@ git config --global --add safe.directory /workspace
 
 uv lock --check
 
-ruff check --extend-per-file-ignores 'tests/*.py:E402' manage.py palvelut tests
+ruff check --no-cache --extend-per-file-ignores 'tests/*.py:E402' manage.py palvelut tests
 ruff format --check manage.py palvelut tests
 
-mypy --ignore-missing-imports --follow-imports=skip --check-untyped-defs manage.py palvelut
+mypy --cache-dir=/tmp/mypy-cache --ignore-missing-imports --follow-imports=skip --check-untyped-defs manage.py palvelut
 
 uv export --locked --no-dev --format requirements-txt --output-file /tmp/palvelut-requirements.txt
 pip-audit --disable-pip -r /tmp/palvelut-requirements.txt
