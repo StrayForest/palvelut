@@ -28,7 +28,10 @@ class Migration(migrations.Migration):
             model_name="provider",
             constraint=models.CheckConstraint(
                 condition=models.Q(
-                    ("claim_status__in", ("unclaimed", "pending", "approved", "rejected"))
+                    (
+                        "claim_status__in",
+                        ("unclaimed", "pending", "approved", "rejected"),
+                    )
                 ),
                 name="providers_provider_claim_status_valid",
             ),
