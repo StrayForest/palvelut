@@ -6,6 +6,23 @@ from palvelut.apps.moderation.services import record_audit
 from palvelut.apps.providers.models import Provider, ProviderMembership
 
 
+def has_active_owner(*, provider: Provider) -> bool:
+    return ProviderMembership.objects.filter(
+        provider=provider,
+        role=ProviderMembership.Role.OWNER,
+        is_active=True,
+    ).exists()
+
+
+@transaction.atomic
+def set_provider_lifecycle(*, provider: Provider, lifecycle: Provider.Lifecycle) -> tuple[Provider, str]:
+    provider = Provider.objects.select_for_update().get(pk=provider.pk)
+    previous = provider.lifecycle
+    provider.lifecycle = lifecycle
+    provider.save(update_fields=("lifecycle", "updated_at"))
+    return provider, previous
+
+
 @transaction.atomic
 def activate_owner_membership(*, provider: Provider, account: AbstractBaseUser) -> ProviderMembership:
     provider = Provider.objects.select_for_update().get(pk=provider.pk)
