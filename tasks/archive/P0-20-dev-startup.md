@@ -12,6 +12,7 @@ Commit/PR: implementation `cbba77764735e4d415d1bcd75b4a57a8e7c52808`; PR #23
 
 ## Checks
 
+- Initial GitHub Actions run `33764138651` stopped at the format gate before runtime verification; the new Python test was reformatted and no product/runtime defect was involved.
 - GitHub Actions run `33764231034` on implementation head `cbba77764735e4d415d1bcd75b4a57a8e7c52808` — PASS.
 - Canonical development startup proof — PASS.
 - Dependency/command contracts, lint/format, types, dependency audit and secret scan — PASS.
