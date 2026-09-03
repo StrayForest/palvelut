@@ -57,6 +57,19 @@ class BootstrapContractTests(unittest.TestCase):
                 self.workflow,
             )
 
+    def test_ci_proves_clean_migration_and_reproducible_static_build(self) -> None:
+        fresh_db = "- name: Start fresh isolated database services"
+        migrations = "- name: Check and apply migrations"
+        static = "- name: Verify reproducible static build"
+
+        for step in (fresh_db, migrations, static):
+            self.assertIn(step, self.workflow)
+        self.assertLess(self.workflow.index(fresh_db), self.workflow.index(migrations))
+        self.assertIn("makemigrations --check --dry-run", self.workflow)
+        self.assertIn("migrate --noinput", self.workflow)
+        self.assertIn("docker build --no-cache --target frontend", self.workflow)
+        self.assertIn("diff -ruN", self.workflow)
+
 
 if __name__ == "__main__":
     unittest.main()
