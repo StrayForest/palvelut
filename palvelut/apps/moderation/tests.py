@@ -14,12 +14,12 @@ class StaffModerationServiceTests(TestCase):
         user_model = get_user_model()
         self.staff = user_model.objects.create_user(
             username="moderator",
-            password="not-used",
+            password="not-used",  # test-only
             is_staff=True,
         )
         self.user = user_model.objects.create_user(
             username="provider-user",
-            password="not-used",
+            password="not-used",  # test-only
         )
 
     def _provider(self, *, claimed: bool = True) -> Provider:
