@@ -40,7 +40,15 @@ class MakeContractTests(unittest.TestCase):
     def test_ci_proves_make_dev_starts_complete_stack(self) -> None:
         self.assertIn("Verify canonical development startup", self.workflow)
         self.assertIn("setsid make dev", self.workflow)
-        for service in ("postgres", "valkey", "mailpit", "minio", "web", "worker", "nginx"):
+        for service in (
+            "postgres",
+            "valkey",
+            "mailpit",
+            "minio",
+            "web",
+            "worker",
+            "nginx",
+        ):
             self.assertIn(service, self.workflow)
         self.assertIn("http://127.0.0.1:8000/palvelut/en/", self.workflow)
 
