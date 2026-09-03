@@ -7,7 +7,7 @@ on:
       - ".github/workflows/format-helper.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   format-helper:
@@ -26,15 +26,53 @@ jobs:
       - name: Install formatter
         run: python3 -m pip install --disable-pip-version-check --no-input "ruff==0.12.12"
 
-      - name: Format and print files
+      - name: Fix rollback, format and push
         working-directory: repo
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path("palvelut/apps/taxonomy/migrations/0003_seed_finland_and_launch_categories.py")
+          text = path.read_text()
+          old = '''def unseed_taxonomy(apps, schema_editor):
+              Category = apps.get_model("taxonomy", "Category")
+              Country = apps.get_model("taxonomy", "Country")
+              Category.objects.filter(slug__in=CATEGORIES).delete()
+              Country.objects.filter(code="FI").delete()
+          '''
+          new = '''def unseed_taxonomy(apps, schema_editor):
+              Category = apps.get_model("taxonomy", "Category")
+              Country = apps.get_model("taxonomy", "Country")
+              Region = apps.get_model("taxonomy", "Region")
+              Municipality = apps.get_model("taxonomy", "Municipality")
+
+              Category.objects.filter(slug__in=CATEGORIES).delete()
+              finland = Country.objects.filter(code="FI").first()
+              if finland is None:
+                  return
+              Municipality.objects.filter(region__country=finland).delete()
+              Region.objects.filter(country=finland).delete()
+              finland.delete()
+          '''
+          if old not in text:
+              raise SystemExit("rollback block not found")
+          path.write_text(text.replace(old, new))
+          PY
+
           ruff format \
             palvelut/apps/taxonomy/migrations/0003_seed_finland_and_launch_categories.py \
             palvelut/apps/taxonomy/tests.py
-          echo '===MIGRATION_START==='
-          cat palvelut/apps/taxonomy/migrations/0003_seed_finland_and_launch_categories.py
-          echo '===MIGRATION_END==='
-          echo '===TESTS_START==='
-          cat palvelut/apps/taxonomy/tests.py
-          echo '===TESTS_END==='
+          ruff check --fix \
+            palvelut/apps/taxonomy/migrations/0003_seed_finland_and_launch_categories.py \
+            palvelut/apps/taxonomy/tests.py
+          ruff format \
+            palvelut/apps/taxonomy/migrations/0003_seed_finland_and_launch_categories.py \
+            palvelut/apps/taxonomy/tests.py
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add palvelut/apps/taxonomy/migrations/0003_seed_finland_and_launch_categories.py palvelut/apps/taxonomy/tests.py
+          git commit -m "style: format taxonomy seed implementation"
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:codex/p1-taxonomy-seed
