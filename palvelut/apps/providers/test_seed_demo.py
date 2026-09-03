@@ -12,12 +12,14 @@ class SeedDemoCommandTests(TestCase):
     def test_seed_demo_is_idempotent_and_covers_launch_shape(self) -> None:
         call_command("seed_demo", stdout=StringIO())
         first_ids = tuple(
-            Provider.objects.get(legal_name=spec.legal_name).id for spec in DEMO_PROVIDERS
+            Provider.objects.get(legal_name=spec.legal_name).id
+            for spec in DEMO_PROVIDERS
         )
 
         call_command("seed_demo", stdout=StringIO())
         second_ids = tuple(
-            Provider.objects.get(legal_name=spec.legal_name).id for spec in DEMO_PROVIDERS
+            Provider.objects.get(legal_name=spec.legal_name).id
+            for spec in DEMO_PROVIDERS
         )
 
         self.assertEqual(first_ids, second_ids)
