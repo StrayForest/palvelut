@@ -30,8 +30,8 @@ DEMO_PROVIDERS = (
     DemoProvider(
         legal_name="Synthetic Helsinki Accounting Oy",
         display_name="Synthetic Helsinki Accounting",
-        provider_type=Provider.Type.BUSINESS,
-        lifecycle=Provider.Lifecycle.PUBLISHED,
+        provider_type="business",
+        lifecycle="published",
         municipality_code="091",
         category_slug="accounting",
         email="helsinki-accounting@example.invalid",
@@ -40,8 +40,8 @@ DEMO_PROVIDERS = (
     DemoProvider(
         legal_name="Synthetic Espoo Legal Specialist",
         display_name="Synthetic Espoo Legal Specialist",
-        provider_type=Provider.Type.INDIVIDUAL,
-        lifecycle=Provider.Lifecycle.DRAFT,
+        provider_type="individual",
+        lifecycle="draft",
         municipality_code="049",
         category_slug="legal",
         email="espoo-legal@example.invalid",
@@ -49,8 +49,8 @@ DEMO_PROVIDERS = (
     DemoProvider(
         legal_name="Synthetic Vantaa Car Repair Oy",
         display_name="Synthetic Vantaa Car Repair",
-        provider_type=Provider.Type.BUSINESS,
-        lifecycle=Provider.Lifecycle.UNCLAIMED,
+        provider_type="business",
+        lifecycle="unclaimed",
         municipality_code="092",
         category_slug="car-repair",
         email="vantaa-repair@example.invalid",
@@ -59,8 +59,8 @@ DEMO_PROVIDERS = (
     DemoProvider(
         legal_name="Synthetic Helsinki Massage Specialist",
         display_name="Synthetic Helsinki Massage Specialist",
-        provider_type=Provider.Type.INDIVIDUAL,
-        lifecycle=Provider.Lifecycle.SUSPENDED,
+        provider_type="individual",
+        lifecycle="suspended",
         municipality_code="091",
         category_slug="massage-physiotherapy",
         email="helsinki-massage@example.invalid",
