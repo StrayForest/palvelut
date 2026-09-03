@@ -6,7 +6,6 @@ Read: `DECISIONS.md`, `docs/05-architecture.md`, `docs/06-quality.md`, `docs/07-
 
 ## Accept
 
-- `make dev` starts the complete clean local environment without a separately provisioned server.
 - `make bootstrap` prepares a new Linux/WSL2 checkout without global project dependencies beyond Git, Make and Docker.
 - `make test` runs every non-browser P0 gate; `make e2e` runs the browser gate.
 - `make smoke` starts disposable services, verifies liveness/readiness and shuts them down.
