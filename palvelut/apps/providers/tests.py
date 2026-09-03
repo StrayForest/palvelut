@@ -3,7 +3,13 @@ from django.test import TestCase
 
 from palvelut.apps.moderation.models import AuditEvent, ModerationCase, ModerationEvent
 from palvelut.apps.publishing.models import ProfileRevision
-from palvelut.apps.taxonomy.models import Category, Country, Language, Municipality, Region
+from palvelut.apps.taxonomy.models import (
+    Category,
+    Country,
+    Language,
+    Municipality,
+    Region,
+)
 from palvelut.apps.verification.models import VerificationCheck
 
 from .models import (
@@ -22,7 +28,11 @@ class DomainModelFoundationTests(TestCase):
         user = get_user_model().objects.create_user(username="staff")
         country = Country.objects.create(code="FI", name="Finland")
         region = Region.objects.create(country=country, code="UUS", name="Uusimaa")
-        municipality = Municipality.objects.create(region=region, code="091", name="Helsinki")
+        municipality = Municipality.objects.create(
+            region=region,
+            code="091",
+            name="Helsinki",
+        )
         category = Category.objects.create(slug="massage", name="Massage")
         language = Language.objects.create(code="ru", name="Russian")
         provider = Provider.objects.create(
@@ -35,13 +45,41 @@ class DomainModelFoundationTests(TestCase):
         ProviderService.objects.create(provider=provider, category=category)
         ServiceArea.objects.create(provider=provider, municipality=municipality)
         ProviderLanguage.objects.create(provider=provider, language=language)
-        ContactChannel.objects.create(provider=provider, kind="email", value="example.invalid")
-        MediaAsset.objects.create(provider=provider, storage_key="synthetic/example.webp", content_type="image/webp")
-        revision = ProfileRevision.objects.create(provider=provider, created_by=user, payload={"name": "Synthetic"})
-        verification = VerificationCheck.objects.create(provider=provider, kind="identity", checked_by=user)
-        case = ModerationCase.objects.create(provider=provider, reason="review", opened_by=user)
-        event = ModerationEvent.objects.create(case=case, event_type="opened", actor=user)
-        audit = AuditEvent.objects.create(provider=provider, actor=user, action="provider.created")
+        ContactChannel.objects.create(
+            provider=provider,
+            kind="email",
+            value="example.invalid",
+        )
+        MediaAsset.objects.create(
+            provider=provider,
+            storage_key="synthetic/example.webp",
+            content_type="image/webp",
+        )
+        revision = ProfileRevision.objects.create(
+            provider=provider,
+            created_by=user,
+            payload={"name": "Synthetic"},
+        )
+        verification = VerificationCheck.objects.create(
+            provider=provider,
+            kind="identity",
+            checked_by=user,
+        )
+        case = ModerationCase.objects.create(
+            provider=provider,
+            reason="review",
+            opened_by=user,
+        )
+        event = ModerationEvent.objects.create(
+            case=case,
+            event_type="opened",
+            actor=user,
+        )
+        audit = AuditEvent.objects.create(
+            provider=provider,
+            actor=user,
+            action="provider.created",
+        )
 
         self.assertEqual(provider.services.count(), 1)
         self.assertEqual(provider.service_areas.count(), 1)
