@@ -65,7 +65,11 @@ class ProviderAdmin(admin.ModelAdmin):
         ContactChannelInline,
         MediaAssetInline,
     )
-    actions = ("approve_selected", "request_changes_selected", "suspend_selected")
+    actions = (
+        "approve_selected",
+        "request_changes_selected",
+        "suspend_selected",
+    )
 
     def save_model(
         self,
@@ -82,7 +86,11 @@ class ProviderAdmin(admin.ModelAdmin):
         completed = 0
         for provider in queryset:
             try:
-                moderate_provider(provider_id=provider.pk, actor=request.user, action=action)
+                moderate_provider(
+                    provider_id=provider.pk,
+                    actor=request.user,
+                    action=action,
+                )
             except ValidationError as exc:
                 self.message_user(
                     request,
