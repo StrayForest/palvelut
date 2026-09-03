@@ -58,13 +58,7 @@ class MediaAssetInline(admin.TabularInline):
 @admin.register(Provider)
 class ProviderAdmin(admin.ModelAdmin):
     form = ProviderAdminForm
-    list_display = (
-        "display_name",
-        "provider_type",
-        "lifecycle",
-        "y_tunnus",
-        "updated_at",
-    )
+    list_display = ("display_name", "provider_type", "lifecycle", "y_tunnus", "updated_at")
     list_filter = ("provider_type", "lifecycle")
     search_fields = ("display_name", "legal_name", "y_tunnus")
     readonly_fields = ("lifecycle", "created_at", "updated_at")
@@ -94,24 +88,19 @@ class ProviderAdmin(admin.ModelAdmin):
 
     @admin.action(description="Merge selected duplicates into the oldest provider")
     def merge_selected_into_oldest(
-        self, request, queryset
+        self,
+        request,
+        queryset,
     ):  # type: ignore[no-untyped-def]
         providers = list(queryset.order_by("created_at", "id"))
         if len(providers) < 2:
-            self.message_user(
-                request,
-                "Select at least two providers.",
-                level=messages.ERROR,
-            )
+            self.message_user(request, "Select at least two providers.", level=messages.ERROR)
             return
         target = providers[0]
         for source in providers[1:]:
             merge_duplicate(source=source, target=target, actor=request.user)
         self.message_user(
             request,
-            (
-                f"Archived {len(providers) - 1} duplicate provider(s); "
-                f"canonical provider is {target}."
-            ),
+            f"Archived {len(providers) - 1} duplicate provider(s); canonical provider is {target}.",
             level=messages.SUCCESS,
         )
