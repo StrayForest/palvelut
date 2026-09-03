@@ -1,0 +1,40 @@
+name: Format helper
+
+on:
+  pull_request:
+    paths:
+      - "palvelut/apps/taxonomy/**"
+      - ".github/workflows/format-helper.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  format-helper:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Fetch exact PR head
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          git init repo
+          cd repo
+          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git fetch --depth=1 origin "${HEAD_SHA}"
+          git checkout --detach FETCH_HEAD
+
+      - name: Install formatter
+        run: python3 -m pip install --disable-pip-version-check --no-input "ruff==0.12.12"
+
+      - name: Format and print files
+        working-directory: repo
+        run: |
+          ruff format \
+            palvelut/apps/taxonomy/migrations/0003_seed_finland_and_launch_categories.py \
+            palvelut/apps/taxonomy/tests.py
+          echo '===MIGRATION_START==='
+          cat palvelut/apps/taxonomy/migrations/0003_seed_finland_and_launch_categories.py
+          echo '===MIGRATION_END==='
+          echo '===TESTS_START==='
+          cat palvelut/apps/taxonomy/tests.py
+          echo '===TESTS_END==='
