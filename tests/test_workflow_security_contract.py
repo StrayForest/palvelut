@@ -14,9 +14,11 @@ class WorkflowSecurityContractTests(unittest.TestCase):
         ]
 
     def test_workflow_default_permissions_are_read_only(self) -> None:
-        match = re.search(r"(?ms)^permissions:\n((?:  .+\n)+)\njobs:", self.workflow)
-        self.assertIsNotNone(match)
-        self.assertEqual(match.group(1).strip(), "contents: read")
+        lines = self.workflow.splitlines()
+        permissions_index = lines.index("permissions:")
+        jobs_index = lines.index("jobs:")
+        permission_lines = [line.strip() for line in lines[permissions_index + 1 : jobs_index] if line.strip()]
+        self.assertEqual(permission_lines, ["contents: read"])
 
     def test_third_party_actions_use_full_commit_shas(self) -> None:
         uses = re.findall(r"(?m)^\s*-?\s*uses:\s*([^\s#]+)", self.workflow)
