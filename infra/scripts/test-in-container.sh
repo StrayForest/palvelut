@@ -3,6 +3,8 @@ set -euo pipefail
 
 cd /workspace
 
+export RUFF_CACHE_DIR=/tmp/ruff-cache
+
 git config --global --add safe.directory /workspace
 
 uv lock --check
