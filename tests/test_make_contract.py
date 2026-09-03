@@ -26,7 +26,17 @@ class MakeContractTests(unittest.TestCase):
         self.assertIn(
             "docker compose --project-name $(COMPOSE_PROJECT_NAME)", self.makefile
         )
-        self.assertIn("docker compose --project-name palvelut", self.reset_script)
+        self.assertIn(
+            'COMPOSE_PROJECT_NAME="$(COMPOSE_PROJECT_NAME)" bash infra/scripts/reset-local.sh',
+            self.makefile,
+        )
+        self.assertIn(
+            'COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-palvelut}"',
+            self.reset_script,
+        )
+        self.assertIn(
+            'docker compose --project-name "$COMPOSE_PROJECT_NAME"', self.reset_script
+        )
         for script in (self.smoke_script, self.e2e_script):
             self.assertIn(
                 'COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-palvelut}"', script
@@ -76,7 +86,11 @@ class MakeContractTests(unittest.TestCase):
         for value in ("prod", "production", "stage", "staging"):
             self.assertIn(value, self.reset_script)
         self.assertIn("DJANGO_DEBUG:-1", self.reset_script)
+        self.assertIn('case "$COMPOSE_PROJECT_NAME" in', self.reset_script)
+        self.assertIn("palvelut-production", self.reset_script)
+        self.assertIn("palvelut-staging", self.reset_script)
         self.assertIn("down -v --remove-orphans", self.reset_script)
+        self.assertIn('"${compose[@]}" build web', self.reset_script)
 
     def test_make_test_runs_every_non_browser_gate_in_container(self) -> None:
         test_block = self.makefile.split("\ntest:\n", 1)[1].split("\ne2e:\n", 1)[0]
