@@ -81,8 +81,7 @@ class Provider(UuidV7Model):
             ),
             models.CheckConstraint(
                 condition=(
-                    ~models.Q(lifecycle="published")
-                    | models.Q(claim_status="approved")
+                    ~models.Q(lifecycle="published") | models.Q(claim_status="approved")
                 ),
                 name="providers_provider_published_requires_approved_claim",
             ),
