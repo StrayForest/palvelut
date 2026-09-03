@@ -21,10 +21,7 @@ from palvelut.apps.providers.models import (
 
 class ProviderImportForm(forms.Form):
     records = forms.JSONField(
-        help_text=(
-            "JSON array of provider objects. Required: provider_type, legal_name, "
-            "display_name."
-        )
+        help_text="JSON list. Required: provider_type, legal_name, display_name.",
     )
 
     def clean_records(self):
@@ -34,13 +31,11 @@ class ProviderImportForm(forms.Form):
         required = {"provider_type", "legal_name", "display_name"}
         for index, record in enumerate(records):
             if not isinstance(record, dict) or not required.issubset(record):
-                raise forms.ValidationError(
-                    f"Record {index + 1} must contain provider_type, legal_name and display_name."
-                )
+                message = f"Record {index + 1} is missing required provider fields."
+                raise forms.ValidationError(message)
             if record["provider_type"] not in Provider.Type.values:
-                raise forms.ValidationError(
-                    f"Record {index + 1} has an invalid provider_type."
-                )
+                message = f"Record {index + 1} has an invalid provider_type."
+                raise forms.ValidationError(message)
         return records
 
 
@@ -75,20 +70,21 @@ class ProviderAdmin(admin.ModelAdmin):
     )
 
     def get_urls(self):
-        return [
+        custom_urls = [
             path(
                 "import/",
                 self.admin_site.admin_view(self.import_view),
                 name="providers_provider_import",
             ),
-            *super().get_urls(),
         ]
+        return [*custom_urls, *super().get_urls()]
 
     def import_view(self, request: HttpRequest) -> HttpResponse:
         if not self.has_add_permission(request):
             from django.core.exceptions import PermissionDenied
 
             raise PermissionDenied
+
         form = ProviderImportForm(request.POST or None)
         if request.method == "POST" and form.is_valid():
             created = 0
@@ -119,11 +115,11 @@ class ProviderAdmin(admin.ModelAdmin):
                     )
                     created += int(was_created)
                     updated += int(not was_created)
-            self.message_user(
-                request,
-                f"Import complete: {created} created, {updated} updated.",
-            )
+
+            message = f"Import complete: {created} created, {updated} updated."
+            self.message_user(request, message)
             return redirect(reverse("admin:providers_provider_changelist"))
+
         context = {
             **self.admin_site.each_context(request),
             "opts": self.model._meta,
@@ -140,7 +136,7 @@ class ProviderAdmin(admin.ModelAdmin):
                 provider.claim_status = Provider.ClaimStatus.APPROVED
                 provider.lifecycle = Provider.Lifecycle.PUBLISHED
                 provider.save(
-                    update_fields=("claim_status", "lifecycle", "updated_at")
+                    update_fields=("claim_status", "lifecycle", "updated_at"),
                 )
                 _audit(provider, request.user, "provider.approved")
                 count += 1
@@ -172,25 +168,22 @@ class ProviderAdmin(admin.ModelAdmin):
     def merge_duplicates(self, request, queryset):
         providers = list(queryset.order_by("created_at", "id")[:3])
         if len(providers) != 2:
-            self.message_user(
-                request,
-                "Select exactly two providers. The oldest record is kept as canonical.",
-                level=messages.ERROR,
-            )
+            message = "Select exactly two providers; the oldest is canonical."
+            self.message_user(request, message, level=messages.ERROR)
             return
 
         target, duplicate = providers
         with transaction.atomic():
             target = Provider.objects.select_for_update().get(pk=target.pk)
             duplicate = Provider.objects.select_for_update().get(pk=duplicate.pk)
-            models = (
+            related_models = (
                 ProviderService,
                 ServiceArea,
                 ProviderLanguage,
                 ContactChannel,
                 MediaAsset,
             )
-            for model in models:
+            for model in related_models:
                 for item in model.objects.filter(provider=duplicate):
                     item.provider = target
                     try:
@@ -198,8 +191,9 @@ class ProviderAdmin(admin.ModelAdmin):
                             item.save()
                     except IntegrityError:
                         item.delete()
+
             ProviderMembership.objects.filter(provider=duplicate).update(
-                is_active=False
+                is_active=False,
             )
             duplicate.lifecycle = Provider.Lifecycle.ARCHIVED
             duplicate.save(update_fields=("lifecycle", "updated_at"))
@@ -216,10 +210,8 @@ class ProviderAdmin(admin.ModelAdmin):
                 canonical_provider_id=str(target.pk),
             )
 
-        self.message_user(
-            request,
-            f"Merged {duplicate.display_name} into {target.display_name}.",
-        )
+        message = f"Merged {duplicate.display_name} into {target.display_name}."
+        self.message_user(request, message)
 
 
 @admin.register(ProviderMembership)
