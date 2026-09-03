@@ -15,7 +15,9 @@ def has_active_owner(*, provider: Provider) -> bool:
 
 
 @transaction.atomic
-def set_provider_lifecycle(*, provider: Provider, lifecycle: Provider.Lifecycle) -> tuple[Provider, str]:
+def set_provider_lifecycle(
+    *, provider: Provider, lifecycle: Provider.Lifecycle
+) -> tuple[Provider, str]:
     provider = Provider.objects.select_for_update().get(pk=provider.pk)
     previous = provider.lifecycle
     provider.lifecycle = lifecycle
@@ -24,11 +26,17 @@ def set_provider_lifecycle(*, provider: Provider, lifecycle: Provider.Lifecycle)
 
 
 @transaction.atomic
-def activate_owner_membership(*, provider: Provider, account: AbstractBaseUser) -> ProviderMembership:
+def activate_owner_membership(
+    *, provider: Provider, account: AbstractBaseUser
+) -> ProviderMembership:
     provider = Provider.objects.select_for_update().get(pk=provider.pk)
     existing_owner = (
         ProviderMembership.objects.select_for_update()
-        .filter(provider=provider, role=ProviderMembership.Role.OWNER, is_active=True)
+        .filter(
+            provider=provider,
+            role=ProviderMembership.Role.OWNER,
+            is_active=True,
+        )
         .exclude(account=account)
         .first()
     )
@@ -44,7 +52,9 @@ def activate_owner_membership(*, provider: Provider, account: AbstractBaseUser) 
 
 
 @transaction.atomic
-def suspend_provider(*, provider: Provider, actor: AbstractBaseUser, reason: str) -> Provider:
+def suspend_provider(
+    *, provider: Provider, actor: AbstractBaseUser, reason: str
+) -> Provider:
     provider = Provider.objects.select_for_update().get(pk=provider.pk)
     if provider.lifecycle == Provider.Lifecycle.ARCHIVED:
         raise ValidationError("Archived providers cannot be suspended")
@@ -61,18 +71,30 @@ def suspend_provider(*, provider: Provider, actor: AbstractBaseUser, reason: str
 
 
 @transaction.atomic
-def merge_duplicate_pair(*, first: Provider, second: Provider, actor: AbstractBaseUser) -> Provider:
+def merge_duplicate_pair(
+    *, first: Provider, second: Provider, actor: AbstractBaseUser
+) -> Provider:
     if first.pk == second.pk:
         raise ValidationError("Select two different providers")
 
     provider_ids = sorted((first.pk, second.pk))
-    locked = list(Provider.objects.select_for_update().filter(pk__in=provider_ids).order_by("id"))
+    locked = list(
+        Provider.objects.select_for_update()
+        .filter(pk__in=provider_ids)
+        .order_by("id")
+    )
     if len(locked) != 2:
         raise ValidationError("Both providers must exist")
 
     survivor, duplicate = locked
-    if survivor.y_tunnus and duplicate.y_tunnus and survivor.y_tunnus != duplicate.y_tunnus:
-        raise ValidationError("Providers with different Y-tunnus values cannot be merged")
+    if (
+        survivor.y_tunnus
+        and duplicate.y_tunnus
+        and survivor.y_tunnus != duplicate.y_tunnus
+    ):
+        raise ValidationError(
+            "Providers with different Y-tunnus values cannot be merged"
+        )
 
     if not survivor.y_tunnus and duplicate.y_tunnus:
         survivor.y_tunnus = duplicate.y_tunnus
