@@ -71,4 +71,6 @@ class Municipality(UuidV7Model):
         ]
 
     def __str__(self) -> str:
-        return f"{self.region.country.code}/{self.region.code}/{self.code} — {self.name}"
+        return (
+            f"{self.region.country.code}/{self.region.code}/{self.code} — {self.name}"
+        )
