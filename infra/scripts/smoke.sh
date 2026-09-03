@@ -74,6 +74,18 @@ if test "$nginx_ready" != "1"; then
   exit 1
 fi
 
+live_headers="$(mktemp)"
+live_body="$(mktemp)"
+ready_headers="$(mktemp)"
+ready_body="$(mktemp)"
+curl -fsS -D "$live_headers" -o "$live_body" http://127.0.0.1:8000/palvelut/health/live
+curl -fsS -D "$ready_headers" -o "$ready_body" http://127.0.0.1:8000/palvelut/health/ready
+grep -q '"status": "ok"' "$live_body"
+grep -q '"status": "ok"' "$ready_body"
+grep -qi '^Cache-Control: no-store' "$live_headers"
+grep -qi '^Cache-Control: no-store' "$ready_headers"
+rm -f "$live_headers" "$live_body" "$ready_headers" "$ready_body"
+
 "${compose[@]}" exec -T postgres psql -U palvelut -d palvelut -Atc "show server_version;" | grep -E '^18\.'
 "${compose[@]}" exec -T valkey valkey-cli INFO server | tr -d '\r' | grep -E '^valkey_version:8\.'
 "${compose[@]}" ps
