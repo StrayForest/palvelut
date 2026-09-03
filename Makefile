@@ -1,7 +1,7 @@
 COMPOSE_PROJECT_NAME ?= palvelut
 COMPOSE := docker compose --project-name $(COMPOSE_PROJECT_NAME)
 
-.PHONY: bootstrap dev reset test e2e smoke
+.PHONY: bootstrap dev reset seed-demo test e2e smoke
 
 bootstrap:
 	@command -v docker >/dev/null || { echo "Docker is required" >&2; exit 1; }
@@ -16,6 +16,9 @@ dev:
 
 reset:
 	bash infra/scripts/reset-local.sh
+
+seed-demo:
+	$(COMPOSE) run --rm web python manage.py seed_demo
 
 test:
 	$(COMPOSE) --profile quality build quality
