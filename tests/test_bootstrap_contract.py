@@ -38,7 +38,9 @@ class BootstrapContractTests(unittest.TestCase):
         for app in EXPECTED_APPS:
             self.assertIsNotNone(importlib.util.find_spec(f"palvelut.apps.{app}"))
 
-    def test_ci_proves_bootstrap_before_project_dependencies_are_installed(self) -> None:
+    def test_ci_proves_bootstrap_before_project_dependencies_are_installed(
+        self,
+    ) -> None:
         bootstrap_step = "- name: Verify canonical bootstrap from clean checkout"
         install_step = "- name: Install pinned CI tools"
         self.assertIn(bootstrap_step, self.workflow)
