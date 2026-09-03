@@ -14,7 +14,7 @@ P0–P4 require no rented server: they run through Docker Compose locally and fr
 
 PR gates: format/lint/type → unit/integration → migration check → security/secret scan → browser/accessibility → image build. Main produces an immutable image tagged with commit SHA. Third-party actions are full-SHA pinned with read-only default token permissions.
 
-After P0 creates stable check names, protect `main`: PR required, checks required and up to date, conversations resolved, force-push/deletion disabled. A solo maintainer may omit mandatory human approval, but no merge may bypass failed checks; emergency bypass is recorded and followed by a corrective PR.
+`main` branch protection/rulesets are intentionally deferred by the owner and are not a P0 completion requirement. Continue using PRs and green CI as the working delivery discipline, but do not enable repository protection until the owner explicitly requests it.
 
 Production deploy promotes the exact tested image digest. Start inactive web containers, run backward-compatible migrations, pass readiness/synthetic checks, switch Nginx upstream, then retain the prior web set for rollback. Drain and replace workers separately; run exactly one scheduler. Database rollback uses the migration/restore plan, never an automatic destructive downgrade.
 
