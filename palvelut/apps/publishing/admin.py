@@ -14,7 +14,13 @@ from palvelut.apps.publishing.models import ProfileRevision
 
 @admin.register(ProfileRevision)
 class ProfileRevisionAdmin(admin.ModelAdmin):
-    list_display = ("provider", "status", "created_by", "created_at", "reviewed_at")
+    list_display = (
+        "provider",
+        "status",
+        "created_by",
+        "created_at",
+        "reviewed_at",
+    )
     list_filter = ("status",)
     search_fields = ("provider__display_name", "provider__legal_name")
     autocomplete_fields = ("provider", "created_by")
@@ -38,14 +44,19 @@ class ProfileRevisionAdmin(admin.ModelAdmin):
         }
         if not changed:
             return "No provider-field changes."
-        return format_html("<pre>{}</pre>", json.dumps(changed, ensure_ascii=False, indent=2))
+        return format_html(
+            "<pre>{}</pre>",
+            json.dumps(changed, ensure_ascii=False, indent=2),
+        )
 
     @admin.action(description="Approve selected revisions")
     def approve_revisions(self, request, queryset):
         count = 0
         with transaction.atomic():
             for revision in queryset.select_for_update().select_related("provider"):
-                provider = Provider.objects.select_for_update().get(pk=revision.provider_id)
+                provider = Provider.objects.select_for_update().get(
+                    pk=revision.provider_id
+                )
                 allowed = {"legal_name", "display_name", "y_tunnus", "provider_type"}
                 for field, value in revision.payload.items():
                     if field in allowed:
