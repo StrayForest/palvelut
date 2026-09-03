@@ -5,6 +5,15 @@ COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-palvelut}"
 compose=(docker compose --project-name "$COMPOSE_PROJECT_NAME")
 cleanup() {
   "${compose[@]}" down -v --remove-orphans
+
+  remaining_containers="$(
+    docker ps -aq --filter "label=com.docker.compose.project=$COMPOSE_PROJECT_NAME"
+  )"
+  remaining_volumes="$(
+    docker volume ls -q --filter "label=com.docker.compose.project=$COMPOSE_PROJECT_NAME"
+  )"
+  test -z "$remaining_containers"
+  test -z "$remaining_volumes"
 }
 trap cleanup EXIT
 

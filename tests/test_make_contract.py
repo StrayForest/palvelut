@@ -109,6 +109,18 @@ class MakeContractTests(unittest.TestCase):
         self.assertIn("down -v --remove-orphans", self.smoke_script)
         self.assertIn("manage.py migrate --noinput", self.smoke_script)
         self.assertIn("manage.py check", self.smoke_script)
+        self.assertIn(
+            'docker ps -aq --filter "label=com.docker.compose.project=$COMPOSE_PROJECT_NAME"',
+            self.smoke_script,
+        )
+        self.assertIn(
+            'docker volume ls -q --filter "label=com.docker.compose.project=$COMPOSE_PROJECT_NAME"',
+            self.smoke_script,
+        )
+        self.assertIn('test -z "$remaining_containers"', self.smoke_script)
+        self.assertIn('test -z "$remaining_volumes"', self.smoke_script)
+        self.assertIn("/palvelut/health/live", self.smoke_script)
+        self.assertIn("/palvelut/health/ready", self.smoke_script)
 
     def test_e2e_is_disposable_and_runs_playwright_in_compose(self) -> None:
         self.assertIn("trap cleanup EXIT", self.e2e_script)
