@@ -31,7 +31,11 @@ class SeedDemoCommandTests(TestCase):
         providers = list(
             Provider.objects.filter(
                 legal_name__in=[spec.legal_name for spec in DEMO_PROVIDERS]
-            ).prefetch_related("service_areas__municipality", "services__category", "languages__language")
+            ).prefetch_related(
+                "service_areas__municipality",
+                "services__category",
+                "languages__language",
+            )
         )
         self.assertEqual(
             {provider.provider_type for provider in providers},
