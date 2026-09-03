@@ -35,7 +35,7 @@
 - CI starts fresh PostgreSQL 18 and Valkey 8.x state for each run; no shared database, cache, credentials, or production data.
 - Browser CI retains its HTML report and failure screenshots, traces, and console logs as GitHub Actions artifacts.
 - Local reset/seed commands must be project-scoped and refuse production-like settings.
-- GitHub Actions use read-only default permissions and full commit SHAs for third-party actions. Protect `main` with PRs, required green checks, resolved conversations, and blocked force-push/deletion after P0 creates the checks.
+- GitHub Actions use read-only default permissions and full commit SHAs for third-party actions. `main` branch protection/rulesets are intentionally deferred by the owner and are not a P0 completion gate; do not enable them unless explicitly requested.
 
 ## Task state discipline
 
