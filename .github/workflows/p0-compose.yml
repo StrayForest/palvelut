@@ -112,6 +112,54 @@ jobs:
         working-directory: repo
         run: docker build -t palvelut-ci .
 
+      - name: Verify canonical development startup
+        working-directory: repo
+        run: |
+          docker compose --project-name "$COMPOSE_PROJECT_NAME" down -v --remove-orphans || true
+          setsid make dev >/tmp/palvelut-dev.log 2>&1 &
+          dev_pid=$!
+
+          cleanup_dev() {
+            kill -TERM -- "-$dev_pid" 2>/dev/null || true
+            wait "$dev_pid" 2>/dev/null || true
+            docker compose --project-name "$COMPOSE_PROJECT_NAME" down -v --remove-orphans
+          }
+          trap cleanup_dev EXIT
+
+          ready=0
+          for _ in $(seq 1 90); do
+            if ! kill -0 "$dev_pid" 2>/dev/null; then
+              cat /tmp/palvelut-dev.log
+              exit 1
+            fi
+
+            services="$(docker compose --project-name "$COMPOSE_PROJECT_NAME" ps --status running --services)"
+            all_running=1
+            for service in postgres valkey mailpit minio web worker nginx; do
+              grep -Fxq "$service" <<<"$services" || all_running=0
+            done
+
+            if test "$all_running" = "1" \
+              && curl -fsS http://127.0.0.1:8000/palvelut/en/ >/dev/null; then
+              ready=1
+              break
+            fi
+            sleep 2
+          done
+
+          if test "$ready" != "1"; then
+            docker compose --project-name "$COMPOSE_PROJECT_NAME" ps
+            cat /tmp/palvelut-dev.log
+            exit 1
+          fi
+
+          docker compose --project-name "$COMPOSE_PROJECT_NAME" exec -T postgres \
+            psql -U palvelut -d palvelut -Atc \
+            "select count(*) from django_migrations;" | grep -E '^[1-9][0-9]*$'
+
+          trap - EXIT
+          cleanup_dev
+
       - name: Start fresh isolated database services
         working-directory: repo
         run: |

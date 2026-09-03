@@ -10,6 +10,8 @@ bootstrap:
 	$(COMPOSE) build web
 
 dev:
+	$(COMPOSE) up -d --build postgres valkey mailpit minio
+	$(COMPOSE) run --rm web python manage.py migrate --noinput
 	$(COMPOSE) up --build
 
 reset:

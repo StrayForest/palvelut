@@ -31,6 +31,27 @@ class MakeContractTests(unittest.TestCase):
                 'docker compose --project-name "$COMPOSE_PROJECT_NAME"', script
             )
 
+    def test_dev_prepares_clean_database_before_attached_stack(self) -> None:
+        dev_block = self.makefile.split("\ndev:\n", 1)[1].split("\nreset:\n", 1)[0]
+        self.assertIn("up -d --build postgres valkey mailpit minio", dev_block)
+        self.assertIn("run --rm web python manage.py migrate --noinput", dev_block)
+        self.assertTrue(dev_block.rstrip().endswith("$(COMPOSE) up --build"))
+
+    def test_ci_proves_make_dev_starts_complete_stack(self) -> None:
+        self.assertIn("Verify canonical development startup", self.workflow)
+        self.assertIn("setsid make dev", self.workflow)
+        for service in (
+            "postgres",
+            "valkey",
+            "mailpit",
+            "minio",
+            "web",
+            "worker",
+            "nginx",
+        ):
+            self.assertIn(service, self.workflow)
+        self.assertIn("http://127.0.0.1:8000/palvelut/en/", self.workflow)
+
     def test_ci_uses_fresh_isolated_postgres_and_valkey(self) -> None:
         self.assertIn(
             "COMPOSE_PROJECT_NAME: palvelut-ci-${{ github.run_id }}-${{ github.run_attempt }}",
