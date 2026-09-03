@@ -130,6 +130,29 @@ jobs:
         working-directory: repo
         run: docker build --target frontend -t palvelut-frontend-ci .
 
+      - name: Verify reproducible static build
+        working-directory: repo
+        run: |
+          static_a="$RUNNER_TEMP/palvelut-static-a"
+          static_b="$RUNNER_TEMP/palvelut-static-b"
+          rm -rf "$static_a" "$static_b"
+          mkdir -p "$static_a" "$static_b"
+
+          export_static() {
+            image="$1"
+            destination="$2"
+            docker build --no-cache --target frontend -t "$image" .
+            container="$(docker create "$image")"
+            trap 'docker rm -f "$container" >/dev/null 2>&1 || true' RETURN
+            docker cp "$container:/frontend-dist/." "$destination/"
+            docker rm "$container" >/dev/null
+            trap - RETURN
+          }
+
+          export_static palvelut-static-repro-a "$static_a"
+          export_static palvelut-static-repro-b "$static_b"
+          diff -ruN "$static_a" "$static_b"
+
       - name: Build application container
         working-directory: repo
         run: docker build -t palvelut-ci .
