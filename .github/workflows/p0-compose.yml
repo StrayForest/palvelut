@@ -10,14 +10,13 @@ on:
       - ".dockerignore"
       - "pyproject.toml"
       - "uv.lock"
+      - "frontend/**"
       - "playwright.config.js"
       - "e2e/**"
       - "palvelut/**"
       - "infra/nginx/**"
       - "infra/scripts/**"
-      - "tests/test_bootstrap_contract.py"
-      - "tests/test_compose_contract.py"
-      - "tests/test_make_contract.py"
+      - "tests/**"
       - "tasks/P0-foundation.md"
       - "tasks/archive/**"
       - ".github/workflows/p0-compose.yml"
@@ -31,19 +30,28 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - name: Fetch exact PR head
+      - name: Fetch exact PR head and base
         env:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           git init repo
           cd repo
           git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git fetch --depth=1 origin "${BASE_SHA}"
+          git branch ci-base FETCH_HEAD
           git fetch --depth=1 origin "${HEAD_SHA}"
           git checkout --detach FETCH_HEAD
 
-      - name: Install pinned uv
+      - name: Install pinned CI tools
         working-directory: repo
-        run: python3 -m pip install --disable-pip-version-check --no-input "uv==0.10.0"
+        run: |
+          python3 -m pip install --disable-pip-version-check --no-input \
+            "uv==0.10.0" \
+            "ruff==0.12.12" \
+            "mypy==1.17.1" \
+            "pip-audit==2.9.0" \
+            "detect-secrets==1.5.0"
 
       - name: Verify dependency and command contracts
         working-directory: repo
@@ -51,6 +59,77 @@ jobs:
           uv lock --check
           uv sync --locked
           uv run python -m unittest -v tests.test_bootstrap_contract tests.test_compose_contract tests.test_make_contract
+
+      - name: Lint and format check
+        working-directory: repo
+        run: |
+          ruff check --extend-per-file-ignores 'tests/*.py:E402' manage.py palvelut tests
+          mapfile -t changed_python < <(git diff --name-only ci-base HEAD -- '*.py')
+          if ((${#changed_python[@]})); then
+            ruff format --check "${changed_python[@]}"
+          else
+            echo "No changed Python files to format-check"
+          fi
+
+      - name: Type check
+        working-directory: repo
+        run: mypy --ignore-missing-imports --follow-imports=skip --check-untyped-defs manage.py palvelut
+
+      - name: Dependency audit
+        working-directory: repo
+        run: |
+          uv export --locked --no-dev --format requirements-txt --output-file /tmp/palvelut-requirements.txt
+          pip-audit --disable-pip -r /tmp/palvelut-requirements.txt
+
+      - name: Secret scan
+        working-directory: repo
+        run: |
+          mapfile -t tracked_files < <(git ls-files | grep -Ev '^(uv\.lock|frontend/package-lock\.json)$')
+          detect-secrets scan \
+            --exclude-lines 'local-only|bootstrap-only|test-only|ci-only|explicit-secret' \
+            "${tracked_files[@]}" \
+            > /tmp/detect-secrets.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path('/tmp/detect-secrets.json').read_text())
+          results = report.get('results', {})
+          if results:
+              for path, findings in results.items():
+                  for finding in findings:
+                      print(f"{path}:{finding.get('line_number')}: {finding.get('type')}")
+              raise SystemExit('detect-secrets found candidate credentials')
+          PY
+
+      - name: Build frontend stage
+        working-directory: repo
+        run: docker build --target frontend -t palvelut-frontend-ci .
+
+      - name: Build application container
+        working-directory: repo
+        run: docker build -t palvelut-ci .
+
+      - name: Start fresh database services
+        working-directory: repo
+        run: docker compose --project-name palvelut up -d postgres valkey
+
+      - name: Check and apply migrations
+        working-directory: repo
+        run: |
+          docker compose --project-name palvelut run --rm web python manage.py makemigrations --check --dry-run
+          docker compose --project-name palvelut run --rm web python manage.py migrate --noinput
+
+      - name: Run Django deploy checks
+        working-directory: repo
+        run: |
+          docker compose --project-name palvelut run --rm \
+            -e PALVELUT_ENVIRONMENT=production \
+            -e DJANGO_DEBUG=0 \
+            -e DJANGO_SECRET_KEY=ci-only-not-a-real-secret \
+            -e DJANGO_ALLOWED_HOSTS=ci.example.invalid \
+            -e PUBLIC_BASE_URL=https://ci.example.invalid/palvelut \
+            web python manage.py check --deploy --fail-level ERROR
 
       - name: Run canonical non-browser test gate
         working-directory: repo
