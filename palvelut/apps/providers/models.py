@@ -34,11 +34,21 @@ class Provider(UuidV7Model):
         ordering = ("display_name", "id")
         constraints = (
             models.CheckConstraint(
-                condition=models.Q(provider_type__in=Type.values),
+                condition=models.Q(provider_type__in=("individual", "business")),
                 name="providers_provider_type_valid",
             ),
             models.CheckConstraint(
-                condition=models.Q(lifecycle__in=Lifecycle.values),
+                condition=models.Q(
+                    lifecycle__in=(
+                        "unclaimed",
+                        "draft",
+                        "pending",
+                        "published",
+                        "changes_requested",
+                        "suspended",
+                        "archived",
+                    )
+                ),
                 name="providers_provider_lifecycle_valid",
             ),
             models.UniqueConstraint(
@@ -74,7 +84,7 @@ class ProviderMembership(UuidV7Model):
     class Meta:
         constraints = (
             models.CheckConstraint(
-                condition=models.Q(role__in=Role.values),
+                condition=models.Q(role__in=("owner", "editor")),
                 name="providers_membership_role_valid",
             ),
             models.UniqueConstraint(
@@ -83,7 +93,7 @@ class ProviderMembership(UuidV7Model):
             ),
             models.UniqueConstraint(
                 fields=("provider",),
-                condition=models.Q(role=Role.OWNER, is_active=True),
+                condition=models.Q(role="owner", is_active=True),
                 name="providers_membership_one_active_owner",
             ),
         )
@@ -135,7 +145,7 @@ class ServiceArea(UuidV7Model):
     class Meta:
         constraints = (
             models.CheckConstraint(
-                condition=models.Q(mode__in=Mode.values),
+                condition=models.Q(mode__in=("onsite", "travel", "remote")),
                 name="providers_service_area_mode_valid",
             ),
             models.UniqueConstraint(
@@ -190,7 +200,16 @@ class ContactChannel(UuidV7Model):
     class Meta:
         constraints = (
             models.CheckConstraint(
-                condition=models.Q(kind__in=Kind.values),
+                condition=models.Q(
+                    kind__in=(
+                        "phone",
+                        "email",
+                        "website",
+                        "booking",
+                        "telegram",
+                        "whatsapp",
+                    )
+                ),
                 name="providers_contact_kind_valid",
             ),
             models.UniqueConstraint(
