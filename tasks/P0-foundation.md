@@ -4,7 +4,6 @@ Read: `DECISIONS.md`, `docs/05-architecture.md`, `docs/06-quality.md`, `docs/07-
 
 ## Build
 
-- Run CI with fresh pinned PostgreSQL 18 and Valkey 8.x services; it must stay isolated from persistent or deployed environments.
 - Retain the Playwright HTML report and failure screenshots, traces and console logs as GitHub Actions artifacts.
 - Add `.env.example` containing placeholder configuration only.
 
@@ -15,7 +14,6 @@ Read: `DECISIONS.md`, `docs/05-architecture.md`, `docs/06-quality.md`, `docs/07-
 - `make test` runs every non-browser P0 gate; `make e2e` runs the browser gate.
 - `make smoke` starts disposable services, verifies liveness/readiness and shuts them down.
 - `make reset` rebuilds only this project's disposable local state and refuses production-like settings.
-- `make test`, `make e2e` and `make smoke` pass in GitHub Actions with no persistent external dependency; CI never calls `dev`, `reset` or seed targets.
 - A clean database migrates; static build is reproducible.
 - GitHub check names are stable and `main` protection/ruleset is enabled after their first green run.
 
