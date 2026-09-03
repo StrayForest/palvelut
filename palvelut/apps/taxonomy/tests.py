@@ -147,7 +147,9 @@ class SeededTaxonomyTests(TestCase):
         category = Category.objects.get(slug="accounting")
 
         with self.assertRaises(IntegrityError), transaction.atomic():
-            CategoryLabel.objects.create(category=category, locale="sv", label="Bokföring")
+            CategoryLabel.objects.create(
+                category=category, locale="sv", label="Bokföring"
+            )
 
         with self.assertRaises(IntegrityError), transaction.atomic():
             CategoryLabel.objects.create(
