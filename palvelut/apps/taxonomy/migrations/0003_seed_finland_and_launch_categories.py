@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.db import migrations, models
 import django.db.models.deletion
 from django.db.models import Q
@@ -338,7 +340,7 @@ MUNICIPALITIES = (
     ("992", "Äänekoski", "13"),
 )
 
-CATEGORIES = {
+CATEGORIES: dict[str, dict[str, Any]] = {
     "accounting": {
         "name": "Accounting",
         "labels": {"ru": "Бухгалтерия", "fi": "Kirjanpito", "en": "Accounting"},
