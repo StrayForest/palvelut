@@ -13,6 +13,14 @@ if [[ "${DJANGO_DEBUG:-1}" != "1" ]]; then
   exit 2
 fi
 
-compose=(docker compose --project-name palvelut)
+COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-palvelut}"
+case "$COMPOSE_PROJECT_NAME" in
+  ""|prod|production|stage|staging|palvelut-prod|palvelut-production|palvelut-stage|palvelut-staging)
+    echo "Refusing to reset production-like Compose project: ${COMPOSE_PROJECT_NAME:-<empty>}" >&2
+    exit 2
+    ;;
+esac
+
+compose=(docker compose --project-name "$COMPOSE_PROJECT_NAME")
 "${compose[@]}" down -v --remove-orphans
 "${compose[@]}" build web
