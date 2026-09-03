@@ -23,7 +23,7 @@ class Country(UuidV7Model):
             models.CheckConstraint(
                 condition=Q(code__regex=r"^[A-Z]{2}$"),
                 name="taxonomy_country_code_iso_alpha2",
-            )
+            ),
         ]
 
     def __str__(self) -> str:
@@ -45,7 +45,7 @@ class Region(UuidV7Model):
             models.UniqueConstraint(
                 fields=("country", "code"),
                 name="taxonomy_region_country_code_unique",
-            )
+            ),
         ]
 
     def __str__(self) -> str:
@@ -67,7 +67,7 @@ class Municipality(UuidV7Model):
             models.UniqueConstraint(
                 fields=("region", "code"),
                 name="taxonomy_municipality_region_code_unique",
-            )
+            ),
         ]
 
     def __str__(self) -> str:
