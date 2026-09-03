@@ -10,7 +10,31 @@ git config --global --add safe.directory /workspace
 uv lock --check
 
 ruff check --no-cache --extend-per-file-ignores 'tests/*.py:E402' manage.py palvelut tests
-ruff format --check manage.py palvelut tests
+
+format_base=""
+if git show-ref --verify --quiet refs/heads/ci-base; then
+  format_base="ci-base"
+elif git show-ref --verify --quiet refs/remotes/origin/main; then
+  format_base="origin/main"
+elif git show-ref --verify --quiet refs/heads/main; then
+  format_base="main"
+fi
+
+{
+  if [[ -n "$format_base" ]]; then
+    git diff --name-only "$format_base" HEAD -- '*.py'
+  fi
+  git diff --name-only -- '*.py'
+  git diff --cached --name-only -- '*.py'
+  git ls-files --others --exclude-standard -- '*.py'
+} | sort -u > /tmp/palvelut-changed-python.txt
+mapfile -t changed_python < /tmp/palvelut-changed-python.txt
+
+if ((${#changed_python[@]})); then
+  ruff format --check "${changed_python[@]}"
+else
+  echo "No changed Python files to format-check"
+fi
 
 mypy --cache-dir=/tmp/mypy-cache --ignore-missing-imports --follow-imports=skip --check-untyped-defs manage.py palvelut
 
