@@ -4,7 +4,6 @@ Depends: P0. Read: `docs/01-product.md`, `docs/03-experience.md`, `docs/05-archi
 
 ## Build
 
-- Generate IDs through PostgreSQL 18 native `uuidv7()` and test database defaults.
 - Seed Finnish municipalities and the 8 launch categories with RU/FI/EN labels and synonyms.
 - Add idempotent `make seed-demo` with clearly synthetic providers covering launch cities, both provider types and representative lifecycle states; refuse production-like settings.
 - Build staff admin for non-public create/import, revision diff, approve/request changes, suspend and merge duplicates. Model claim state/evidence so unclaimed imports cannot publish.
