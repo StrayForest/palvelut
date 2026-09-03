@@ -182,6 +182,49 @@ jobs:
           trap - EXIT
           cleanup_dev
 
+      - name: Verify isolated local reset contract
+        working-directory: repo
+        run: |
+          reset_target="$COMPOSE_PROJECT_NAME-reset"
+          reset_sentinel="$COMPOSE_PROJECT_NAME-sentinel"
+
+          cleanup_reset() {
+            docker compose --project-name "$reset_target" down -v --remove-orphans || true
+            docker compose --project-name "$reset_sentinel" down -v --remove-orphans || true
+          }
+          trap cleanup_reset EXIT
+
+          docker compose --project-name "$reset_target" up -d --wait postgres
+          docker compose --project-name "$reset_sentinel" up -d --wait postgres
+
+          if PALVELUT_ENVIRONMENT=production \
+            COMPOSE_PROJECT_NAME="$reset_target" make reset; then
+            echo "make reset must refuse PALVELUT_ENVIRONMENT=production" >&2
+            exit 1
+          fi
+          docker compose --project-name "$reset_target" ps --status running --services \
+            | grep -Fxq postgres
+
+          if DJANGO_DEBUG=0 COMPOSE_PROJECT_NAME="$reset_target" make reset; then
+            echo "make reset must refuse DJANGO_DEBUG=0" >&2
+            exit 1
+          fi
+          docker compose --project-name "$reset_target" ps --status running --services \
+            | grep -Fxq postgres
+
+          COMPOSE_PROJECT_NAME="$reset_target" make reset
+
+          target_containers="$(docker ps -aq --filter "label=com.docker.compose.project=$reset_target")"
+          target_volumes="$(docker volume ls -q --filter "label=com.docker.compose.project=$reset_target")"
+          test -z "$target_containers"
+          test -z "$target_volumes"
+
+          docker compose --project-name "$reset_sentinel" ps --status running --services \
+            | grep -Fxq postgres
+
+          trap - EXIT
+          cleanup_reset
+
       - name: Start fresh isolated database services
         working-directory: repo
         run: |

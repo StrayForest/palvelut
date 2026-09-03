@@ -13,6 +13,7 @@ if [[ "${DJANGO_DEBUG:-1}" != "1" ]]; then
   exit 2
 fi
 
-compose=(docker compose --project-name palvelut)
+COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-palvelut}"
+compose=(docker compose --project-name "$COMPOSE_PROJECT_NAME")
 "${compose[@]}" down -v --remove-orphans
 "${compose[@]}" build web
