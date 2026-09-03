@@ -5,7 +5,7 @@ WORKDIR /frontend
 COPY frontend/package.json ./
 COPY frontend/app.css ./app.css
 COPY templates /templates
-RUN npm install --omit=optional --ignore-scripts \
+RUN npm install --ignore-scripts \
     && mkdir -p /frontend-dist/vendor /frontend-dist/css \
     && cp node_modules/htmx.org/dist/htmx.min.js /frontend-dist/vendor/htmx.min.js \
     && cp node_modules/alpinejs/dist/cdn.min.js /frontend-dist/vendor/alpine.min.js \
