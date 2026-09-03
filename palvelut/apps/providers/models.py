@@ -18,12 +18,24 @@ class Provider(UuidV7Model):
         SUSPENDED = "suspended", "Suspended"
         ARCHIVED = "archived", "Archived"
 
+    class ClaimStatus(models.TextChoices):
+        UNCLAIMED = "unclaimed", "Unclaimed"
+        PENDING = "pending", "Pending"
+        APPROVED = "approved", "Approved"
+        REJECTED = "rejected", "Rejected"
+
     provider_type = models.CharField(max_length=16, choices=Type.choices)
     lifecycle = models.CharField(
         max_length=24,
         choices=Lifecycle.choices,
         default=Lifecycle.UNCLAIMED,
     )
+    claim_status = models.CharField(
+        max_length=16,
+        choices=ClaimStatus.choices,
+        default=ClaimStatus.UNCLAIMED,
+    )
+    claim_evidence = models.JSONField(default=dict)
     legal_name = models.CharField(max_length=200)
     display_name = models.CharField(max_length=200)
     y_tunnus = models.CharField(max_length=16, blank=True)
@@ -50,6 +62,19 @@ class Provider(UuidV7Model):
                     )
                 ),
                 name="providers_provider_lifecycle_valid",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(
+                    claim_status__in=("unclaimed", "pending", "approved", "rejected")
+                ),
+                name="providers_provider_claim_status_valid",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    ~models.Q(lifecycle="published")
+                    | models.Q(claim_status="approved")
+                ),
+                name="providers_provider_published_requires_approved_claim",
             ),
             models.UniqueConstraint(
                 fields=("y_tunnus",),
