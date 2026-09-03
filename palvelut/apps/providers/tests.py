@@ -126,6 +126,34 @@ class ProviderDatabaseConstraintTests(TestCase):
             )
         )
 
+    def test_provider_claim_status_is_database_constrained(self) -> None:
+        self.assert_integrity_error(
+            lambda: Provider.objects.filter(pk=self.provider.pk).update(
+                claim_status="not-a-claim-status"
+            )
+        )
+
+    def test_unapproved_provider_cannot_publish(self) -> None:
+        self.assertEqual(self.provider.claim_status, Provider.ClaimStatus.UNCLAIMED)
+        self.assert_integrity_error(
+            lambda: Provider.objects.filter(pk=self.provider.pk).update(
+                lifecycle=Provider.Lifecycle.PUBLISHED
+            )
+        )
+
+    def test_approved_claim_can_publish_with_evidence(self) -> None:
+        Provider.objects.filter(pk=self.provider.pk).update(
+            claim_status=Provider.ClaimStatus.APPROVED,
+            claim_evidence={"kind": "staff_review", "reference": "synthetic"},
+        )
+        Provider.objects.filter(pk=self.provider.pk).update(
+            lifecycle=Provider.Lifecycle.PUBLISHED
+        )
+        self.provider.refresh_from_db()
+        self.assertEqual(self.provider.lifecycle, Provider.Lifecycle.PUBLISHED)
+        self.assertEqual(self.provider.claim_status, Provider.ClaimStatus.APPROVED)
+        self.assertEqual(self.provider.claim_evidence["kind"], "staff_review")
+
     def test_nonblank_y_tunnus_is_unique(self) -> None:
         self.assert_integrity_error(
             lambda: Provider.objects.create(

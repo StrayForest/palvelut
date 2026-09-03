@@ -86,12 +86,21 @@ class Command(BaseCommand):
             for spec in DEMO_PROVIDERS:
                 municipality = self._municipality(spec.municipality_code)
                 category = self._category(spec.category_slug)
+                is_published = spec.lifecycle == Provider.Lifecycle.PUBLISHED
                 provider, _ = Provider.objects.update_or_create(
                     legal_name=spec.legal_name,
                     defaults={
                         "display_name": spec.display_name,
                         "provider_type": spec.provider_type,
                         "lifecycle": spec.lifecycle,
+                        "claim_status": (
+                            Provider.ClaimStatus.APPROVED
+                            if is_published
+                            else Provider.ClaimStatus.UNCLAIMED
+                        ),
+                        "claim_evidence": (
+                            {"source": "synthetic_demo"} if is_published else {}
+                        ),
                         "y_tunnus": spec.y_tunnus,
                     },
                 )
