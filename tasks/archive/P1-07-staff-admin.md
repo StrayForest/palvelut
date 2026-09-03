@@ -10,6 +10,7 @@ Completed: 2026-09-04
 - Added claim transition services that grant active owner membership only after approval and audit claim approvals/rejections.
 - Blocked revision publication until the provider has an approved claim; approved publication, requested changes, suspension and duplicate merge are audited.
 - Added workflow and staff-permission tests covering unclaimed publish refusal, claim-to-owner-to-publish transition, moderation audit events and staff-only admin access.
+- Removed the completed staff-admin Build item from the active P1 document; the approved-state public read/search document remains the next active Build item.
 
 ## Checks
 
