@@ -25,7 +25,11 @@ class ComposeContractTests(unittest.TestCase):
         self.assertEqual(len(image_lines), 5)
         for image in image_lines:
             self.assertRegex(image, r"@sha256:[0-9a-f]{64}$")
-        self.assertRegex(self.dockerfile.splitlines()[1], r"@sha256:[0-9a-f]{64}$")
+
+        from_images = re.findall(r"(?m)^FROM\s+(\S+)(?:\s+AS\s+\S+)?$", self.dockerfile)
+        self.assertGreaterEqual(len(from_images), 1)
+        for image in from_images:
+            self.assertRegex(image, r"@sha256:[0-9a-f]{64}$")
 
     def test_postgres_18_uses_version_aware_volume_root(self) -> None:
         self.assertIn("postgres_data:/var/lib/postgresql", self.compose)
