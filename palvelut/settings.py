@@ -4,7 +4,10 @@ from urllib.parse import urlsplit
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Temporary bootstrap key only. Production environment validation is a later P0 step.
+ENVIRONMENT = os.getenv("PALVELUT_ENVIRONMENT", "local").strip().lower()
+if ENVIRONMENT not in {"local", "test", "staging", "production"}:
+    raise RuntimeError("PALVELUT_ENVIRONMENT must be one of local, test, staging or production")
+
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "p0-bootstrap-only-not-for-production")
 DEBUG = os.getenv("DJANGO_DEBUG", "1") == "1"
 ALLOWED_HOSTS = [host for host in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,[::1]").split(",") if host]
@@ -22,6 +25,26 @@ def _public_base_url() -> str:
 
 PUBLIC_BASE_URL = _public_base_url()
 PUBLIC_MOUNT_PATH = "/palvelut/"
+
+
+def _validate_environment() -> None:
+    if ENVIRONMENT not in {"staging", "production"}:
+        return
+
+    errors = []
+    if DEBUG:
+        errors.append("DJANGO_DEBUG must be 0")
+    if not os.getenv("DJANGO_SECRET_KEY") or SECRET_KEY == "p0-bootstrap-only-not-for-production":
+        errors.append("DJANGO_SECRET_KEY must be explicitly configured")
+    if not os.getenv("DJANGO_ALLOWED_HOSTS") or not ALLOWED_HOSTS:
+        errors.append("DJANGO_ALLOWED_HOSTS must be explicitly configured")
+    if urlsplit(PUBLIC_BASE_URL).scheme != "https":
+        errors.append("PUBLIC_BASE_URL must use https")
+    if errors:
+        raise RuntimeError(f"Unsafe {ENVIRONMENT} configuration: " + "; ".join(errors))
+
+
+_validate_environment()
 
 DOMAIN_APPS = [
     "palvelut.apps.accounts.apps.AccountsConfig",
@@ -123,3 +146,8 @@ USE_TZ = True
 STATIC_URL = "/palvelut/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+if ENVIRONMENT in {"staging", "production"}:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True
