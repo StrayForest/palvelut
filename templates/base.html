@@ -1,0 +1,18 @@
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+<!doctype html>
+<html lang="{{ LANGUAGE_CODE|default:'en' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{% translate "Finrix Palvelut" %}{% endblock %}</title>
+</head>
+<body>
+  <a href="#main-content">{% translate "Skip to main content" %}</a>
+  <header>
+    <nav aria-label="{% translate 'Primary navigation' %}">{% translate "Finrix Palvelut" %}</nav>
+  </header>
+  <main id="main-content" tabindex="-1">{% block content %}{% endblock %}</main>
+  <footer>{% translate "Find specialists and contact them directly." %}</footer>
+</body>
+</html>

@@ -4,7 +4,7 @@ Read: `DECISIONS.md`, `docs/05-architecture.md`, `docs/06-quality.md`, `docs/07-
 
 ## Build
 
-- Add Tailwind build, HTMX, minimal Alpine.js, RU/FI/EN i18n skeleton and accessible base layout.
+- Add Tailwind build, HTMX and minimal Alpine.js.
 - Own local and production routes under `/palvelut/{locale}/` in Django's root URLconf; test prefix-preserving proxy behaviour, static URLs, redirects, cookies, canonical and hreflang generation.
 - Add environment validation, `/palvelut/health/live`, `/palvelut/health/ready`, JSON logs and request IDs.
 - Add Playwright coverage for the base page at 360px and 1440px, keyboard focus and browser-console errors.
