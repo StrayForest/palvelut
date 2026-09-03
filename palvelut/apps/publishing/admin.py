@@ -67,10 +67,14 @@ class ProfileRevisionAdmin(admin.ModelAdmin):
                 revision.status = ProfileRevision.Status.APPROVED
                 revision.reviewed_at = timezone.now()
                 revision.save(update_fields=("status", "reviewed_at"))
-                ProfileRevision.objects.filter(
-                    provider=provider,
-                    status=ProfileRevision.Status.APPROVED,
-                ).exclude(pk=revision.pk).update(status=ProfileRevision.Status.SUPERSEDED)
+                (
+                    ProfileRevision.objects.filter(
+                        provider=provider,
+                        status=ProfileRevision.Status.APPROVED,
+                    )
+                    .exclude(pk=revision.pk)
+                    .update(status=ProfileRevision.Status.SUPERSEDED)
+                )
                 AuditEvent.objects.create(
                     provider=provider,
                     actor=request.user,
