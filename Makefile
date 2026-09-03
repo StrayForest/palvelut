@@ -18,8 +18,8 @@ reset:
 	bash infra/scripts/reset-local.sh
 
 test:
-	$(COMPOSE) build web
-	$(COMPOSE) run --rm --no-deps -v "$(CURDIR):/workspace:ro" -w /workspace web python -m unittest discover -s tests -p 'test_*.py' -v
+	$(COMPOSE) --profile quality build quality
+	$(COMPOSE) --profile quality run --rm --no-deps quality bash infra/scripts/test-in-container.sh
 
 e2e:
 	bash infra/scripts/e2e.sh
