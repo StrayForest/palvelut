@@ -104,6 +104,15 @@ services:
     volumes:
       - ./infra/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
 
+  quality:
+    build:
+      context: .
+      dockerfile: Dockerfile.quality
+    environment: *app-environment
+    profiles: ["quality"]
+    volumes:
+      - .:/workspace:ro
+
   e2e:
     build:
       context: .

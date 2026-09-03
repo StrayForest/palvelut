@@ -7,6 +7,7 @@ on:
       - "compose.yml"
       - "Dockerfile"
       - "Dockerfile.e2e"
+      - "Dockerfile.quality"
       - ".dockerignore"
       - "pyproject.toml"
       - "uv.lock"

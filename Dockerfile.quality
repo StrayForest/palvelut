@@ -1,0 +1,25 @@
+# Python 3.13 slim, resolved 2026-09-03; immutable digest is authoritative.
+FROM python:3.13-slim@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH="/opt/palvelut/.venv/bin:$PATH" \
+    UV_PROJECT_ENVIRONMENT="/opt/palvelut/.venv"
+
+WORKDIR /opt/palvelut
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends git \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN python -m pip install --no-cache-dir \
+    "uv==0.10.0" \
+    "ruff==0.12.12" \
+    "mypy==1.17.1" \
+    "pip-audit==2.9.0" \
+    "detect-secrets==1.5.0"
+
+COPY pyproject.toml uv.lock ./
+RUN uv sync --locked
+
+WORKDIR /workspace
