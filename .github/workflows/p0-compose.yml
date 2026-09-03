@@ -152,6 +152,17 @@ jobs:
         working-directory: repo
         run: make e2e
 
+      - name: Upload Playwright evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: playwright-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            repo/playwright-report/
+            repo/test-results/
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Run canonical disposable smoke gate
         working-directory: repo
         run: make smoke

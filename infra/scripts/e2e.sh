@@ -9,6 +9,9 @@ cleanup() {
 }
 trap cleanup EXIT
 
+rm -rf playwright-report test-results
+mkdir -p playwright-report test-results
+
 "${COMPOSE[@]}" build web e2e
 "${COMPOSE[@]}" up -d postgres valkey web nginx
 

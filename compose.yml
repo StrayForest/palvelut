@@ -113,6 +113,9 @@ services:
         condition: service_started
     ipc: host
     profiles: ["e2e"]
+    volumes:
+      - ./playwright-report:/tests/playwright-report
+      - ./test-results:/tests/test-results
 
 volumes:
   postgres_data:

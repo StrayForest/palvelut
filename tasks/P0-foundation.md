@@ -4,7 +4,6 @@ Read: `DECISIONS.md`, `docs/05-architecture.md`, `docs/06-quality.md`, `docs/07-
 
 ## Build
 
-- Retain the Playwright HTML report and failure screenshots, traces and console logs as GitHub Actions artifacts.
 - Add `.env.example` containing placeholder configuration only.
 
 ## Accept
