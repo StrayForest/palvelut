@@ -4,7 +4,6 @@ Read: `DECISIONS.md`, `docs/05-architecture.md`, `docs/06-quality.md`, `docs/07-
 
 ## Build
 
-- Add JSON logs and request IDs.
 - Add Playwright coverage for the base page at 360px and 1440px, keyboard focus and browser-console errors.
 - Add CI for lint, format, types, tests, migrations, `check --deploy`, dependency/secret scan, frontend build, container build and Playwright.
 - Set workflow default permissions to `contents: read`; pin third-party actions to full commit SHAs and service/build images to immutable digests with version comments.
