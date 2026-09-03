@@ -17,7 +17,11 @@ class ModerationCase(UuidV7Model):
         related_name="moderation_cases",
     )
     reason = models.CharField(max_length=120)
-    status = models.CharField(max_length=16, choices=Status.choices, default=Status.OPEN)
+    status = models.CharField(
+        max_length=16,
+        choices=Status.choices,
+        default=Status.OPEN,
+    )
     opened_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
