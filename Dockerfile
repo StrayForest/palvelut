@@ -1,3 +1,13 @@
+# Frontend dependency builder. Reuse the already pinned Playwright image so Node/npm are immutable too.
+FROM mcr.microsoft.com/playwright:v1.62.1-noble@sha256:dcc5531e97840b9b5e794f2814476b21571c5124a3fca2267d73041f56e7580e AS frontend
+
+WORKDIR /frontend
+COPY frontend/package.json ./
+RUN npm install --omit=optional --ignore-scripts \
+    && mkdir -p /frontend-dist/vendor \
+    && cp node_modules/htmx.org/dist/htmx.min.js /frontend-dist/vendor/htmx.min.js \
+    && cp node_modules/alpinejs/dist/cdn.min.js /frontend-dist/vendor/alpine.min.js
+
 # Python 3.13 slim, resolved 2026-09-03; immutable digest is authoritative.
 FROM python:3.13-slim@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285
 
@@ -14,6 +24,9 @@ RUN uv sync --locked --no-dev
 
 COPY manage.py ./
 COPY palvelut ./palvelut
+COPY templates ./templates
+COPY locale ./locale
+COPY --from=frontend /frontend-dist ./static
 
 EXPOSE 8000
 
