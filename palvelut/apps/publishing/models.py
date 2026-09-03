@@ -18,7 +18,11 @@ class ProfileRevision(UuidV7Model):
         on_delete=models.CASCADE,
         related_name="profile_revisions",
     )
-    status = models.CharField(max_length=24, choices=Status.choices, default=Status.DRAFT)
+    status = models.CharField(
+        max_length=24,
+        choices=Status.choices,
+        default=Status.DRAFT,
+    )
     payload = models.JSONField(default=dict)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
