@@ -18,7 +18,11 @@ class VerificationCheck(UuidV7Model):
         related_name="verification_checks",
     )
     kind = models.CharField(max_length=80)
-    status = models.CharField(max_length=16, choices=Status.choices, default=Status.PENDING)
+    status = models.CharField(
+        max_length=16,
+        choices=Status.choices,
+        default=Status.PENDING,
+    )
     source_url = models.URLField(max_length=500, blank=True)
     evidence_metadata = models.JSONField(default=dict)
     checked_by = models.ForeignKey(
