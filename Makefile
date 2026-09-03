@@ -1,4 +1,5 @@
-COMPOSE := docker compose --project-name palvelut
+COMPOSE_PROJECT_NAME ?= palvelut
+COMPOSE := docker compose --project-name $(COMPOSE_PROJECT_NAME)
 
 .PHONY: bootstrap dev reset test e2e smoke
 

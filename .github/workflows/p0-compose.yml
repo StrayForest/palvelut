@@ -28,6 +28,8 @@ jobs:
   compose-stack:
     name: compose-stack
     runs-on: ubuntu-24.04
+    env:
+      COMPOSE_PROJECT_NAME: palvelut-ci-${{ github.run_id }}-${{ github.run_attempt }}
 
     steps:
       - name: Fetch exact PR head and base
@@ -110,20 +112,31 @@ jobs:
         working-directory: repo
         run: docker build -t palvelut-ci .
 
-      - name: Start fresh database services
+      - name: Start fresh isolated database services
         working-directory: repo
-        run: docker compose --project-name palvelut up -d postgres valkey
+        run: |
+          case "$COMPOSE_PROJECT_NAME" in
+            palvelut-ci-*) ;;
+            *) echo "Unsafe CI compose project: $COMPOSE_PROJECT_NAME" >&2; exit 1 ;;
+          esac
+          docker compose --project-name "$COMPOSE_PROJECT_NAME" down -v --remove-orphans || true
+          docker compose --project-name "$COMPOSE_PROJECT_NAME" pull postgres valkey
+          docker compose --project-name "$COMPOSE_PROJECT_NAME" up -d --force-recreate --wait postgres valkey
+          docker compose --project-name "$COMPOSE_PROJECT_NAME" exec -T postgres \
+            psql -U palvelut -d palvelut -Atc "show server_version;" | grep -E '^18\.'
+          docker compose --project-name "$COMPOSE_PROJECT_NAME" exec -T valkey \
+            valkey-cli INFO server | tr -d '\r' | grep -E '^valkey_version:8\.'
 
       - name: Check and apply migrations
         working-directory: repo
         run: |
-          docker compose --project-name palvelut run --rm web python manage.py makemigrations --check --dry-run
-          docker compose --project-name palvelut run --rm web python manage.py migrate --noinput
+          docker compose --project-name "$COMPOSE_PROJECT_NAME" run --rm web python manage.py makemigrations --check --dry-run
+          docker compose --project-name "$COMPOSE_PROJECT_NAME" run --rm web python manage.py migrate --noinput
 
       - name: Run Django deploy checks
         working-directory: repo
         run: |
-          docker compose --project-name palvelut run --rm \
+          docker compose --project-name "$COMPOSE_PROJECT_NAME" run --rm \
             -e PALVELUT_ENVIRONMENT=production \
             -e DJANGO_DEBUG=0 \
             -e DJANGO_SECRET_KEY=ci-only-not-a-real-secret \
@@ -146,4 +159,4 @@ jobs:
       - name: Cleanup Compose stack
         if: always()
         working-directory: repo
-        run: docker compose --project-name palvelut down -v --remove-orphans
+        run: docker compose --project-name "$COMPOSE_PROJECT_NAME" down -v --remove-orphans

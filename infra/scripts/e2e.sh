@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-COMPOSE=(docker compose --project-name palvelut)
+COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-palvelut}"
+COMPOSE=(docker compose --project-name "$COMPOSE_PROJECT_NAME")
 
 cleanup() {
   "${COMPOSE[@]}" down -v --remove-orphans

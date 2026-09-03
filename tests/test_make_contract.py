@@ -10,22 +10,47 @@ class MakeContractTests(unittest.TestCase):
         self.smoke_script = (self.root / "infra/scripts/smoke.sh").read_text()
         self.e2e_script = (self.root / "infra/scripts/e2e.sh").read_text()
         self.compose = (self.root / "compose.yml").read_text()
+        self.workflow = (self.root / ".github/workflows/p0-compose.yml").read_text()
         self.e2e_dockerfile = (self.root / "Dockerfile.e2e").read_text()
 
     def test_current_local_targets_are_declared(self) -> None:
         for target in ("bootstrap", "dev", "reset", "test", "e2e", "smoke"):
             self.assertRegex(self.makefile, rf"(?m)^{target}:\s*$")
 
-    def test_compose_commands_are_project_scoped(self) -> None:
-        self.assertIn("docker compose --project-name palvelut", self.makefile)
+    def test_compose_commands_are_project_scoped_and_overridable(self) -> None:
+        self.assertIn("COMPOSE_PROJECT_NAME ?= palvelut", self.makefile)
+        self.assertIn(
+            "docker compose --project-name $(COMPOSE_PROJECT_NAME)", self.makefile
+        )
         self.assertIn("docker compose --project-name palvelut", self.reset_script)
-        self.assertIn("docker compose --project-name palvelut", self.smoke_script)
-        self.assertIn("docker compose --project-name palvelut", self.e2e_script)
+        for script in (self.smoke_script, self.e2e_script):
+            self.assertIn(
+                'COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-palvelut}"', script
+            )
+            self.assertIn(
+                'docker compose --project-name "$COMPOSE_PROJECT_NAME"', script
+            )
+
+    def test_ci_uses_fresh_isolated_postgres_and_valkey(self) -> None:
+        self.assertIn(
+            "COMPOSE_PROJECT_NAME: palvelut-ci-${{ github.run_id }}-${{ github.run_attempt }}",
+            self.workflow,
+        )
+        self.assertIn('case "$COMPOSE_PROJECT_NAME" in', self.workflow)
+        self.assertIn("palvelut-ci-*)", self.workflow)
+        self.assertIn("down -v --remove-orphans || true", self.workflow)
+        self.assertIn("pull postgres valkey", self.workflow)
+        self.assertIn("up -d --force-recreate --wait postgres valkey", self.workflow)
+        self.assertIn("show server_version;", self.workflow)
+        self.assertIn("grep -E '^18\\.'", self.workflow)
+        self.assertIn("valkey-cli INFO server", self.workflow)
+        self.assertIn("grep -E '^valkey_version:8\\.'", self.workflow)
+        self.assertNotIn("--project-name palvelut up -d postgres valkey", self.workflow)
 
     def test_reset_refuses_production_like_contexts(self) -> None:
         for value in ("prod", "production", "stage", "staging"):
             self.assertIn(value, self.reset_script)
-        self.assertIn('DJANGO_DEBUG:-1', self.reset_script)
+        self.assertIn("DJANGO_DEBUG:-1", self.reset_script)
         self.assertIn("down -v --remove-orphans", self.reset_script)
 
     def test_smoke_is_disposable_and_cleans_up(self) -> None:
@@ -37,10 +62,12 @@ class MakeContractTests(unittest.TestCase):
     def test_e2e_is_disposable_and_runs_playwright_in_compose(self) -> None:
         self.assertIn("trap cleanup EXIT", self.e2e_script)
         self.assertIn("down -v --remove-orphans", self.e2e_script)
-        self.assertIn('run --rm e2e', self.e2e_script)
-        self.assertIn('dockerfile: Dockerfile.e2e', self.compose)
+        self.assertIn("run --rm e2e", self.e2e_script)
+        self.assertIn("dockerfile: Dockerfile.e2e", self.compose)
         self.assertIn('profiles: ["e2e"]', self.compose)
-        self.assertIn("mcr.microsoft.com/playwright:v1.62.1-noble@sha256:", self.e2e_dockerfile)
+        self.assertIn(
+            "mcr.microsoft.com/playwright:v1.62.1-noble@sha256:", self.e2e_dockerfile
+        )
         self.assertIn('"@playwright/test@1.62.1"', self.e2e_dockerfile)
 
 
