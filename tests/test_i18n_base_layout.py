@@ -1,10 +1,13 @@
 from pathlib import Path
 from unittest import TestCase
 
+import django
 from django.conf import settings
 from django.template.loader import render_to_string
-from django.test import override_settings
 from django.utils import translation
+
+
+django.setup()
 
 
 class I18nBaseLayoutContractTests(TestCase):
