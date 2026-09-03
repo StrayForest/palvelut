@@ -5,6 +5,49 @@ from palvelut.apps.providers.models import Provider
 from palvelut.apps.taxonomy.models import UuidV7Model
 
 
+class ProviderClaim(UuidV7Model):
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        APPROVED = "approved", "Approved"
+        REJECTED = "rejected", "Rejected"
+
+    provider = models.ForeignKey(
+        Provider,
+        on_delete=models.CASCADE,
+        related_name="claims",
+    )
+    claimed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="provider_claims",
+    )
+    status = models.CharField(
+        max_length=16,
+        choices=Status.choices,
+        default=Status.PENDING,
+    )
+    evidence_metadata = models.JSONField(default=dict)
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="reviewed_provider_claims",
+        null=True,
+        blank=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ("-created_at", "-id")
+        constraints = (
+            models.UniqueConstraint(
+                fields=("provider",),
+                condition=models.Q(status="approved"),
+                name="verification_claim_one_approved_per_provider",
+            ),
+        )
+
+
 class VerificationCheck(UuidV7Model):
     class Status(models.TextChoices):
         PENDING = "pending", "Pending"
