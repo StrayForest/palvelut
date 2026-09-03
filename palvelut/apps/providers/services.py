@@ -79,9 +79,7 @@ def merge_duplicate_pair(
 
     provider_ids = sorted((first.pk, second.pk))
     locked = list(
-        Provider.objects.select_for_update()
-        .filter(pk__in=provider_ids)
-        .order_by("id")
+        Provider.objects.select_for_update().filter(pk__in=provider_ids).order_by("id")
     )
     if len(locked) != 2:
         raise ValidationError("Both providers must exist")
