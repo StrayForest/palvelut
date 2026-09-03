@@ -4,7 +4,7 @@ Depends: P0. Read: `docs/01-product.md`, `docs/03-experience.md`, `docs/05-archi
 
 ## Build
 
-- Implement country/region/municipality taxonomy, provider, membership, service, area, language, contact, media metadata, revision, verification, moderation and audit models.
+- Implement provider, membership, service, area, language, contact, media metadata, revision, verification, moderation and audit models.
 - Enforce lifecycle/uniqueness/ownership with database constraints.
 - Generate IDs through PostgreSQL 18 native `uuidv7()` and test database defaults.
 - Seed Finnish municipalities and the 8 launch categories with RU/FI/EN labels and synonyms.
