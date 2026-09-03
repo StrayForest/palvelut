@@ -32,6 +32,21 @@ class Provider(UuidV7Model):
 
     class Meta:
         ordering = ("display_name", "id")
+        constraints = (
+            models.CheckConstraint(
+                condition=models.Q(provider_type__in=Type.values),
+                name="providers_provider_type_valid",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(lifecycle__in=Lifecycle.values),
+                name="providers_provider_lifecycle_valid",
+            ),
+            models.UniqueConstraint(
+                fields=("y_tunnus",),
+                condition=~models.Q(y_tunnus=""),
+                name="providers_provider_y_tunnus_unique_nonblank",
+            ),
+        )
 
     def __str__(self) -> str:
         return self.display_name
@@ -56,6 +71,23 @@ class ProviderMembership(UuidV7Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        constraints = (
+            models.CheckConstraint(
+                condition=models.Q(role__in=Role.values),
+                name="providers_membership_role_valid",
+            ),
+            models.UniqueConstraint(
+                fields=("provider", "account"),
+                name="providers_membership_provider_account_unique",
+            ),
+            models.UniqueConstraint(
+                fields=("provider",),
+                condition=models.Q(role=Role.OWNER, is_active=True),
+                name="providers_membership_one_active_owner",
+            ),
+        )
+
 
 class ProviderService(UuidV7Model):
     provider = models.ForeignKey(
@@ -72,6 +104,14 @@ class ProviderService(UuidV7Model):
     description = models.TextField(blank=True)
     price_text = models.CharField(max_length=160, blank=True)
     is_active = models.BooleanField(default=True)
+
+    class Meta:
+        constraints = (
+            models.UniqueConstraint(
+                fields=("provider", "category", "title"),
+                name="providers_service_provider_category_title_unique",
+            ),
+        )
 
 
 class ServiceArea(UuidV7Model):
@@ -92,6 +132,18 @@ class ServiceArea(UuidV7Model):
     )
     mode = models.CharField(max_length=16, choices=Mode.choices, default=Mode.ONSITE)
 
+    class Meta:
+        constraints = (
+            models.CheckConstraint(
+                condition=models.Q(mode__in=Mode.values),
+                name="providers_service_area_mode_valid",
+            ),
+            models.UniqueConstraint(
+                fields=("provider", "municipality", "mode"),
+                name="providers_service_area_provider_municipality_mode_unique",
+            ),
+        )
+
 
 class ProviderLanguage(UuidV7Model):
     provider = models.ForeignKey(
@@ -105,6 +157,14 @@ class ProviderLanguage(UuidV7Model):
         related_name="providers",
     )
     declared = models.BooleanField(default=True)
+
+    class Meta:
+        constraints = (
+            models.UniqueConstraint(
+                fields=("provider", "language"),
+                name="providers_language_provider_language_unique",
+            ),
+        )
 
 
 class ContactChannel(UuidV7Model):
@@ -127,6 +187,18 @@ class ContactChannel(UuidV7Model):
     is_public = models.BooleanField(default=True)
     sort_order = models.PositiveSmallIntegerField(default=0)
 
+    class Meta:
+        constraints = (
+            models.CheckConstraint(
+                condition=models.Q(kind__in=Kind.values),
+                name="providers_contact_kind_valid",
+            ),
+            models.UniqueConstraint(
+                fields=("provider", "kind", "value"),
+                name="providers_contact_provider_kind_value_unique",
+            ),
+        )
+
 
 class MediaAsset(UuidV7Model):
     provider = models.ForeignKey(
@@ -141,3 +213,11 @@ class MediaAsset(UuidV7Model):
     height = models.PositiveIntegerField(null=True, blank=True)
     sort_order = models.PositiveSmallIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = (
+            models.UniqueConstraint(
+                fields=("provider", "storage_key"),
+                name="providers_media_provider_storage_key_unique",
+            ),
+        )
