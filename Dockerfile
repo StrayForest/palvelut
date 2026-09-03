@@ -3,10 +3,13 @@ FROM mcr.microsoft.com/playwright:v1.62.1-noble@sha256:dcc5531e97840b9b5e794f281
 
 WORKDIR /frontend
 COPY frontend/package.json ./
+COPY frontend/app.css ./app.css
+COPY templates /templates
 RUN npm install --omit=optional --ignore-scripts \
-    && mkdir -p /frontend-dist/vendor \
+    && mkdir -p /frontend-dist/vendor /frontend-dist/css \
     && cp node_modules/htmx.org/dist/htmx.min.js /frontend-dist/vendor/htmx.min.js \
-    && cp node_modules/alpinejs/dist/cdn.min.js /frontend-dist/vendor/alpine.min.js
+    && cp node_modules/alpinejs/dist/cdn.min.js /frontend-dist/vendor/alpine.min.js \
+    && npx @tailwindcss/cli -i ./app.css -o /frontend-dist/css/app.css --minify
 
 # Python 3.13 slim, resolved 2026-09-03; immutable digest is authoritative.
 FROM python:3.13-slim@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285
