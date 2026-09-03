@@ -74,3 +74,25 @@ class Municipality(UuidV7Model):
         return (
             f"{self.region.country.code}/{self.region.code}/{self.code} — {self.name}"
         )
+
+
+class Category(UuidV7Model):
+    slug = models.SlugField(max_length=80, unique=True)
+    name = models.CharField(max_length=120)
+
+    class Meta:
+        ordering = ("slug",)
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class Language(UuidV7Model):
+    code = models.CharField(max_length=16, unique=True)
+    name = models.CharField(max_length=120)
+
+    class Meta:
+        ordering = ("code",)
+
+    def __str__(self) -> str:
+        return self.name
