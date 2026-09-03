@@ -6,7 +6,11 @@ from palvelut.apps.moderation.models import AuditEvent
 from palvelut.apps.providers.models import Provider, ProviderMembership
 from palvelut.apps.providers.services import merge_duplicate_pair, suspend_provider
 from palvelut.apps.publishing.models import ProfileRevision
-from palvelut.apps.publishing.services import approve_revision, request_revision_changes, revision_diff
+from palvelut.apps.publishing.services import (
+    approve_revision,
+    request_revision_changes,
+    revision_diff,
+)
 from palvelut.apps.verification.models import ProviderClaim
 from palvelut.apps.verification.services import approve_claim
 
@@ -26,7 +30,9 @@ class StaffAdminWorkflowTests(TestCase):
             password="test-only-password",
         )
 
-    def create_provider(self, *, lifecycle: str = Provider.Lifecycle.UNCLAIMED) -> Provider:
+    def create_provider(
+        self, *, lifecycle: str = Provider.Lifecycle.UNCLAIMED
+    ) -> Provider:
         return Provider.objects.create(
             provider_type=Provider.Type.BUSINESS,
             lifecycle=lifecycle,
@@ -54,7 +60,9 @@ class StaffAdminWorkflowTests(TestCase):
             created_by=self.staff,
         )
 
-        with self.assertRaisesMessage(ValidationError, "Unclaimed providers cannot publish"):
+        with self.assertRaisesMessage(
+            ValidationError, "Unclaimed providers cannot publish"
+        ):
             approve_revision(revision=revision, actor=self.staff)
 
         claim = ProviderClaim.objects.create(
@@ -121,7 +129,9 @@ class StaffAdminWorkflowTests(TestCase):
         provider.refresh_from_db()
         self.assertEqual(provider.lifecycle, Provider.Lifecycle.PUBLISHED)
 
-    def test_pending_edit_diff_and_changes_request_leave_approved_revision_live(self) -> None:
+    def test_pending_edit_diff_and_changes_request_leave_approved_revision_live(
+        self,
+    ) -> None:
         provider = self.create_provider(lifecycle=Provider.Lifecycle.PUBLISHED)
         ProviderMembership.objects.create(
             provider=provider,
