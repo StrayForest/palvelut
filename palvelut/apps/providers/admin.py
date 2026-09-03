@@ -58,7 +58,13 @@ class MediaAssetInline(admin.TabularInline):
 @admin.register(Provider)
 class ProviderAdmin(admin.ModelAdmin):
     form = ProviderAdminForm
-    list_display = ("display_name", "provider_type", "lifecycle", "y_tunnus", "updated_at")
+    list_display = (
+        "display_name",
+        "provider_type",
+        "lifecycle",
+        "y_tunnus",
+        "updated_at",
+    )
     list_filter = ("provider_type", "lifecycle")
     search_fields = ("display_name", "legal_name", "y_tunnus")
     readonly_fields = ("lifecycle", "created_at", "updated_at")
@@ -94,7 +100,9 @@ class ProviderAdmin(admin.ModelAdmin):
     ):  # type: ignore[no-untyped-def]
         providers = list(queryset.order_by("created_at", "id"))
         if len(providers) < 2:
-            self.message_user(request, "Select at least two providers.", level=messages.ERROR)
+            self.message_user(
+                request, "Select at least two providers.", level=messages.ERROR
+            )
             return
         target = providers[0]
         for source in providers[1:]:
