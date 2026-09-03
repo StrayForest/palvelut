@@ -4,10 +4,9 @@ Read: `DECISIONS.md`, `docs/05-architecture.md`, `docs/06-quality.md`, `docs/07-
 
 ## Build
 
-- Set workflow default permissions to `contents: read`; pin third-party actions to full commit SHAs and service/build images to immutable digests with version comments.
-- Run CI with fresh pinned PostgreSQL 18 and Valkey 8.x services; it must not access staging, production, SSH or persistent external infrastructure.
+- Run CI with fresh pinned PostgreSQL 18 and Valkey 8.x services; it must stay isolated from persistent or deployed environments.
 - Retain the Playwright HTML report and failure screenshots, traces and console logs as GitHub Actions artifacts.
-- Add `.env.example`; no real credentials.
+- Add `.env.example` containing placeholder configuration only.
 
 ## Accept
 
@@ -22,6 +21,6 @@ Read: `DECISIONS.md`, `docs/05-architecture.md`, `docs/06-quality.md`, `docs/07-
 
 ## Gates
 
-`make test`, `make e2e`, `make smoke`, migration drift check, `manage.py check --deploy`, secret/dependency scan, workflow pin/permission check and artifact-presence check.
+`make test`, `make e2e`, `make smoke`, migration drift check, `manage.py check --deploy`, dependency/configuration scan, workflow pin/permission check and artifact-presence check.
 
 Do not build business features.

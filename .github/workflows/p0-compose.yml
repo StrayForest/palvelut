@@ -58,7 +58,7 @@ jobs:
         run: |
           uv lock --check
           uv sync --locked
-          uv run python -m unittest -v tests.test_bootstrap_contract tests.test_compose_contract tests.test_make_contract
+          uv run python -m unittest -v tests.test_bootstrap_contract tests.test_compose_contract tests.test_make_contract tests.test_workflow_security_contract
 
       - name: Lint and format check
         working-directory: repo
