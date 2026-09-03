@@ -45,6 +45,27 @@ jobs:
           git fetch --depth=1 origin "${HEAD_SHA}"
           git checkout --detach FETCH_HEAD
 
+      - name: Verify canonical bootstrap from clean checkout
+        working-directory: repo
+        run: |
+          test ! -e .venv
+          test ! -d frontend/node_modules
+
+          bootstrap_bin="$(mktemp -d)"
+          trap 'rm -rf "$bootstrap_bin"' EXIT
+          ln -s "$(command -v git)" "$bootstrap_bin/git"
+          ln -s "$(command -v make)" "$bootstrap_bin/make"
+          ln -s "$(command -v docker)" "$bootstrap_bin/docker"
+
+          env -i \
+            HOME="$HOME" \
+            PATH="$bootstrap_bin" \
+            COMPOSE_PROJECT_NAME="$COMPOSE_PROJECT_NAME-bootstrap" \
+            "$bootstrap_bin/make" bootstrap
+
+          test ! -e .venv
+          test ! -d frontend/node_modules
+
       - name: Install pinned CI tools
         working-directory: repo
         run: |
