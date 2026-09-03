@@ -12,7 +12,6 @@ Read: `DECISIONS.md`, `docs/05-architecture.md`, `docs/06-quality.md`, `docs/07-
 - `make smoke` starts disposable services, verifies liveness/readiness and shuts them down.
 - `make reset` rebuilds only this project's disposable local state and refuses production-like settings.
 - A clean database migrates; static build is reproducible.
-- GitHub check names are stable and `main` protection/ruleset is enabled after their first green run.
 
 ## Gates
 
