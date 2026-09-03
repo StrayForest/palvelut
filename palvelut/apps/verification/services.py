@@ -9,13 +9,11 @@ from .models import ProviderClaim
 
 @transaction.atomic
 def approve_claim(
-    *, claim: ProviderClaim, actor
+    *,
+    claim: ProviderClaim,
+    actor,
 ) -> ProviderClaim:  # type: ignore[no-untyped-def]
-    claim = (
-        ProviderClaim.objects.select_for_update()
-        .select_related("provider", "claimed_by")
-        .get(pk=claim.pk)
-    )
+    claim = ProviderClaim.objects.select_for_update().select_related("provider", "claimed_by").get(pk=claim.pk)
     provider = Provider.objects.select_for_update().get(pk=claim.provider_id)
 
     ProviderClaim.objects.filter(
@@ -45,23 +43,18 @@ def approve_claim(
         provider=provider,
         actor=actor,
         action="provider.claim.approved",
-        metadata={
-            "claim_id": str(claim.pk),
-            "account_id": claim.claimed_by_id,
-        },
+        metadata={"claim_id": str(claim.pk), "account_id": claim.claimed_by_id},
     )
     return claim
 
 
 @transaction.atomic
 def reject_claim(
-    *, claim: ProviderClaim, actor
+    *,
+    claim: ProviderClaim,
+    actor,
 ) -> ProviderClaim:  # type: ignore[no-untyped-def]
-    claim = (
-        ProviderClaim.objects.select_for_update()
-        .select_related("provider")
-        .get(pk=claim.pk)
-    )
+    claim = ProviderClaim.objects.select_for_update().select_related("provider").get(pk=claim.pk)
     claim.status = ProviderClaim.Status.REJECTED
     claim.reviewed_by = actor
     claim.reviewed_at = timezone.now()
