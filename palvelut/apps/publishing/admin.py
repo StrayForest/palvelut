@@ -54,7 +54,9 @@ class ProfileRevisionAdmin(admin.ModelAdmin):
         count = 0
         with transaction.atomic():
             for revision in queryset.select_for_update().select_related("provider"):
-                provider = Provider.objects.select_for_update().get(pk=revision.provider_id)
+                provider = Provider.objects.select_for_update().get(
+                    pk=revision.provider_id,
+                )
                 allowed = {"legal_name", "display_name", "y_tunnus", "provider_type"}
                 for field, value in revision.payload.items():
                     if field in allowed:
