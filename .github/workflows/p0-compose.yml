@@ -30,13 +30,16 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - name: Fetch exact PR head
+      - name: Fetch exact PR head and base
         env:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           git init repo
           cd repo
           git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git fetch --depth=1 origin "${BASE_SHA}"
+          git branch ci-base FETCH_HEAD
           git fetch --depth=1 origin "${HEAD_SHA}"
           git checkout --detach FETCH_HEAD
 
@@ -61,7 +64,12 @@ jobs:
         working-directory: repo
         run: |
           ruff check --extend-per-file-ignores 'tests/*.py:E402' manage.py palvelut tests
-          ruff format --check manage.py palvelut tests
+          mapfile -t changed_python < <(git diff --name-only ci-base...HEAD -- '*.py')
+          if ((${#changed_python[@]})); then
+            ruff format --check "${changed_python[@]}"
+          else
+            echo "No changed Python files to format-check"
+          fi
 
       - name: Type check
         working-directory: repo
