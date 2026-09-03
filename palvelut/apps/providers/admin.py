@@ -194,7 +194,8 @@ class ProviderAdmin(admin.ModelAdmin):
                 for item in model.objects.filter(provider=duplicate):
                     item.provider = target
                     try:
-                        item.save()
+                        with transaction.atomic():
+                            item.save()
                     except IntegrityError:
                         item.delete()
             ProviderMembership.objects.filter(provider=duplicate).update(is_active=False)
