@@ -22,9 +22,7 @@ EXPECTED_APPS = {
 class BootstrapContractTests(unittest.TestCase):
     def setUp(self) -> None:
         self.root = Path(__file__).resolve().parents[1]
-        self.workflow = (
-            self.root / ".github/workflows/p0-compose.yml"
-        ).read_text()
+        self.workflow = (self.root / ".github/workflows/p0-compose.yml").read_text()
 
     def test_python_and_django_contract_is_locked(self) -> None:
         project = tomllib.loads((self.root / "pyproject.toml").read_text())
@@ -44,7 +42,9 @@ class BootstrapContractTests(unittest.TestCase):
         bootstrap_step = "- name: Verify canonical bootstrap from clean checkout"
         install_step = "- name: Install pinned CI tools"
         self.assertIn(bootstrap_step, self.workflow)
-        self.assertLess(self.workflow.index(bootstrap_step), self.workflow.index(install_step))
+        self.assertLess(
+            self.workflow.index(bootstrap_step), self.workflow.index(install_step)
+        )
         self.assertIn("test ! -e .venv", self.workflow)
         self.assertIn("test ! -d frontend/node_modules", self.workflow)
         self.assertIn('PATH="$bootstrap_bin"', self.workflow)
