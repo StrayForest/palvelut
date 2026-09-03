@@ -21,7 +21,10 @@ from palvelut.apps.providers.models import (
 
 class ProviderImportForm(forms.Form):
     records = forms.JSONField(
-        help_text="JSON array of provider objects. Required: provider_type, legal_name, display_name."
+        help_text=(
+            "JSON array of provider objects. Required: provider_type, legal_name, "
+            "display_name."
+        )
     )
 
     def clean_records(self):
@@ -35,26 +38,49 @@ class ProviderImportForm(forms.Form):
                     f"Record {index + 1} must contain provider_type, legal_name and display_name."
                 )
             if record["provider_type"] not in Provider.Type.values:
-                raise forms.ValidationError(f"Record {index + 1} has an invalid provider_type.")
+                raise forms.ValidationError(
+                    f"Record {index + 1} has an invalid provider_type."
+                )
         return records
 
 
 def _audit(provider: Provider, actor, action: str, **metadata: object) -> None:
-    AuditEvent.objects.create(provider=provider, actor=actor, action=action, metadata=metadata)
+    AuditEvent.objects.create(
+        provider=provider,
+        actor=actor,
+        action=action,
+        metadata=metadata,
+    )
 
 
 @admin.register(Provider)
 class ProviderAdmin(admin.ModelAdmin):
     change_list_template = "admin/providers/provider/change_list.html"
-    list_display = ("display_name", "provider_type", "lifecycle", "claim_status", "y_tunnus", "updated_at")
+    list_display = (
+        "display_name",
+        "provider_type",
+        "lifecycle",
+        "claim_status",
+        "y_tunnus",
+        "updated_at",
+    )
     list_filter = ("provider_type", "lifecycle", "claim_status")
     search_fields = ("display_name", "legal_name", "y_tunnus")
     readonly_fields = ("created_at", "updated_at")
-    actions = ("approve_selected", "request_changes", "suspend_selected", "merge_duplicates")
+    actions = (
+        "approve_selected",
+        "request_changes",
+        "suspend_selected",
+        "merge_duplicates",
+    )
 
     def get_urls(self):
         return [
-            path("import/", self.admin_site.admin_view(self.import_view), name="providers_provider_import"),
+            path(
+                "import/",
+                self.admin_site.admin_view(self.import_view),
+                name="providers_provider_import",
+            ),
             *super().get_urls(),
         ]
 
@@ -93,7 +119,10 @@ class ProviderAdmin(admin.ModelAdmin):
                     )
                     created += int(was_created)
                     updated += int(not was_created)
-            self.message_user(request, f"Import complete: {created} created, {updated} updated.")
+            self.message_user(
+                request,
+                f"Import complete: {created} created, {updated} updated.",
+            )
             return redirect(reverse("admin:providers_provider_changelist"))
         context = {
             **self.admin_site.each_context(request),
@@ -110,7 +139,9 @@ class ProviderAdmin(admin.ModelAdmin):
             for provider in queryset.select_for_update():
                 provider.claim_status = Provider.ClaimStatus.APPROVED
                 provider.lifecycle = Provider.Lifecycle.PUBLISHED
-                provider.save(update_fields=("claim_status", "lifecycle", "updated_at"))
+                provider.save(
+                    update_fields=("claim_status", "lifecycle", "updated_at")
+                )
                 _audit(provider, request.user, "provider.approved")
                 count += 1
         self.message_user(request, f"Approved {count} provider(s).")
@@ -152,7 +183,14 @@ class ProviderAdmin(admin.ModelAdmin):
         with transaction.atomic():
             target = Provider.objects.select_for_update().get(pk=target.pk)
             duplicate = Provider.objects.select_for_update().get(pk=duplicate.pk)
-            for model in (ProviderService, ServiceArea, ProviderLanguage, ContactChannel, MediaAsset):
+            models = (
+                ProviderService,
+                ServiceArea,
+                ProviderLanguage,
+                ContactChannel,
+                MediaAsset,
+            )
+            for model in models:
                 for item in model.objects.filter(provider=duplicate):
                     item.provider = target
                     try:
@@ -162,10 +200,23 @@ class ProviderAdmin(admin.ModelAdmin):
             ProviderMembership.objects.filter(provider=duplicate).update(is_active=False)
             duplicate.lifecycle = Provider.Lifecycle.ARCHIVED
             duplicate.save(update_fields=("lifecycle", "updated_at"))
-            _audit(target, request.user, "provider.duplicates_merged", duplicate_provider_id=str(duplicate.pk))
-            _audit(duplicate, request.user, "provider.merged_into", canonical_provider_id=str(target.pk))
+            _audit(
+                target,
+                request.user,
+                "provider.duplicates_merged",
+                duplicate_provider_id=str(duplicate.pk),
+            )
+            _audit(
+                duplicate,
+                request.user,
+                "provider.merged_into",
+                canonical_provider_id=str(target.pk),
+            )
 
-        self.message_user(request, f"Merged {duplicate.display_name} into {target.display_name}.")
+        self.message_user(
+            request,
+            f"Merged {duplicate.display_name} into {target.display_name}.",
+        )
 
 
 @admin.register(ProviderMembership)
@@ -175,5 +226,11 @@ class ProviderMembershipAdmin(admin.ModelAdmin):
     autocomplete_fields = ("provider", "account")
 
 
-for model in (ProviderService, ServiceArea, ProviderLanguage, ContactChannel, MediaAsset):
+for model in (
+    ProviderService,
+    ServiceArea,
+    ProviderLanguage,
+    ContactChannel,
+    MediaAsset,
+):
     admin.site.register(model)
