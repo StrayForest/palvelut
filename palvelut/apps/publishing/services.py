@@ -18,13 +18,11 @@ def _has_approved_claim(provider: Provider) -> bool:
 
 @transaction.atomic
 def approve_revision(
-    *, revision: ProfileRevision, actor
+    *,
+    revision: ProfileRevision,
+    actor,
 ) -> ProfileRevision:  # type: ignore[no-untyped-def]
-    revision = (
-        ProfileRevision.objects.select_for_update()
-        .select_related("provider")
-        .get(pk=revision.pk)
-    )
+    revision = ProfileRevision.objects.select_for_update().select_related("provider").get(pk=revision.pk)
     provider = Provider.objects.select_for_update().get(pk=revision.provider_id)
     if not _has_approved_claim(provider):
         raise ValidationError("Provider requires an approved claim before publishing.")
@@ -50,13 +48,11 @@ def approve_revision(
 
 @transaction.atomic
 def request_revision_changes(
-    *, revision: ProfileRevision, actor
+    *,
+    revision: ProfileRevision,
+    actor,
 ) -> ProfileRevision:  # type: ignore[no-untyped-def]
-    revision = (
-        ProfileRevision.objects.select_for_update()
-        .select_related("provider")
-        .get(pk=revision.pk)
-    )
+    revision = ProfileRevision.objects.select_for_update().select_related("provider").get(pk=revision.pk)
     revision.status = ProfileRevision.Status.CHANGES_REQUESTED
     revision.reviewed_at = timezone.now()
     revision.save(update_fields=("status", "reviewed_at"))
@@ -74,7 +70,9 @@ def request_revision_changes(
 
 @transaction.atomic
 def suspend_provider(
-    *, provider: Provider, actor
+    *,
+    provider: Provider,
+    actor,
 ) -> Provider:  # type: ignore[no-untyped-def]
     provider = Provider.objects.select_for_update().get(pk=provider.pk)
     provider.lifecycle = Provider.Lifecycle.SUSPENDED
@@ -89,7 +87,10 @@ def suspend_provider(
 
 @transaction.atomic
 def merge_duplicate(
-    *, source: Provider, target: Provider, actor
+    *,
+    source: Provider,
+    target: Provider,
+    actor,
 ) -> Provider:  # type: ignore[no-untyped-def]
     if source.pk == target.pk:
         raise ValidationError("Duplicate source and target must differ.")
