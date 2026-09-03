@@ -57,7 +57,10 @@ class StaffWorkflowTests(TestCase):
         self.provider.refresh_from_db()
         claim.refresh_from_db()
         self.revision.refresh_from_db()
-        membership = ProviderMembership.objects.get(provider=self.provider, account=self.owner)
+        membership = ProviderMembership.objects.get(
+            provider=self.provider,
+            account=self.owner,
+        )
         self.assertEqual(claim.status, ProviderClaim.Status.APPROVED)
         self.assertEqual(claim.reviewed_by, self.staff)
         self.assertIsNotNone(claim.reviewed_at)
@@ -106,7 +109,10 @@ class StaffWorkflowTests(TestCase):
 class StaffAdminPermissionTests(TestCase):
     def test_admin_requires_staff_permission(self) -> None:
         user_model = get_user_model()
-        regular = user_model.objects.create_user(username="regular", password="test-password")
+        regular = user_model.objects.create_user(
+            username="regular",
+            password="test-password",
+        )
         staff = user_model.objects.create_superuser(
             username="admin",
             email="admin@example.invalid",
@@ -121,4 +127,7 @@ class StaffAdminPermissionTests(TestCase):
         self.client.force_login(staff)
         response = self.client.get("/palvelut/admin/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.headers["Cache-Control"], "max-age=0, no-cache, no-store, must-revalidate, private")
+        self.assertEqual(
+            response.headers["Cache-Control"],
+            "max-age=0, no-cache, no-store, must-revalidate, private",
+        )
