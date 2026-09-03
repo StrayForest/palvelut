@@ -80,7 +80,9 @@ class Migration(migrations.Migration):
                 "ordering": ("-requested_at", "-id"),
                 "constraints": [
                     models.CheckConstraint(
-                        condition=models.Q(("status__in", ("pending", "approved", "rejected"))),
+                        condition=models.Q(
+                            ("status__in", ("pending", "approved", "rejected"))
+                        ),
                         name="verification_claim_status_valid",
                     ),
                     models.CheckConstraint(
