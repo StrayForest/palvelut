@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from unittest import mock
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "palvelut.settings")
 
@@ -9,6 +10,8 @@ django.setup()
 
 from django.conf import settings
 from django.test import Client, SimpleTestCase, override_settings
+
+from palvelut.settings import _public_base_url
 
 
 @override_settings(ALLOWED_HOSTS=["testserver"])
@@ -26,12 +29,57 @@ class RoutingContractTests(SimpleTestCase):
         response = self.client.get("/palvelut/sv/")
         self.assertEqual(response.status_code, 404)
 
-    def test_static_url_keeps_public_mount_prefix(self):
+    def test_public_mount_root_redirect_stays_inside_prefix(self):
+        response = self.client.get("/palvelut/")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "/palvelut/en/")
+
+    def test_static_and_cookie_paths_keep_public_mount_prefix(self):
         self.assertEqual(settings.STATIC_URL, "/palvelut/static/")
+        self.assertEqual(settings.LANGUAGE_COOKIE_PATH, "/palvelut/")
+        self.assertEqual(settings.SESSION_COOKIE_PATH, "/palvelut/")
+        self.assertEqual(settings.CSRF_COOKIE_PATH, "/palvelut/")
         response = self.client.get("/palvelut/en/")
         self.assertContains(response, "/palvelut/static/css/app.css")
         self.assertContains(response, "/palvelut/static/vendor/htmx.min.js")
         self.assertContains(response, "/palvelut/static/vendor/alpine.min.js")
+
+    @override_settings(PUBLIC_BASE_URL="https://finrix.fi/palvelut")
+    def test_canonical_and_hreflang_are_absolute_and_locale_specific(self):
+        response = self.client.get("/palvelut/fi/")
+        self.assertContains(
+            response,
+            '<link rel="canonical" href="https://finrix.fi/palvelut/fi/">',
+            html=False,
+        )
+        for locale in ("ru", "fi", "en"):
+            self.assertContains(
+                response,
+                f'<link rel="alternate" hreflang="{locale}" href="https://finrix.fi/palvelut/{locale}/">',
+                html=False,
+            )
+        self.assertContains(
+            response,
+            '<link rel="alternate" hreflang="x-default" href="https://finrix.fi/palvelut/en/">',
+            html=False,
+        )
+
+    def test_public_base_url_is_mount_scoped_and_absolute(self):
+        valid = {
+            "PUBLIC_BASE_URL": "https://finrix.fi/palvelut/",
+        }
+        with mock.patch.dict(os.environ, valid, clear=False):
+            self.assertEqual(_public_base_url(), "https://finrix.fi/palvelut")
+
+        for value in (
+            "/palvelut",
+            "https://finrix.fi/",
+            "https://finrix.fi/palvelut/en",
+            "https://finrix.fi/palvelut?x=1",
+        ):
+            with self.subTest(value=value), mock.patch.dict(os.environ, {"PUBLIC_BASE_URL": value}, clear=False):
+                with self.assertRaises(RuntimeError):
+                    _public_base_url()
 
     def test_nginx_proxy_does_not_rewrite_public_prefix(self):
         config = Path("infra/nginx/default.conf").read_text()
