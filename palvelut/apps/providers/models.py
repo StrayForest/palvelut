@@ -1,7 +1,12 @@
 from django.conf import settings
 from django.db import models
 
-from palvelut.apps.taxonomy.models import Category, Language, Municipality, UuidV7Model
+from palvelut.apps.taxonomy.models import (
+    Category,
+    Language,
+    Municipality,
+    UuidV7Model,
+)
 
 
 class Provider(UuidV7Model):
@@ -65,7 +70,12 @@ class Provider(UuidV7Model):
             ),
             models.CheckConstraint(
                 condition=models.Q(
-                    claim_status__in=("unclaimed", "pending", "approved", "rejected")
+                    claim_status__in=(
+                        "unclaimed",
+                        "pending",
+                        "approved",
+                        "rejected",
+                    )
                 ),
                 name="providers_provider_claim_status_valid",
             ),
