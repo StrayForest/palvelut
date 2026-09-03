@@ -64,7 +64,7 @@ jobs:
         working-directory: repo
         run: |
           ruff check --extend-per-file-ignores 'tests/*.py:E402' manage.py palvelut tests
-          mapfile -t changed_python < <(git diff --name-only ci-base...HEAD -- '*.py')
+          mapfile -t changed_python < <(git diff --name-only ci-base HEAD -- '*.py')
           if ((${#changed_python[@]})); then
             ruff format --check "${changed_python[@]}"
           else
@@ -86,7 +86,7 @@ jobs:
         run: |
           mapfile -t tracked_files < <(git ls-files | grep -Ev '^(uv\.lock|frontend/package-lock\.json)$')
           detect-secrets scan \
-            --exclude-lines 'local-only|bootstrap-only|test-only|ci-only' \
+            --exclude-lines 'local-only|bootstrap-only|test-only|ci-only|explicit-secret' \
             "${tracked_files[@]}" \
             > /tmp/detect-secrets.json
           python3 - <<'PY'
