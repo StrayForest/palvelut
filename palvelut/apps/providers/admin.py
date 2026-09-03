@@ -198,7 +198,9 @@ class ProviderAdmin(admin.ModelAdmin):
                             item.save()
                     except IntegrityError:
                         item.delete()
-            ProviderMembership.objects.filter(provider=duplicate).update(is_active=False)
+            ProviderMembership.objects.filter(provider=duplicate).update(
+                is_active=False
+            )
             duplicate.lifecycle = Provider.Lifecycle.ARCHIVED
             duplicate.save(update_fields=("lifecycle", "updated_at"))
             _audit(
