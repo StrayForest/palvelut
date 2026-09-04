@@ -71,9 +71,7 @@ def _category_for_query(query: str, locale: str) -> Category | None:
     if exact is not None:
         return exact
 
-    candidates = (
-        Category.objects.prefetch_related("labels", "synonyms").all().order_by("slug")
-    )
+    candidates = Category.objects.prefetch_related("labels", "synonyms").order_by("slug")
     best_category: Category | None = None
     best_score = 0.0
     for category in candidates:
@@ -87,7 +85,12 @@ def _category_for_query(query: str, locale: str) -> Category | None:
             if synonym.locale == locale
         )
         score = max(
-            (SequenceMatcher(None, normalized, _normalize_query(value)).ratio() for value in values),
+            (
+                SequenceMatcher(
+                    None, normalized, _normalize_query(value)
+                ).ratio()
+                for value in values
+            ),
             default=0.0,
         )
         if score > best_score:
@@ -117,7 +120,9 @@ def _language_for_query(query: str) -> Language | None:
         return None
     normalized = _normalize_query(query)
     return (
-        Language.objects.filter(Q(code__iexact=normalized) | Q(name__iexact=normalized))
+        Language.objects.filter(
+            Q(code__iexact=normalized) | Q(name__iexact=normalized)
+        )
         .order_by("code")
         .first()
     )
@@ -125,7 +130,8 @@ def _language_for_query(query: str) -> Language | None:
 
 def _search_state(request: HttpRequest, locale: str) -> SearchState:
     query = " ".join(request.GET.get("q", "").split())
-    category_query = request.GET.get("category", "").strip() or query
+    explicit_category = request.GET.get("category", "").strip()
+    category_query = explicit_category or query
     city_query = request.GET.get("city", "").strip()
     language_query = request.GET.get("language", "").strip()
     mode_query = request.GET.get("mode", "").strip().lower()
@@ -134,7 +140,7 @@ def _search_state(request: HttpRequest, locale: str) -> SearchState:
     language = _language_for_query(language_query)
     valid_modes = {choice for choice, _label in ServiceArea.Mode.choices}
     invalid_filter = bool(
-        (request.GET.get("category", "").strip() and category is None)
+        (explicit_category and category is None)
         or (city_query and municipality is None)
         or (language_query and language is None)
         or (mode_query and mode_query not in valid_modes)
@@ -199,7 +205,9 @@ def _alternative_cities(state: SearchState) -> list[str]:
     if state.mode:
         documents = documents.filter(provider__service_areas__mode=state.mode)
     return list(
-        documents.values_list("provider__service_areas__municipality__name", flat=True)
+        documents.values_list(
+            "provider__service_areas__municipality__name", flat=True
+        )
         .exclude(provider__service_areas__municipality__isnull=True)
         .distinct()
         .order_by("provider__service_areas__municipality__name")[:5]
@@ -217,6 +225,7 @@ def _base_context(locale: str) -> dict[str, object]:
 
 def _filter_context() -> dict[str, object]:
     return {
+        "filter_categories": Category.objects.all().order_by("name"),
         "filter_languages": Language.objects.all().order_by("name"),
         "service_modes": ServiceArea.Mode.choices,
         "launch_cities": LAUNCH_CITIES,
@@ -252,9 +261,9 @@ def search(request: HttpRequest, locale: str) -> HttpResponse:
             {
                 "state": state,
                 "documents": documents,
-                "alternative_cities": _alternative_cities(state)
-                if not documents.exists()
-                else [],
+                "alternative_cities": (
+                    _alternative_cities(state) if not documents.exists() else []
+                ),
             }
         )
         return render(request, "discovery/results.html", context)
@@ -269,7 +278,11 @@ def city_category(
     if municipality is None or category_obj is None:
         raise Http404("Unknown city/category")
     state = SearchState(
-        query="", category=category_obj, municipality=municipality, language=None, mode=""
+        query="",
+        category=category_obj,
+        municipality=municipality,
+        language=None,
+        mode="",
     )
     with translation.override(locale):
         context = _base_context(locale)
