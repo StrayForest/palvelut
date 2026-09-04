@@ -46,7 +46,10 @@ class PublicDiscoverySurfaceTests(TestCase):
         revision = ProfileRevision.objects.create(
             provider=cls.published,
             status=ProfileRevision.Status.APPROVED,
-            payload={"display_name": "Approved Public Accounting", "about": "Approved copy"},
+            payload={
+                "display_name": "Approved Public Accounting",
+                "about": "Approved copy",
+            },
             created_by=actor,
             reviewed_at=timezone.now(),
         )
@@ -102,7 +105,10 @@ class PublicDiscoverySurfaceTests(TestCase):
         landing = self.client.get("/palvelut/en/helsinki/accounting/")
         self.assertEqual(landing.status_code, 200)
         self.assertContains(landing, "Approved Public Accounting")
-        self.assertContains(landing, "/palvelut/en/professionals/public-accounting/")
+        self.assertContains(
+            landing,
+            "/palvelut/en/professionals/public-accounting/",
+        )
 
         profile = self.client.get("/palvelut/en/professionals/public-accounting/")
         self.assertEqual(profile.status_code, 200)
