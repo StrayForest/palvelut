@@ -10,7 +10,9 @@ from palvelut.apps.publishing.models import ProfileRevision
 def rebuild_provider_read_document(*, provider_id: object) -> ProviderReadDocument:
     provider = Provider.objects.select_for_update().get(pk=provider_id)
     if provider.lifecycle != Provider.Lifecycle.PUBLISHED:
-        raise ValidationError("Only published providers can have a public read document")
+        raise ValidationError(
+            "Only published providers can have a public read document"
+        )
 
     revision = (
         ProfileRevision.objects.select_for_update()
