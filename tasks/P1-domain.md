@@ -4,7 +4,6 @@ Depends: P0. Read: `docs/01-product.md`, `docs/03-experience.md`, `docs/05-archi
 
 ## Accept
 
-- Every moderation/verification change has an actor and timestamp.
 - Seed/import commands are idempotent.
 
 ## Gates
