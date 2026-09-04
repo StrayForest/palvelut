@@ -72,7 +72,7 @@ class ProfileRevisionAdmin(admin.ModelAdmin):
         return format_html("<pre>{}</pre>", diff or "No payload changes")
 
     def has_add_permission(self, request) -> bool:
-        return bool(request.user.is_authenticated and request.user.is_staff)
+        return bool(request.user.is_staff and super().has_add_permission(request))
 
     def save_model(self, request, obj, form, change) -> None:
         if not change:
