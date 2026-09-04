@@ -106,3 +106,42 @@ class StaffBackOfficeCompletionTests(TestCase):
                 action="provider.merged_into",
             ).exists()
         )
+
+    def test_merge_deduplicates_same_contact_on_canonical_provider(self):
+        target = Provider.objects.create(
+            provider_type=Provider.Type.BUSINESS,
+            legal_name="Canonical Contact Oy",
+            display_name="Canonical Contact",
+        )
+        duplicate = Provider.objects.create(
+            provider_type=Provider.Type.BUSINESS,
+            legal_name="Duplicate Contact Oy",
+            display_name="Duplicate Contact",
+        )
+        for provider in (target, duplicate):
+            ContactChannel.objects.create(
+                provider=provider,
+                kind=ContactChannel.Kind.EMAIL,
+                value="shared@example.invalid",
+            )
+
+        response = self.client.post(
+            reverse("admin:providers_provider_changelist"),
+            {
+                "action": "merge_duplicates",
+                "_selected_action": [str(duplicate.pk), str(target.pk)],
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        duplicate.refresh_from_db()
+        self.assertEqual(duplicate.lifecycle, Provider.Lifecycle.ARCHIVED)
+        self.assertEqual(
+            ContactChannel.objects.filter(
+                provider=target,
+                kind=ContactChannel.Kind.EMAIL,
+                value="shared@example.invalid",
+            ).count(),
+            1,
+        )
