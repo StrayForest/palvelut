@@ -71,7 +71,9 @@ def _category_for_query(query: str, locale: str) -> Category | None:
     if exact is not None:
         return exact
 
-    candidates = Category.objects.prefetch_related("labels", "synonyms").order_by("slug")
+    candidates = Category.objects.prefetch_related("labels", "synonyms").order_by(
+        "slug"
+    )
     best_category: Category | None = None
     best_score = 0.0
     for category in candidates:
@@ -86,9 +88,7 @@ def _category_for_query(query: str, locale: str) -> Category | None:
         )
         score = max(
             (
-                SequenceMatcher(
-                    None, normalized, _normalize_query(value)
-                ).ratio()
+                SequenceMatcher(None, normalized, _normalize_query(value)).ratio()
                 for value in values
             ),
             default=0.0,
