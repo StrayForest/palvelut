@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
                 (
                     "id",
                     models.UUIDField(
-                        db_default=models.expressions.RawSQL("uuidv7()", []),
+                        db_default=models.Func(function="uuidv7"),
                         editable=False,
                         primary_key=True,
                         serialize=False,
