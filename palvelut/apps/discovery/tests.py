@@ -31,14 +31,12 @@ class ApprovedReadDocumentTests(TestCase):
             status=status,
             payload=payload,
             created_by=self.staff,
-            reviewed_at=(
-                timezone.now() if status == ProfileRevision.Status.APPROVED else None
-            ),
+            reviewed_at=(timezone.now() if status == "approved" else None),
         )
 
     def test_pending_revision_cannot_generate_public_document(self) -> None:
         revision = self._revision(
-            status=ProfileRevision.Status.PENDING,
+            status="pending",
             payload={"display_name": "Pending secret"},
         )
 
@@ -52,7 +50,7 @@ class ApprovedReadDocumentTests(TestCase):
 
     def test_approval_generates_snapshot_from_approved_payload_only(self) -> None:
         revision = self._revision(
-            status=ProfileRevision.Status.PENDING,
+            status="pending",
             payload={
                 "display_name": "Published name",
                 "description": "Approved description",
@@ -75,7 +73,7 @@ class ApprovedReadDocumentTests(TestCase):
 
     def test_pending_edit_does_not_replace_existing_public_document(self) -> None:
         approved = self._revision(
-            status=ProfileRevision.Status.PENDING,
+            status="pending",
             payload={"display_name": "Live name"},
         )
         moderate_provider(
@@ -84,7 +82,7 @@ class ApprovedReadDocumentTests(TestCase):
             action="approve",
         )
         self._revision(
-            status=ProfileRevision.Status.PENDING,
+            status="pending",
             payload={"display_name": "Pending replacement"},
         )
 
@@ -94,7 +92,7 @@ class ApprovedReadDocumentTests(TestCase):
 
     def test_suspend_removes_public_document(self) -> None:
         self._revision(
-            status=ProfileRevision.Status.PENDING,
+            status="pending",
             payload={"display_name": "Live name"},
         )
         moderate_provider(
