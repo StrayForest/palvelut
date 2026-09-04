@@ -86,7 +86,7 @@ test("HTMX discovery filters preserve URL history and focused field", async ({ p
     page.waitForResponse((response) =>
       response.url().includes("/palvelut/en/search/?q=bookkeeper"),
     ),
-    page.getByRole("button", { name: "Apply filters" }).click(),
+    service.press("Enter"),
   ]);
 
   await expect(page).toHaveURL(/\/palvelut\/en\/search\/\?q=bookkeeper/);
