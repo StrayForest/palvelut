@@ -24,9 +24,7 @@ class PublicDiscoverySurfaceTests(TestCase):
     def setUpTestData(cls) -> None:
         cls.category = Category.objects.get(slug="accounting")
         cls.city = Municipality.objects.get(region__country__code="FI", code="091")
-        cls.espoo = Municipality.objects.get(
-            region__country__code="FI", name="Espoo"
-        )
+        cls.espoo = Municipality.objects.get(region__country__code="FI", name="Espoo")
         cls.english = Language.objects.get(code="en")
         CategorySynonym.objects.get_or_create(
             category=cls.category,
