@@ -13,16 +13,10 @@
     <label class="grid gap-1 text-sm font-medium">{% translate "Where?" %}
       <select class="rounded-lg border border-slate-300 px-3 py-3" name="city">
         <option value="">{% translate "Any launch city" %}</option>
-        {% for city in municipalities %}<option value="{{ city.name }}">{{ city.name }}</option>{% endfor %}
+        {% for city in launch_cities %}<option value="{{ city }}">{{ city }}</option>{% endfor %}
       </select>
     </label>
     <button class="rounded-lg bg-slate-950 px-5 py-3 font-semibold text-white sm:col-span-2" type="submit">{% translate "Search" %}</button>
   </form>
-  <div class="mt-10">
-    <h2 class="text-xl font-semibold">{% translate "Browse services" %}</h2>
-    <div class="mt-4 flex flex-wrap gap-2">
-      {% for category in categories %}<a class="rounded-full border border-slate-300 px-4 py-2 text-sm" href="{% url 'discovery-search' locale=locale %}?category={{ category.slug }}">{{ category.name }}</a>{% endfor %}
-    </div>
-  </div>
 </section>
 {% endblock %}
