@@ -47,7 +47,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 (
-                    "check",
+                    "verification_check",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name="events",
