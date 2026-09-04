@@ -68,7 +68,10 @@ class VerificationAuditTests(TestCase):
         self.assertFalse(VerificationEvent.objects.filter(check=self.check).exists())
 
     def test_invalid_status_is_rejected_without_event(self) -> None:
-        with self.assertRaisesMessage(ValidationError, "Unsupported verification status"):
+        with self.assertRaisesMessage(
+            ValidationError,
+            "Unsupported verification status",
+        ):
             change_verification_status(
                 check_id=self.check.pk,
                 actor=self.staff,
