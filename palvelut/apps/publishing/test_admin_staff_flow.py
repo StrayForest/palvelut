@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.test import RequestFactory, TestCase
+from django.urls import reverse
 
 from palvelut.apps.discovery.models import ProviderReadDocument
 from palvelut.apps.moderation.services import moderate_provider
@@ -19,6 +20,7 @@ class StaffProfileRevisionAdminFlowTests(TestCase):
         )
         self.factory = RequestFactory()
         self.model_admin = ProfileRevisionAdmin(ProfileRevision, admin.site)
+        self.client.force_login(self.staff)
 
     def _request(self):
         request = self.factory.post("/admin/publishing/profilerevision/add/")
@@ -34,8 +36,13 @@ class StaffProfileRevisionAdminFlowTests(TestCase):
             claim_status=Provider.ClaimStatus.APPROVED,
             claim_evidence={"method": "staff_owner_confirmation"},
         )
-        request = self._request()
 
+        add_page = self.client.get(reverse("admin:publishing_profilerevision_add"))
+        self.assertEqual(add_page.status_code, 200)
+        self.assertContains(add_page, 'name="provider"')
+        self.assertContains(add_page, 'name="payload"')
+
+        request = self._request()
         self.assertTrue(self.model_admin.has_add_permission(request))
         readonly = self.model_admin.get_readonly_fields(request, obj=None)
         self.assertNotIn("provider", readonly)
