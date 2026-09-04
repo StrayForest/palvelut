@@ -34,3 +34,24 @@ class ProfileRevision(UuidV7Model):
 
     class Meta:
         ordering = ("-created_at", "-id")
+
+
+class ProviderSlug(UuidV7Model):
+    provider = models.ForeignKey(
+        Provider,
+        on_delete=models.CASCADE,
+        related_name="slugs",
+    )
+    slug = models.SlugField(max_length=220, unique=True)
+    is_current = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-is_current", "created_at", "id")
+        constraints = (
+            models.UniqueConstraint(
+                fields=("provider",),
+                condition=models.Q(is_current=True),
+                name="publishing_provider_slug_one_current",
+            ),
+        )
