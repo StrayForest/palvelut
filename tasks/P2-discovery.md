@@ -4,7 +4,6 @@ Depends: P1. Read: `docs/03-experience.md`, `docs/04-design.md`, `docs/05-archit
 
 ## Build
 
-- Home, city/category landing, normalized search, result cards and provider profile.
 - Serve every surface at canonical `/palvelut/{locale}/...` routes with the same prefix in local/proxy tests.
 - Category/city/language/service-mode filters, typo-tolerant synonyms and honest empty alternatives.
 - Structured contact redirect with server-side destination resolution and minimal event.
