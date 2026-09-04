@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from django import forms
 from django.contrib import admin, messages
+from django.contrib.auth import get_user_model
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError, transaction
 from django.http import HttpRequest, HttpResponse
@@ -19,6 +20,7 @@ from palvelut.apps.providers.models import (
     ProviderService,
     ServiceArea,
 )
+from palvelut.apps.publishing.models import ProfileRevision
 
 
 class ProviderImportForm(forms.Form):
@@ -39,6 +41,21 @@ class ProviderImportForm(forms.Form):
                 message = f"Record {index + 1} has an invalid provider_type."
                 raise forms.ValidationError(message)
         return records
+
+
+class OwnerConfirmedProviderForm(forms.Form):
+    provider_type = forms.ChoiceField(choices=Provider.Type.choices)
+    legal_name = forms.CharField(max_length=200)
+    display_name = forms.CharField(max_length=200)
+    y_tunnus = forms.CharField(max_length=16, required=False)
+    owner = forms.ModelChoiceField(queryset=get_user_model().objects.none())
+    claim_evidence = forms.JSONField(initial=dict, required=False)
+    revision_payload = forms.JSONField(initial=dict, required=False)
+    publish_now = forms.BooleanField(required=False, initial=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["owner"].queryset = get_user_model().objects.order_by("username")
 
 
 class ProviderMembershipInline(admin.TabularInline):
@@ -112,12 +129,73 @@ class ProviderAdmin(admin.ModelAdmin):
     def get_urls(self):
         custom_urls = [
             path(
+                "owner-confirmed/add/",
+                self.admin_site.admin_view(self.owner_confirmed_create_view),
+                name="providers_provider_owner_confirmed_add",
+            ),
+            path(
                 "import/",
                 self.admin_site.admin_view(self.import_view),
                 name="providers_provider_import",
             ),
         ]
         return [*custom_urls, *super().get_urls()]
+
+    def owner_confirmed_create_view(self, request: HttpRequest) -> HttpResponse:
+        if not self.has_add_permission(request):
+            raise PermissionDenied
+
+        form = OwnerConfirmedProviderForm(request.POST or None)
+        if request.method == "POST" and form.is_valid():
+            with transaction.atomic():
+                provider = Provider.objects.create(
+                    provider_type=form.cleaned_data["provider_type"],
+                    legal_name=form.cleaned_data["legal_name"].strip(),
+                    display_name=form.cleaned_data["display_name"].strip(),
+                    y_tunnus=form.cleaned_data["y_tunnus"].strip(),
+                    lifecycle=Provider.Lifecycle.PENDING,
+                    claim_status=Provider.ClaimStatus.APPROVED,
+                    claim_evidence=form.cleaned_data["claim_evidence"] or {},
+                )
+                ProviderMembership.objects.create(
+                    provider=provider,
+                    account=form.cleaned_data["owner"],
+                    role=ProviderMembership.Role.OWNER,
+                )
+                revision = ProfileRevision.objects.create(
+                    provider=provider,
+                    status=ProfileRevision.Status.PENDING,
+                    payload=form.cleaned_data["revision_payload"] or {},
+                    created_by=request.user,
+                )
+                _audit(
+                    provider,
+                    request.user,
+                    "provider.owner_confirmed_created",
+                    owner_account_id=str(form.cleaned_data["owner"].pk),
+                    revision_id=str(revision.pk),
+                )
+                if form.cleaned_data["publish_now"]:
+                    moderate_provider(
+                        provider_id=provider.pk,
+                        actor=request.user,
+                        action="approve",
+                    )
+
+            self.message_user(request, "Owner-confirmed provider created successfully.")
+            return redirect(reverse("admin:providers_provider_change", args=(provider.pk,)))
+
+        context = {
+            **self.admin_site.each_context(request),
+            "opts": self.model._meta,
+            "title": "Create owner-confirmed provider",
+            "form": form,
+        }
+        return render(
+            request,
+            "admin/providers/provider/owner_confirmed_add.html",
+            context,
+        )
 
     def import_view(self, request: HttpRequest) -> HttpResponse:
         if not self.has_add_permission(request):
