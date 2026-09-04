@@ -7,11 +7,11 @@
   <h1 class="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">{% translate "Find a Russian-speaking specialist in Finland" %}</h1>
   <p class="mt-4 text-lg text-slate-600">{% translate "Compare services and contact providers directly." %}</p>
   <form action="{% url 'discovery-search' locale=locale %}" class="mt-8 grid gap-3 rounded-2xl border border-slate-200 p-4 shadow-sm sm:grid-cols-2" method="get">
-    <label class="grid gap-1 text-sm font-medium">{% translate "What service?" %}
-      <input class="rounded-lg border border-slate-300 px-3 py-3" name="q" placeholder="{% translate 'e.g. accountant' %}">
+    <label class="grid gap-1 text-sm font-medium" for="service-query">{% translate "What service?" %}
+      <input class="rounded-lg border border-slate-300 px-3 py-3" id="service-query" name="q" placeholder="{% translate 'e.g. accountant' %}">
     </label>
-    <label class="grid gap-1 text-sm font-medium">{% translate "Where?" %}
-      <select class="rounded-lg border border-slate-300 px-3 py-3" name="city">
+    <label class="grid gap-1 text-sm font-medium" for="city-query">{% translate "Where?" %}
+      <select class="rounded-lg border border-slate-300 px-3 py-3" id="city-query" name="city">
         <option value="">{% translate "Any launch city" %}</option>
         {% for city in launch_cities %}<option value="{{ city }}">{{ city }}</option>{% endfor %}
       </select>
