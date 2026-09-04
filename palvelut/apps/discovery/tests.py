@@ -32,9 +32,7 @@ class ApprovedReadDocumentTests(TestCase):
             payload=payload,
             created_by=self.staff,
             reviewed_at=(
-                timezone.now()
-                if status == ProfileRevision.Status.APPROVED
-                else None
+                timezone.now() if status == ProfileRevision.Status.APPROVED else None
             ),
         )
 
