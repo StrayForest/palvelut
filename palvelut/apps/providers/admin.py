@@ -183,7 +183,9 @@ class ProviderAdmin(admin.ModelAdmin):
                     )
 
             self.message_user(request, "Owner-confirmed provider created successfully.")
-            return redirect(reverse("admin:providers_provider_change", args=(provider.pk,)))
+            return redirect(
+                reverse("admin:providers_provider_change", args=(provider.pk,))
+            )
 
         context = {
             **self.admin_site.each_context(request),
