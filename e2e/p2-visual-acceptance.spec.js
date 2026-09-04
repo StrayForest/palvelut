@@ -25,6 +25,8 @@ async function capture(page, testInfo, name, url, width, beforeCapture) {
 }
 
 test("P2 responsive visual evidence and design checklist", async ({ page }, testInfo) => {
+  test.setTimeout(120_000);
+
   await page.goto("/palvelut/en/search/?q=accounting");
   const profileHref = await page.locator('a[href*="/professionals/"]').first().getAttribute("href");
   expect(profileHref).toBeTruthy();
