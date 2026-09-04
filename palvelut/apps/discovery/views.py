@@ -326,10 +326,7 @@ def provider_profile(request: HttpRequest, locale: str, slug: str) -> HttpRespon
         )
 
     document = (
-        _public_documents()
-        .filter(provider=slug_record.provider)
-        .distinct()
-        .first()
+        _public_documents().filter(provider=slug_record.provider).distinct().first()
     )
     if document is None:
         raise Http404("Provider not found")
@@ -394,8 +391,7 @@ def sitemap_xml(request: HttpRequest) -> HttpResponse:
             if service.is_active
         }
         cities = {
-            area.municipality.name
-            for area in document.provider.service_areas.all()
+            area.municipality.name for area in document.provider.service_areas.all()
         }
         for city_name in cities:
             city_slug = city_name.casefold().replace(" ", "-")
