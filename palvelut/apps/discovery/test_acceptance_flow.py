@@ -93,3 +93,27 @@ class AnonymousDiscoveryContactAcceptanceTests(TestCase):
         contact = self.client.get(contact_path)
         self.assertEqual(contact.status_code, 302)
         self.assertEqual(contact["Location"], "mailto:contact@example.test")
+
+    def test_core_flow_is_native_html_with_progressive_htmx_contract(self) -> None:
+        home = self.client.get("/palvelut/en/")
+        self.assertContains(home, 'hx-boost="true"', html=False)
+        self.assertContains(home, 'hx-push-url="true"', html=False)
+        self.assertContains(home, 'hx-target="#main-content"', html=False)
+        self.assertContains(home, 'hx-select="#main-content"', html=False)
+        self.assertContains(home, 'id="service-query"', html=False)
+        self.assertContains(home, 'id="city-query"', html=False)
+        self.assertContains(home, 'method="get"', html=False)
+
+        results = self.client.get(
+            "/palvelut/en/search/",
+            {"q": "accounting", "city": "Helsinki"},
+        )
+        self.assertEqual(results.status_code, 200)
+        self.assertContains(results, 'id="service-query"', html=False)
+        self.assertContains(results, 'id="city-query"', html=False)
+        self.assertContains(results, 'value="accounting"', html=False)
+        self.assertContains(results, 'value="Helsinki"', html=False)
+
+        profile = self.client.get("/palvelut/en/professionals/acceptance-accounting/")
+        self.assertEqual(profile.status_code, 200)
+        self.assertContains(profile, 'hx-boost="false"', html=False)
