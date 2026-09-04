@@ -29,7 +29,9 @@ class PublicProviderDocumentTests(TestCase):
             created_by=self.staff,
         )
 
-    def test_approval_generates_public_document_from_approved_revision(self) -> None:
+    def test_approval_generates_public_document_from_approved_revision(
+        self,
+    ) -> None:
         revision = self._revision(
             {"display_name": "Approved name", "city": "Helsinki"}
         )
