@@ -15,12 +15,45 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="VerificationEvent",
             fields=[
-                ("id", models.UUIDField(editable=False, primary_key=True, serialize=False)),
-                ("status", models.CharField(choices=[("pending", "Pending"), ("verified", "Verified"), ("rejected", "Rejected"), ("expired", "Expired")], max_length=16)),
+                (
+                    "id",
+                    models.UUIDField(
+                        db_default=models.Func(function="uuidv7"),
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("pending", "Pending"),
+                            ("verified", "Verified"),
+                            ("rejected", "Rejected"),
+                            ("expired", "Expired"),
+                        ],
+                        max_length=16,
+                    ),
+                ),
                 ("metadata", models.JSONField(default=dict)),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
-                ("actor", models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name="verification_events", to=settings.AUTH_USER_MODEL)),
-                ("check", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name="events", to="verification.verificationcheck")),
+                (
+                    "actor",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="verification_events",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "check",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="events",
+                        to="verification.verificationcheck",
+                    ),
+                ),
             ],
             options={"ordering": ("created_at", "id")},
         ),
