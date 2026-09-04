@@ -43,8 +43,8 @@ class ProfileRevisionAdmin(admin.ModelAdmin):
         )
 
     @admin.display(description="Changes from previous revision")
-    def revision_diff(self, obj: ProfileRevision) -> str:
-        if obj.pk is None:
+    def revision_diff(self, obj: ProfileRevision | None) -> str:
+        if obj is None or obj.pk is None:
             return format_html("<pre>{}</pre>", "New revision")
         previous = (
             ProfileRevision.objects.filter(
