@@ -3,6 +3,9 @@
 
 {% block object-tools-items %}
 <li>
+  <a href="{% url 'admin:providers_provider_owner_confirmed_add' %}">Create owner-confirmed provider</a>
+</li>
+<li>
   <a href="{% url 'admin:providers_provider_import' %}">Import providers</a>
 </li>
 {{ block.super }}
