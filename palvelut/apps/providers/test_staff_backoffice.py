@@ -15,12 +15,12 @@ class StaffBackOfficeTests(TestCase):
         user_model = get_user_model()
         self.staff = user_model.objects.create_user(
             username="staff-backoffice",
-            password="test-password-only",
+            password=None,
             is_staff=True,
         )
         self.regular = user_model.objects.create_user(
             username="regular-backoffice",
-            password="test-password-only",
+            password=None,
         )
 
     def test_import_is_staff_only_idempotent_and_non_public(self) -> None:
