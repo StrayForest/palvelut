@@ -8,6 +8,10 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.utils import timezone
 
+from palvelut.apps.discovery.services import (
+    publish_approved_revision,
+    remove_public_read_document,
+)
 from palvelut.apps.moderation.models import AuditEvent
 from palvelut.apps.providers.models import Provider
 from palvelut.apps.publishing.models import ProfileRevision
@@ -56,6 +60,7 @@ def moderate_provider(
         previous = provider.lifecycle
         provider.lifecycle = Provider.Lifecycle.SUSPENDED
         provider.save(update_fields=("lifecycle", "updated_at"))
+        remove_public_read_document(provider=provider)
         AuditEvent.objects.create(
             provider=provider,
             actor=actor,
@@ -99,6 +104,7 @@ def moderate_provider(
     revision.save(update_fields=("status", "reviewed_at"))
     provider.lifecycle = Provider.Lifecycle.PUBLISHED
     provider.save(update_fields=("lifecycle", "updated_at"))
+    publish_approved_revision(revision=revision)
     AuditEvent.objects.create(
         provider=provider,
         actor=actor,
