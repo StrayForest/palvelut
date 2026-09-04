@@ -100,7 +100,9 @@ class ApprovedReadDocumentTests(TestCase):
             actor=self.staff,
             action="approve",
         )
-        self.assertTrue(ProviderReadDocument.objects.filter(provider=self.provider).exists())
+        self.assertTrue(
+            ProviderReadDocument.objects.filter(provider=self.provider).exists()
+        )
 
         moderate_provider(
             provider_id=self.provider.pk,
@@ -108,4 +110,6 @@ class ApprovedReadDocumentTests(TestCase):
             action="suspend",
         )
 
-        self.assertFalse(ProviderReadDocument.objects.filter(provider=self.provider).exists())
+        self.assertFalse(
+            ProviderReadDocument.objects.filter(provider=self.provider).exists()
+        )
