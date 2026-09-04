@@ -10,6 +10,7 @@ django.setup()
 
 from django.conf import settings
 from django.test import Client, SimpleTestCase, override_settings
+from django.urls import reverse
 
 from palvelut.settings import _public_base_url
 
@@ -33,6 +34,41 @@ class RoutingContractTests(SimpleTestCase):
         response = self.client.get("/palvelut/")
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response["Location"], "/palvelut/en/")
+
+    def test_every_public_discovery_route_keeps_mount_and_locale_prefix(self):
+        routes = {
+            "localized-home": reverse("localized-home", kwargs={"locale": "en"}),
+            "discovery-search": reverse("discovery-search", kwargs={"locale": "en"}),
+            "provider-profile": reverse(
+                "provider-profile",
+                kwargs={"locale": "en", "slug": "example-provider"},
+            ),
+            "city-category": reverse(
+                "city-category",
+                kwargs={"locale": "en", "city": "helsinki", "category": "accounting"},
+            ),
+        }
+        self.assertEqual(
+            routes,
+            {
+                "localized-home": "/palvelut/en/",
+                "discovery-search": "/palvelut/en/search/",
+                "provider-profile": "/palvelut/en/professionals/example-provider/",
+                "city-category": "/palvelut/en/helsinki/accounting/",
+            },
+        )
+        for route in routes.values():
+            self.assertTrue(route.startswith("/palvelut/en/"), route)
+
+    def test_unmounted_discovery_paths_are_not_public_routes(self):
+        for path in (
+            "/en/",
+            "/en/search/",
+            "/en/professionals/example-provider/",
+            "/en/helsinki/accounting/",
+        ):
+            with self.subTest(path=path):
+                self.assertEqual(self.client.get(path).status_code, 404)
 
     def test_static_and_cookie_paths_keep_public_mount_prefix(self):
         self.assertEqual(settings.STATIC_URL, "/palvelut/static/")
