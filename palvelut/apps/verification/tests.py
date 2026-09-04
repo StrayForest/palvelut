@@ -36,7 +36,7 @@ class VerificationAuditHistoryTests(TestCase):
         )
 
         self.check.refresh_from_db()
-        event = VerificationEvent.objects.get(check=self.check)
+        event = VerificationEvent.objects.get(verification_check=self.check)
         self.assertEqual(self.check.status, VerificationCheck.Status.VERIFIED)
         self.assertEqual(event.status, VerificationCheck.Status.VERIFIED)
         self.assertEqual(event.actor, self.staff)
@@ -53,4 +53,6 @@ class VerificationAuditHistoryTests(TestCase):
 
         self.check.refresh_from_db()
         self.assertEqual(self.check.status, VerificationCheck.Status.PENDING)
-        self.assertFalse(VerificationEvent.objects.filter(check=self.check).exists())
+        self.assertFalse(
+            VerificationEvent.objects.filter(verification_check=self.check).exists()
+        )
