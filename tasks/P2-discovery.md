@@ -4,7 +4,6 @@ Depends: P1. Read: `docs/03-experience.md`, `docs/04-design.md`, `docs/05-archit
 
 ## Build
 
-- Structured contact redirect with server-side destination resolution and minimal event.
 - Canonicals, hreflang, sitemap, robots, structured data, old-slug redirects and thin-page noindex rule.
 - Public cache headers/read-through cache with explicit authenticated bypass.
 
