@@ -35,3 +35,23 @@ class VerificationCheck(UuidV7Model):
 
     class Meta:
         ordering = ("-checked_at", "-id")
+
+
+class VerificationEvent(UuidV7Model):
+    check = models.ForeignKey(
+        VerificationCheck,
+        on_delete=models.CASCADE,
+        related_name="events",
+    )
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="verification_events",
+    )
+    previous_status = models.CharField(max_length=16, choices=VerificationCheck.Status.choices)
+    status = models.CharField(max_length=16, choices=VerificationCheck.Status.choices)
+    metadata = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("created_at", "id")
