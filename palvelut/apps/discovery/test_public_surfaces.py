@@ -24,6 +24,9 @@ class PublicDiscoverySurfaceTests(TestCase):
     def setUpTestData(cls) -> None:
         cls.category = Category.objects.get(slug="accounting")
         cls.city = Municipality.objects.get(region__country__code="FI", code="091")
+        cls.espoo = Municipality.objects.get(
+            region__country__code="FI", name="Espoo"
+        )
         cls.english = Language.objects.get(code="en")
         CategorySynonym.objects.get_or_create(
             category=cls.category,
@@ -50,6 +53,11 @@ class PublicDiscoverySurfaceTests(TestCase):
             provider=cls.published,
             municipality=cls.city,
             mode=ServiceArea.Mode.ONSITE,
+        )
+        ServiceArea.objects.create(
+            provider=cls.published,
+            municipality=cls.espoo,
+            mode=ServiceArea.Mode.REMOTE,
         )
         ProviderLanguage.objects.create(
             provider=cls.published,
@@ -152,7 +160,9 @@ class PublicDiscoverySurfaceTests(TestCase):
             html=False,
         )
 
-    def test_invalid_explicit_filter_does_not_fall_back_to_unrelated_results(self) -> None:
+    def test_invalid_explicit_filter_does_not_fall_back_to_unrelated_results(
+        self,
+    ) -> None:
         response = self.client.get(
             "/palvelut/en/search/",
             {"category": "does-not-exist"},
