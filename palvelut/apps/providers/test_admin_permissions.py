@@ -40,7 +40,7 @@ class AdminPermissionTests(TestCase):
         request.user = self.staff
         return request
 
-    def test_non_staff_user_cannot_enter_admin(self) -> None:
+    def test_non_staff_cannot_enter_admin(self) -> None:
         self.client.force_login(self.non_staff)
 
         response = self.client.get(reverse("admin:index"))
@@ -48,7 +48,7 @@ class AdminPermissionTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse("admin:login"), response.url)
 
-    def test_staff_without_provider_permissions_cannot_access_provider_admin(self) -> None:
+    def test_staff_without_provider_permissions_is_denied(self) -> None:
         self.client.force_login(self.staff)
 
         changelist = self.client.get(reverse("admin:providers_provider_changelist"))
@@ -57,7 +57,7 @@ class AdminPermissionTests(TestCase):
         self.assertEqual(changelist.status_code, 403)
         self.assertEqual(import_page.status_code, 403)
 
-    def test_view_only_staff_can_view_but_cannot_run_mutating_actions(self) -> None:
+    def test_view_only_staff_has_no_mutating_actions(self) -> None:
         self._grant_provider_permission("view_provider")
         request = self._request_for_staff()
 
@@ -65,7 +65,7 @@ class AdminPermissionTests(TestCase):
         self.assertFalse(self.provider_admin.has_change_permission(request))
         self.assertEqual(self.provider_admin.get_actions(request), {})
 
-    def test_change_permission_exposes_only_change_guarded_provider_actions(self) -> None:
+    def test_change_permission_exposes_guarded_actions(self) -> None:
         self._grant_provider_permission("view_provider")
         self._grant_provider_permission("change_provider")
         request = self._request_for_staff()
