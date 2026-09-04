@@ -1,16 +1,19 @@
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from difflib import get_close_matches
+from xml.sax.saxutils import escape
 
 from django.conf import settings
 from django.db.models import Q, QuerySet
 from django.http import Http404, HttpRequest, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.utils import translation
 
 from palvelut.apps.discovery.models import ProviderReadDocument
 from palvelut.apps.providers.models import Provider, ServiceArea
+from palvelut.apps.publishing.models import ProviderSlug
 from palvelut.apps.taxonomy.models import Category, Language, Municipality
 
 SUPPORTED_LOCALES = {code for code, _name in settings.LANGUAGES}
@@ -214,29 +217,37 @@ def _empty_alternatives(request: HttpRequest) -> list[dict[str, str]]:
     return alternatives
 
 
-def _base_context(locale: str) -> dict[str, object]:
+def _localized_urls(path_suffix: str) -> tuple[list[tuple[str, str]], str]:
+    links = [
+        (code, f"{settings.PUBLIC_BASE_URL}/{code}/{path_suffix}")
+        for code, _name in settings.LANGUAGES
+    ]
+    return links, f"{settings.PUBLIC_BASE_URL}/{settings.LANGUAGE_CODE}/{path_suffix}"
+
+
+def _base_context(locale: str, path_suffix: str = "") -> dict[str, object]:
+    links, x_default = _localized_urls(path_suffix)
     return {
         "locale": locale,
-        "canonical_url": None,
-        "hreflang_links": [],
-        "x_default_url": None,
+        "canonical_url": f"{settings.PUBLIC_BASE_URL}/{locale}/{path_suffix}",
+        "hreflang_links": links,
+        "x_default_url": x_default,
+        "robots_meta": "index,follow",
+        "meta_description": "Find verified service providers and contact them directly.",
+        "structured_data_json": "",
     }
+
+
+def _safe_json(value: dict[str, object]) -> str:
+    return json.dumps(value, ensure_ascii=False, separators=(",", ":")).replace(
+        "<", "\\u003c"
+    )
 
 
 def home(request: HttpRequest, locale: str) -> HttpResponse:
     _require_locale(locale)
     context = _base_context(locale)
-    context.update(
-        {
-            "canonical_url": f"{settings.PUBLIC_BASE_URL}/{locale}/",
-            "hreflang_links": [
-                (code, f"{settings.PUBLIC_BASE_URL}/{code}/")
-                for code, _name in settings.LANGUAGES
-            ],
-            "x_default_url": f"{settings.PUBLIC_BASE_URL}/{settings.LANGUAGE_CODE}/",
-            "launch_cities": LAUNCH_CITIES,
-        }
-    )
+    context["launch_cities"] = LAUNCH_CITIES
     with translation.override(locale):
         return render(request, "discovery/home.html", context)
 
@@ -245,9 +256,10 @@ def search(request: HttpRequest, locale: str) -> HttpResponse:
     _require_locale(locale)
     state = _search_state(request, locale)
     with translation.override(locale):
-        context = _base_context(locale)
+        context = _base_context(locale, "search/")
         context.update(
             {
+                "robots_meta": "noindex,follow",
                 "state": state,
                 "documents": _filtered_documents(state),
                 "empty_alternatives": _empty_alternatives(request),
@@ -272,12 +284,19 @@ def city_category(
         language_code="",
         mode="",
     )
+    documents = _filtered_documents(state)
     with translation.override(locale):
-        context = _base_context(locale)
+        context = _base_context(locale, f"{city}/{category}/")
         context.update(
             {
+                "robots_meta": (
+                    "index,follow" if documents.count() >= 3 else "noindex,follow"
+                ),
+                "meta_description": (
+                    f"Find {category_obj.name} professionals in {municipality.name}."
+                ),
                 "state": state,
-                "documents": _filtered_documents(state),
+                "documents": documents,
                 "empty_alternatives": [],
                 "service_modes": ServiceArea.Mode.choices,
             }
@@ -287,15 +306,112 @@ def city_category(
 
 def provider_profile(request: HttpRequest, locale: str, slug: str) -> HttpResponse:
     _require_locale(locale)
+    slug_record = ProviderSlug.objects.filter(slug=slug).select_related("provider").first()
+    if slug_record is None:
+        raise Http404("Provider not found")
+    if not slug_record.is_current:
+        current_slug = (
+            ProviderSlug.objects.filter(provider=slug_record.provider, is_current=True)
+            .values_list("slug", flat=True)
+            .first()
+        )
+        if current_slug is None:
+            raise Http404("Provider not found")
+        return redirect(
+            f"/palvelut/{locale}/professionals/{current_slug}/", permanent=True
+        )
+
     document = (
         _public_documents()
-        .filter(provider__slugs__slug=slug, provider__slugs__is_current=True)
+        .filter(provider=slug_record.provider)
         .distinct()
         .first()
     )
     if document is None:
         raise Http404("Provider not found")
+    display_name = document.document.get("display_name") or document.provider.display_name
+    profile_url = f"{settings.PUBLIC_BASE_URL}/{locale}/professionals/{slug}/"
+    structured_data = {
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        "name": display_name,
+        "url": profile_url,
+    }
     with translation.override(locale):
-        context = _base_context(locale)
-        context["document"] = document
+        context = _base_context(locale, f"professionals/{slug}/")
+        context.update(
+            {
+                "document": document,
+                "meta_description": document.document.get("about")
+                or f"Contact {display_name} directly through Finrix Palvelut.",
+                "structured_data_json": _safe_json(structured_data),
+            }
+        )
         return render(request, "discovery/provider_profile.html", context)
+
+
+def robots_txt(request: HttpRequest) -> HttpResponse:
+    body = "\n".join(
+        (
+            "User-agent: *",
+            "Disallow: /palvelut/*/search/",
+            "Disallow: /admin/",
+            f"Sitemap: {settings.PUBLIC_BASE_URL}/sitemap.xml",
+            "",
+        )
+    )
+    return HttpResponse(body, content_type="text/plain; charset=utf-8")
+
+
+def sitemap_xml(request: HttpRequest) -> HttpResponse:
+    documents = list(_public_documents())
+    entries: dict[str, str] = {}
+    for code, _name in settings.LANGUAGES:
+        entries[f"{settings.PUBLIC_BASE_URL}/{code}/"] = ""
+
+    landing_providers: dict[tuple[str, str], set[object]] = {}
+    landing_lastmod: dict[tuple[str, str], str] = {}
+    for document in documents:
+        current_slug = next(
+            (slug.slug for slug in document.provider.slugs.all() if slug.is_current), None
+        )
+        if current_slug:
+            lastmod = document.generated_at.date().isoformat()
+            for code, _name in settings.LANGUAGES:
+                entries[
+                    f"{settings.PUBLIC_BASE_URL}/{code}/professionals/{current_slug}/"
+                ] = lastmod
+        categories = {
+            service.category.slug
+            for service in document.provider.services.all()
+            if service.is_active
+        }
+        cities = {area.municipality.name for area in document.provider.service_areas.all()}
+        for city_name in cities:
+            city_slug = city_name.casefold().replace(" ", "-")
+            for category_slug in categories:
+                key = (city_slug, category_slug)
+                landing_providers.setdefault(key, set()).add(document.provider_id)
+                landing_lastmod[key] = max(
+                    landing_lastmod.get(key, ""), document.generated_at.date().isoformat()
+                )
+
+    for (city_slug, category_slug), provider_ids in landing_providers.items():
+        if len(provider_ids) < 3:
+            continue
+        for code, _name in settings.LANGUAGES:
+            entries[
+                f"{settings.PUBLIC_BASE_URL}/{code}/{city_slug}/{category_slug}/"
+            ] = landing_lastmod[(city_slug, category_slug)]
+
+    urls = []
+    for location, lastmod in sorted(entries.items()):
+        lastmod_xml = f"<lastmod>{lastmod}</lastmod>" if lastmod else ""
+        urls.append(f"<url><loc>{escape(location)}</loc>{lastmod_xml}</url>")
+    body = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+        + "".join(urls)
+        + "</urlset>"
+    )
+    return HttpResponse(body, content_type="application/xml; charset=utf-8")
