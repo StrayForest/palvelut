@@ -26,7 +26,9 @@ def _require_staff(actor: AbstractBaseUser) -> None:
 
 @transaction.atomic
 def import_unclaimed_provider(
-    *, actor: AbstractBaseUser, data: Mapping[str, Any]
+    *,
+    actor: AbstractBaseUser,
+    data: Mapping[str, Any],
 ) -> Provider:
     """Idempotently import a non-public provider record.
 
@@ -74,7 +76,11 @@ def import_unclaimed_provider(
 
 
 def _move_unique_rows(
-    *, model, source: Provider, target: Provider, unique_fields: tuple[str, ...]
+    *,
+    model,
+    source: Provider,
+    target: Provider,
+    unique_fields: tuple[str, ...],
 ) -> None:
     for row in model.objects.select_for_update().filter(provider=source):
         lookup = {field: getattr(row, field) for field in unique_fields}
