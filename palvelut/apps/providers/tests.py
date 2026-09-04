@@ -40,6 +40,8 @@ class DomainModelFoundationTests(TestCase):
             provider_type=Provider.Type.INDIVIDUAL,
             legal_name="Synthetic Provider",
             display_name="Synthetic Provider",
+            claim_status=Provider.ClaimStatus.APPROVED,
+            claim_evidence={"kind": "staff_review", "reference": "synthetic"},
         )
 
         ProviderMembership.objects.create(provider=provider, account=user, role="owner")
@@ -119,6 +121,13 @@ class ProviderDatabaseConstraintTests(TestCase):
         with self.assertRaises(IntegrityError), transaction.atomic():
             callback()
 
+    def approve_claim(self) -> None:
+        Provider.objects.filter(pk=self.provider.pk).update(
+            claim_status=Provider.ClaimStatus.APPROVED,
+            claim_evidence={"kind": "staff_review", "reference": "synthetic"},
+        )
+        self.provider.refresh_from_db()
+
     def test_provider_lifecycle_is_database_constrained(self) -> None:
         self.assert_integrity_error(
             lambda: Provider.objects.filter(pk=self.provider.pk).update(
@@ -142,10 +151,7 @@ class ProviderDatabaseConstraintTests(TestCase):
         )
 
     def test_approved_claim_can_publish_with_evidence(self) -> None:
-        Provider.objects.filter(pk=self.provider.pk).update(
-            claim_status=Provider.ClaimStatus.APPROVED,
-            claim_evidence={"kind": "staff_review", "reference": "synthetic"},
-        )
+        self.approve_claim()
         Provider.objects.filter(pk=self.provider.pk).update(
             lifecycle=Provider.Lifecycle.PUBLISHED
         )
@@ -153,6 +159,25 @@ class ProviderDatabaseConstraintTests(TestCase):
         self.assertEqual(self.provider.lifecycle, Provider.Lifecycle.PUBLISHED)
         self.assertEqual(self.provider.claim_status, Provider.ClaimStatus.APPROVED)
         self.assertEqual(self.provider.claim_evidence["kind"], "staff_review")
+
+    def test_unclaimed_provider_cannot_gain_membership(self) -> None:
+        self.assertEqual(self.provider.claim_status, Provider.ClaimStatus.UNCLAIMED)
+        self.assert_integrity_error(
+            lambda: ProviderMembership.objects.create(
+                provider=self.provider,
+                account=self.user,
+                role=ProviderMembership.Role.OWNER,
+            )
+        )
+
+    def test_approved_claim_can_gain_membership(self) -> None:
+        self.approve_claim()
+        membership = ProviderMembership.objects.create(
+            provider=self.provider,
+            account=self.user,
+            role=ProviderMembership.Role.OWNER,
+        )
+        self.assertEqual(membership.provider_id, self.provider.pk)
 
     def test_nonblank_y_tunnus_is_unique(self) -> None:
         self.assert_integrity_error(
@@ -165,6 +190,7 @@ class ProviderDatabaseConstraintTests(TestCase):
         )
 
     def test_provider_has_at_most_one_active_owner(self) -> None:
+        self.approve_claim()
         ProviderMembership.objects.create(
             provider=self.provider,
             account=self.user,
@@ -179,6 +205,7 @@ class ProviderDatabaseConstraintTests(TestCase):
         )
 
     def test_membership_is_unique_per_provider_and_account(self) -> None:
+        self.approve_claim()
         ProviderMembership.objects.create(
             provider=self.provider,
             account=self.user,
