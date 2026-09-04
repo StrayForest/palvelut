@@ -8,7 +8,9 @@ from palvelut.apps.publishing.models import ProfileRevision
 
 
 @transaction.atomic
-def sync_public_provider_document(*, provider_id: object) -> PublicProviderDocument | None:
+def sync_public_provider_document(
+    *, provider_id: object
+) -> PublicProviderDocument | None:
     provider = Provider.objects.select_for_update().get(pk=provider_id)
 
     if (
