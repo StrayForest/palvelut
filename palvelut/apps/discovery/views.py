@@ -71,7 +71,9 @@ def _category_for_query(query: str, locale: str) -> Category | None:
         return exact
 
     terms: dict[str, Category] = {}
-    categories = Category.objects.prefetch_related("labels", "synonyms").order_by("slug")
+    categories = Category.objects.prefetch_related("labels", "synonyms").order_by(
+        "slug"
+    )
     for category in categories:
         values = {category.slug, category.name}
         values.update(
@@ -128,10 +130,9 @@ def _search_state(request: HttpRequest, locale: str) -> SearchState:
     category_query = explicit_category or query
     city_query = request.GET.get("city", "").strip()
     language_query = request.GET.get("language", "").strip()
-    mode_query = (
-        request.GET.get("mode", "").strip()
-        or request.GET.get("service_mode", "").strip()
-    )
+    mode_query = request.GET.get("mode", "").strip() or request.GET.get(
+        "service_mode", ""
+    ).strip()
 
     category = _category_for_query(category_query, locale)
     municipality = _municipality_for_query(city_query)
@@ -167,16 +168,19 @@ def _filtered_documents(state: SearchState) -> QuerySet[ProviderReadDocument]:
             Q(provider__display_name__icontains=state.query)
             | Q(provider__legal_name__icontains=state.query)
         )
+
+    service_area_filters: dict[str, object] = {}
     if state.municipality is not None:
-        documents = documents.filter(
-            provider__service_areas__municipality=state.municipality
-        )
+        service_area_filters["provider__service_areas__municipality"] = state.municipality
+    if state.mode:
+        service_area_filters["provider__service_areas__mode"] = state.mode
+    if service_area_filters:
+        documents = documents.filter(**service_area_filters)
+
     if state.language_code:
         documents = documents.filter(
             provider__languages__language__code=state.language_code
         )
-    if state.mode:
-        documents = documents.filter(provider__service_areas__mode=state.mode)
     return documents.distinct()
 
 
