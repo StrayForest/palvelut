@@ -333,7 +333,9 @@ def provider_profile(request: HttpRequest, locale: str, slug: str) -> HttpRespon
     )
     if document is None:
         raise Http404("Provider not found")
-    display_name = document.document.get("display_name") or document.provider.display_name
+    display_name = (
+        document.document.get("display_name") or document.provider.display_name
+    )
     profile_url = f"{settings.PUBLIC_BASE_URL}/{locale}/professionals/{slug}/"
     structured_data = {
         "@context": "https://schema.org",
