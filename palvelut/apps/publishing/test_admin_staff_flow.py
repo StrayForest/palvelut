@@ -12,10 +12,10 @@ from palvelut.apps.publishing.models import ProfileRevision
 class StaffProfileRevisionAdminFlowTests(TestCase):
     def setUp(self) -> None:
         user_model = get_user_model()
-        self.staff = user_model.objects.create_user(
+        self.staff = user_model.objects.create_superuser(
             username="staff-publisher",
+            email="staff-publisher@example.invalid",
             password="not-used",  # test-only
-            is_staff=True,
         )
         self.factory = RequestFactory()
         self.model_admin = ProfileRevisionAdmin(ProfileRevision, admin.site)
