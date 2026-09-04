@@ -30,7 +30,7 @@
     <h2 class="text-xl font-semibold">{% translate "Contact" %}</h2>
     <div class="mt-4 flex flex-wrap gap-3">
       {% for contact in provider.contacts.all %}{% if contact.is_public %}
-      <a class="rounded-lg border border-slate-300 px-4 py-2 font-medium" href="{% url 'contact-redirect' locale=locale provider_id=provider.id channel=contact.kind %}" rel="nofollow">{{ contact.label|default:contact.get_kind_display }}</a>
+      <a class="rounded-lg border border-slate-300 px-4 py-2 font-medium" href="{% url 'contact-redirect' locale=locale provider_id=provider.id channel=contact.kind %}" hx-boost="false" rel="nofollow">{{ contact.label|default:contact.get_kind_display }}</a>
       {% endif %}{% endfor %}
     </div>
   </section>
