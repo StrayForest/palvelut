@@ -5,7 +5,12 @@ from django.test import TestCase
 from django.urls import reverse
 
 from palvelut.apps.moderation.models import AuditEvent
-from palvelut.apps.providers.models import ContactChannel, Provider
+from palvelut.apps.providers.models import (
+    ContactChannel,
+    Provider,
+    ProviderMembership,
+)
+from palvelut.apps.publishing.models import ProfileRevision
 
 
 class StaffBackOfficeCompletionTests(TestCase):
@@ -16,6 +21,59 @@ class StaffBackOfficeCompletionTests(TestCase):
             password="test-only-password",
         )
         self.client.force_login(self.user)
+
+    def test_owner_confirmed_provider_can_be_created_and_published_in_admin(self):
+        owner = get_user_model().objects.create_user(
+            username="provider-owner",
+            password="test-only-password",
+        )
+
+        response = self.client.post(
+            reverse("admin:providers_provider_owner_confirmed_add"),
+            {
+                "provider_type": Provider.Type.BUSINESS,
+                "legal_name": "Owner Confirmed Oy",
+                "display_name": "Owner Confirmed",
+                "y_tunnus": "7654321-0",
+                "owner": str(owner.pk),
+                "claim_evidence": json.dumps({"source": "staff-confirmed"}),
+                "revision_payload": json.dumps({"summary": "Approved profile"}),
+                "publish_now": "on",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        provider = Provider.objects.get(y_tunnus="7654321-0")
+        self.assertEqual(provider.claim_status, Provider.ClaimStatus.APPROVED)
+        self.assertEqual(provider.lifecycle, Provider.Lifecycle.PUBLISHED)
+        self.assertTrue(
+            ProviderMembership.objects.filter(
+                provider=provider,
+                account=owner,
+                role=ProviderMembership.Role.OWNER,
+                is_active=True,
+            ).exists()
+        )
+        self.assertTrue(
+            ProfileRevision.objects.filter(
+                provider=provider,
+                status=ProfileRevision.Status.APPROVED,
+            ).exists()
+        )
+        self.assertTrue(
+            AuditEvent.objects.filter(
+                provider=provider,
+                actor=self.user,
+                action="provider.owner_confirmed_created",
+            ).exists()
+        )
+        self.assertTrue(
+            AuditEvent.objects.filter(
+                provider=provider,
+                actor=self.user,
+                action="provider.approved",
+            ).exists()
+        )
 
     def test_import_is_idempotent_and_audited(self):
         url = reverse("admin:providers_provider_import")
