@@ -4,6 +4,6 @@ Depends: P0. Read: `docs/01-product.md`, `docs/03-experience.md`, `docs/05-archi
 
 ## Gates
 
-Query-count limits, admin permission tests.
+Admin permission tests.
 
 Do not build public browse or provider self-service.
