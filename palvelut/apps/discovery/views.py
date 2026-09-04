@@ -30,7 +30,9 @@ def _require_locale(locale: str) -> None:
 
 def _public_documents() -> QuerySet[ProviderReadDocument]:
     return (
-        ProviderReadDocument.objects.filter(provider__lifecycle=Provider.Lifecycle.PUBLISHED)
+        ProviderReadDocument.objects.filter(
+            provider__lifecycle=Provider.Lifecycle.PUBLISHED
+        )
         .select_related("provider", "source_revision")
         .prefetch_related(
             "provider__services__category",
