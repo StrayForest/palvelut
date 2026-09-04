@@ -25,7 +25,9 @@ def _require_staff(actor: AbstractBaseUser) -> None:
 
 
 @transaction.atomic
-def import_unclaimed_provider(*, actor: AbstractBaseUser, data: Mapping[str, Any]) -> Provider:
+def import_unclaimed_provider(
+    *, actor: AbstractBaseUser, data: Mapping[str, Any]
+) -> Provider:
     """Idempotently import a non-public provider record.
 
     Y-tunnus is the stable import key. Imported records are always unclaimed and receive
@@ -71,7 +73,9 @@ def import_unclaimed_provider(*, actor: AbstractBaseUser, data: Mapping[str, Any
     return provider
 
 
-def _move_unique_rows(*, model, source: Provider, target: Provider, unique_fields: tuple[str, ...]) -> None:
+def _move_unique_rows(
+    *, model, source: Provider, target: Provider, unique_fields: tuple[str, ...]
+) -> None:
     for row in model.objects.select_for_update().filter(provider=source):
         lookup = {field: getattr(row, field) for field in unique_fields}
         if model.objects.filter(provider=target, **lookup).exists():
@@ -96,7 +100,9 @@ def merge_duplicate_providers(
 
     providers = {
         provider.pk: provider
-        for provider in Provider.objects.select_for_update().filter(pk__in=(target_id, source_id))
+        for provider in Provider.objects.select_for_update().filter(
+            pk__in=(target_id, source_id)
+        )
     }
     if len(providers) != 2:
         raise ValidationError("Both providers must exist.")
@@ -142,18 +148,23 @@ def merge_duplicate_providers(
         unique_fields=("storage_key",),
     )
 
-    for membership in ProviderMembership.objects.select_for_update().filter(provider=source):
+    for membership in ProviderMembership.objects.select_for_update().filter(
+        provider=source
+    ):
         existing = ProviderMembership.objects.filter(
             provider=target,
             account=membership.account,
         ).first()
         if existing:
             membership.delete()
-        elif membership.role == ProviderMembership.Role.OWNER and ProviderMembership.objects.filter(
-            provider=target,
-            role=ProviderMembership.Role.OWNER,
-            is_active=True,
-        ).exists():
+        elif (
+            membership.role == ProviderMembership.Role.OWNER
+            and ProviderMembership.objects.filter(
+                provider=target,
+                role=ProviderMembership.Role.OWNER,
+                is_active=True,
+            ).exists()
+        ):
             membership.role = ProviderMembership.Role.EDITOR
             membership.provider = target
             membership.save(update_fields=["provider", "role"])
