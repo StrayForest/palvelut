@@ -23,7 +23,9 @@ class HiddenProviderAcceptanceTests(TestCase):
     def setUpTestData(cls) -> None:
         cls.category = Category.objects.get(slug="accounting")
         cls.city = Municipality.objects.get(region__country__code="FI", code="091")
-        actor = get_user_model().objects.create_user(username="hidden-provider-reviewer")
+        actor = get_user_model().objects.create_user(
+            username="hidden-provider-reviewer"
+        )
 
         for index, lifecycle in enumerate(
             (Provider.Lifecycle.DRAFT, Provider.Lifecycle.SUSPENDED),
