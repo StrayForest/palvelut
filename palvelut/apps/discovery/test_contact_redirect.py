@@ -47,9 +47,7 @@ class ContactRedirectTests(TestCase):
         self.assertFalse(hasattr(event, "destination"))
 
     def test_private_channel_is_not_resolved(self) -> None:
-        response = self.client.get(
-            f"/palvelut/en/go/{self.provider.id}/email/"
-        )
+        response = self.client.get(f"/palvelut/en/go/{self.provider.id}/email/")
         self.assertEqual(response.status_code, 404)
         self.assertFalse(AnalyticsEvent.objects.exists())
 
@@ -57,9 +55,7 @@ class ContactRedirectTests(TestCase):
         self.provider.lifecycle = Provider.Lifecycle.SUSPENDED
         self.provider.save(update_fields=["lifecycle"])
 
-        response = self.client.get(
-            f"/palvelut/en/go/{self.provider.id}/phone/"
-        )
+        response = self.client.get(f"/palvelut/en/go/{self.provider.id}/phone/")
         self.assertEqual(response.status_code, 404)
         self.assertFalse(AnalyticsEvent.objects.exists())
 
@@ -67,8 +63,6 @@ class ContactRedirectTests(TestCase):
         self.phone.value = "javascript:alert(1)"
         self.phone.save(update_fields=["value"])
 
-        response = self.client.get(
-            f"/palvelut/en/go/{self.provider.id}/phone/"
-        )
+        response = self.client.get(f"/palvelut/en/go/{self.provider.id}/phone/")
         self.assertEqual(response.status_code, 404)
         self.assertFalse(AnalyticsEvent.objects.exists())
