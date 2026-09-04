@@ -22,18 +22,30 @@ class ProfileRevisionAdmin(admin.ModelAdmin):
         "provider__legal_name",
         "provider__y_tunnus",
     )
-    readonly_fields = (
-        "provider",
-        "status",
-        "payload",
-        "created_by",
-        "created_at",
-        "reviewed_at",
-        "revision_diff",
-    )
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj is None:
+            return (
+                "status",
+                "created_by",
+                "created_at",
+                "reviewed_at",
+                "revision_diff",
+            )
+        return (
+            "provider",
+            "status",
+            "payload",
+            "created_by",
+            "created_at",
+            "reviewed_at",
+            "revision_diff",
+        )
 
     @admin.display(description="Changes from previous revision")
     def revision_diff(self, obj: ProfileRevision) -> str:
+        if obj.pk is None:
+            return format_html("<pre>{}</pre>", "New revision")
         previous = (
             ProfileRevision.objects.filter(
                 provider=obj.provider,
@@ -60,7 +72,13 @@ class ProfileRevisionAdmin(admin.ModelAdmin):
         return format_html("<pre>{}</pre>", diff or "No payload changes")
 
     def has_add_permission(self, request) -> bool:
-        return False
+        return bool(request.user.is_authenticated and request.user.is_staff)
+
+    def save_model(self, request, obj, form, change) -> None:
+        if not change:
+            obj.created_by = request.user
+            obj.status = ProfileRevision.Status.PENDING
+        super().save_model(request, obj, form, change)
 
     def has_delete_permission(self, request, obj=None) -> bool:
         return False
