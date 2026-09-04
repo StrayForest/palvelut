@@ -28,7 +28,7 @@ def change_verification_status(
     check.status = status
     check.save(update_fields=("status",))
     VerificationEvent.objects.create(
-        check=check,
+        verification_check=check,
         status=status,
         actor=actor,
         metadata=metadata or {},
