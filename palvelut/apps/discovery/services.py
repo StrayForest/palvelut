@@ -20,7 +20,9 @@ def _search_values(value: Any) -> list[str]:
         for key in sorted(value, key=str):
             values.extend(_search_values(value[key]))
         return values
-    if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+    if isinstance(value, Sequence) and not isinstance(
+        value, (str, bytes, bytearray)
+    ):
         values = []
         for item in value:
             values.extend(_search_values(item))
@@ -29,7 +31,9 @@ def _search_values(value: Any) -> list[str]:
 
 
 @transaction.atomic
-def refresh_public_provider_document(*, provider_id: object) -> PublicProviderDocument | None:
+def refresh_public_provider_document(
+    *, provider_id: object
+) -> PublicProviderDocument | None:
     """Regenerate public state strictly from the latest approved profile revision."""
 
     provider = Provider.objects.select_for_update().get(pk=provider_id)
