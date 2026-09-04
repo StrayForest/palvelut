@@ -240,7 +240,8 @@ def _base_context(locale: str, path_suffix: str = "") -> dict[str, object]:
 
 def _safe_json(value: dict[str, object]) -> str:
     return json.dumps(value, ensure_ascii=False, separators=(",", ":")).replace(
-        "<", "\\u003c"
+        "<",
+        "\\u003c",
     )
 
 
@@ -320,7 +321,8 @@ def provider_profile(request: HttpRequest, locale: str, slug: str) -> HttpRespon
         if current_slug is None:
             raise Http404("Provider not found")
         return redirect(
-            f"/palvelut/{locale}/professionals/{current_slug}/", permanent=True
+            f"/palvelut/{locale}/professionals/{current_slug}/",
+            permanent=True,
         )
 
     document = (
@@ -375,7 +377,8 @@ def sitemap_xml(request: HttpRequest) -> HttpResponse:
     landing_lastmod: dict[tuple[str, str], str] = {}
     for document in documents:
         current_slug = next(
-            (slug.slug for slug in document.provider.slugs.all() if slug.is_current), None
+            (slug.slug for slug in document.provider.slugs.all() if slug.is_current),
+            None,
         )
         if current_slug:
             lastmod = document.generated_at.date().isoformat()
