@@ -91,7 +91,7 @@ jobs:
           ruff check --extend-per-file-ignores 'tests/*.py:E402' manage.py palvelut tests
           mapfile -t changed_python < <(git diff --name-only ci-base HEAD -- '*.py')
           if ((${#changed_python[@]})); then
-            ruff format --check "${changed_python[@]}"
+            ruff format --check --diff "${changed_python[@]}"
           else
             echo "No changed Python files to format-check"
           fi
