@@ -32,4 +32,5 @@ if test "$ready" != "1"; then
   exit 1
 fi
 
+"${COMPOSE[@]}" run --rm web python manage.py seed_demo
 "${COMPOSE[@]}" run --rm e2e
