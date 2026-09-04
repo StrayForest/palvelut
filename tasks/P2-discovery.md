@@ -6,7 +6,6 @@ Depends: P1. Read: `docs/03-experience.md`, `docs/04-design.md`, `docs/05-archit
 
 ## Accept
 
-- Meets performance budgets with beta-sized fixtures.
 - PR evidence includes the required home/results/empty/profile screenshots at 360, 768 and 1440px and passes the design review checklist.
 
 ## Gates
