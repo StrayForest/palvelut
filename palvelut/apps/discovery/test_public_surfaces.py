@@ -19,10 +19,7 @@ class PublicDiscoverySurfaceTests(TestCase):
             locale="en",
             value="bookkeeper",
         )
-        actor = get_user_model().objects.create_user(
-            username="discovery-reviewer",
-            password="unused",
-        )
+        actor = get_user_model().objects.create_user(username="discovery-reviewer")
         cls.published = Provider.objects.create(
             provider_type=Provider.Type.BUSINESS,
             lifecycle=Provider.Lifecycle.PUBLISHED,
