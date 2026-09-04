@@ -3,9 +3,19 @@ from django.test import TestCase, override_settings
 from django.utils import timezone
 
 from palvelut.apps.discovery.models import ProviderReadDocument
-from palvelut.apps.providers.models import Provider, ProviderService, ServiceArea
+from palvelut.apps.providers.models import (
+    Provider,
+    ProviderLanguage,
+    ProviderService,
+    ServiceArea,
+)
 from palvelut.apps.publishing.models import ProfileRevision, ProviderSlug
-from palvelut.apps.taxonomy.models import Category, CategorySynonym, Municipality
+from palvelut.apps.taxonomy.models import (
+    Category,
+    CategorySynonym,
+    Language,
+    Municipality,
+)
 
 
 @override_settings(ALLOWED_HOSTS=["testserver"])
@@ -14,6 +24,7 @@ class PublicDiscoverySurfaceTests(TestCase):
     def setUpTestData(cls) -> None:
         cls.category = Category.objects.get(slug="accounting")
         cls.city = Municipality.objects.get(region__country__code="FI", code="091")
+        cls.english = Language.objects.get(code="en")
         CategorySynonym.objects.get_or_create(
             category=cls.category,
             locale="en",
@@ -39,6 +50,10 @@ class PublicDiscoverySurfaceTests(TestCase):
             provider=cls.published,
             municipality=cls.city,
             mode=ServiceArea.Mode.ONSITE,
+        )
+        ProviderLanguage.objects.create(
+            provider=cls.published,
+            language=cls.english,
         )
         revision = ProfileRevision.objects.create(
             provider=cls.published,
@@ -97,6 +112,54 @@ class PublicDiscoverySurfaceTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Approved Public Accounting")
         self.assertNotContains(response, "Hidden Accounting")
+
+    def test_typo_tolerant_synonym_matches_category(self) -> None:
+        response = self.client.get(
+            "/palvelut/en/search/",
+            {"q": "bookkeper", "city": "Helsinki"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Approved Public Accounting")
+
+    def test_language_and_service_mode_filters_are_combined(self) -> None:
+        matching = self.client.get(
+            "/palvelut/en/search/",
+            {
+                "q": "bookkeeper",
+                "city": "Helsinki",
+                "language": "EN",
+                "mode": "onsite",
+            },
+        )
+        self.assertEqual(matching.status_code, 200)
+        self.assertContains(matching, "Approved Public Accounting")
+
+        wrong_mode = self.client.get(
+            "/palvelut/en/search/",
+            {
+                "q": "bookkeeper",
+                "city": "Helsinki",
+                "language": "en",
+                "mode": "remote",
+            },
+        )
+        self.assertEqual(wrong_mode.status_code, 200)
+        self.assertNotContains(wrong_mode, "Approved Public Accounting")
+        self.assertContains(wrong_mode, "Show all service modes")
+        self.assertContains(
+            wrong_mode,
+            "/palvelut/en/search/?q=bookkeeper&amp;city=Helsinki&amp;language=en",
+            html=False,
+        )
+
+    def test_invalid_explicit_filter_does_not_fall_back_to_unrelated_results(self) -> None:
+        response = self.client.get(
+            "/palvelut/en/search/",
+            {"category": "does-not-exist"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Approved Public Accounting")
+        self.assertContains(response, "Search all categories")
 
     def test_city_category_landing_and_profile_are_server_rendered(self) -> None:
         landing = self.client.get("/palvelut/en/helsinki/accounting/")
