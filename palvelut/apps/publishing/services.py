@@ -12,7 +12,9 @@ SLUG_MAX_LENGTH = 220
 def _stable_slug(provider: Provider) -> str:
     suffix = str(provider.pk)
     max_base_length = SLUG_MAX_LENGTH - len(suffix) - 1
-    base = slugify(provider.display_name, allow_unicode=True)[:max_base_length].strip("-")
+    base = slugify(provider.display_name, allow_unicode=True)[:max_base_length].strip(
+        "-"
+    )
     if not base:
         base = "provider"
     return f"{base}-{suffix}"
