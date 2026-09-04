@@ -49,7 +49,7 @@ class ProviderConcurrencyConstraintTests(TransactionTestCase):
             [
                 lambda: create_provider("Concurrent A"),
                 lambda: create_provider("Concurrent B"),
-            ]
+            ],
         )
 
         self.assertEqual(sorted(results), [False, True])
@@ -78,7 +78,7 @@ class ProviderConcurrencyConstraintTests(TransactionTestCase):
             [
                 lambda: create_owner(first_user.pk),
                 lambda: create_owner(second_user.pk),
-            ]
+            ],
         )
 
         self.assertEqual(sorted(results), [False, True])
