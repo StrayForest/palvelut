@@ -15,7 +15,12 @@ class DiscoveryRankingAndIndexingAcceptanceTests(TestCase):
         category = Category.objects.get(slug="accounting")
         actor = get_user_model().objects.create_user(username="p2-ranking-reviewer")
 
-        for index, display_name in enumerate(("Zulu Accounting", "Alpha Accounting", "Alpha Accounting"), start=1):
+        fixtures = (
+            "Zulu Accounting",
+            "Alpha Accounting",
+            "Alpha Accounting",
+        )
+        for index, display_name in enumerate(fixtures, start=1):
             provider = Provider.objects.create(
                 provider_type=Provider.Type.BUSINESS,
                 lifecycle=Provider.Lifecycle.PUBLISHED,
@@ -53,10 +58,8 @@ class DiscoveryRankingAndIndexingAcceptanceTests(TestCase):
         self.assertEqual(response.context["robots_meta"], "noindex,follow")
 
         documents = list(response.context["documents"])
-        self.assertEqual(
-            [(document.provider.display_name, document.provider_id) for document in documents],
-            sorted(
-                (document.provider.display_name, document.provider_id)
-                for document in documents
-            ),
-        )
+        actual_order = [
+            (document.provider.display_name, document.provider_id)
+            for document in documents
+        ]
+        self.assertEqual(actual_order, sorted(actual_order))
