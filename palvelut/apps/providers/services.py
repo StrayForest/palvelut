@@ -116,7 +116,9 @@ def merge_duplicate_providers(
     source = providers[source_id]
 
     if target.y_tunnus and source.y_tunnus and target.y_tunnus != source.y_tunnus:
-        raise ValidationError("Providers with different Y-tunnus values cannot be merged.")
+        raise ValidationError(
+            "Providers with different Y-tunnus values cannot be merged."
+        )
     if not target.y_tunnus and source.y_tunnus:
         target.y_tunnus = source.y_tunnus
         source.y_tunnus = ""
