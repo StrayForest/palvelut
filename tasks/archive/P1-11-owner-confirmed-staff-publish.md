@@ -14,7 +14,8 @@ Close the P1 acceptance criterion that a staff member can create and publish an 
 
 ## Verification
 
-- Pending exact-head CI for branch `codex/p1-owner-confirmed-staff-publish`; this archive entry is complete only after the required workflow passes.
+- Exact implementation head `e094092275f2b6120f84355cb495657114841ff0` passed the full Compose stack workflow in run `33838830295`.
+- Passed bootstrap/contracts, Ruff lint/format, mypy, dependency audit, secret scan, reproducible build, migrations, Django deploy checks, canonical non-browser tests, browser/Playwright evidence and smoke.
 
 ## Remaining
 
