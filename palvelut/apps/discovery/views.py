@@ -171,7 +171,9 @@ def _filtered_documents(state: SearchState) -> QuerySet[ProviderReadDocument]:
 
     service_area_filters: dict[str, object] = {}
     if state.municipality is not None:
-        service_area_filters["provider__service_areas__municipality"] = state.municipality
+        service_area_filters["provider__service_areas__municipality"] = (
+            state.municipality
+        )
     if state.mode:
         service_area_filters["provider__service_areas__mode"] = state.mode
     if service_area_filters:
