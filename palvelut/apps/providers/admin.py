@@ -201,19 +201,28 @@ class ProviderAdmin(admin.ModelAdmin):
         if completed:
             self.message_user(request, f"Updated {completed} provider(s).")
 
-    @admin.action(description="Approve and publish selected providers")
+    @admin.action(
+        description="Approve and publish selected providers",
+        permissions=["change"],
+    )
     def approve_selected(self, request: HttpRequest, queryset) -> None:
         self._run_action(request, queryset, "approve")
 
-    @admin.action(description="Request changes for selected providers")
+    @admin.action(
+        description="Request changes for selected providers",
+        permissions=["change"],
+    )
     def request_changes_selected(self, request: HttpRequest, queryset) -> None:
         self._run_action(request, queryset, "request_changes")
 
-    @admin.action(description="Suspend selected providers")
+    @admin.action(description="Suspend selected providers", permissions=["change"])
     def suspend_selected(self, request: HttpRequest, queryset) -> None:
         self._run_action(request, queryset, "suspend")
 
-    @admin.action(description="Merge exactly two duplicate providers")
+    @admin.action(
+        description="Merge exactly two duplicate providers",
+        permissions=["change"],
+    )
     def merge_duplicates(self, request: HttpRequest, queryset) -> None:
         providers = list(queryset.order_by("created_at", "id")[:3])
         if len(providers) != 2:
