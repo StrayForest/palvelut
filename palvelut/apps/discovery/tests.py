@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.db import connection
 from django.test import TestCase
+from django.test.utils import CaptureQueriesContext
 
 from palvelut.apps.discovery.models import ProviderReadDocument
 from palvelut.apps.discovery.services import rebuild_provider_read_document
@@ -97,4 +99,21 @@ class ProviderReadDocumentTests(TestCase):
 
         self.assertFalse(
             ProviderReadDocument.objects.filter(provider=self.provider).exists()
+        )
+
+    def test_rebuild_existing_document_stays_within_query_budget(self) -> None:
+        self._revision({"display_name": "Published"})
+        moderate_provider(
+            provider_id=self.provider.pk,
+            actor=self.staff,
+            action="approve",
+        )
+
+        with CaptureQueriesContext(connection) as queries:
+            rebuild_provider_read_document(provider_id=self.provider.pk)
+
+        self.assertLessEqual(
+            len(queries),
+            8,
+            "Provider read-document rebuild exceeded the P1 database query budget",
         )
