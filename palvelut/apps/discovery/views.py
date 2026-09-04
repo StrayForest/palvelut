@@ -13,6 +13,7 @@ from palvelut.apps.providers.models import Provider
 from palvelut.apps.taxonomy.models import Category, Municipality
 
 SUPPORTED_LOCALES = {code for code, _name in settings.LANGUAGES}
+LAUNCH_CITIES = ("Helsinki", "Espoo", "Vantaa")
 
 
 @dataclass(frozen=True)
@@ -113,16 +114,19 @@ def _base_context(locale: str) -> dict[str, object]:
 
 def home(request: HttpRequest, locale: str) -> HttpResponse:
     _require_locale(locale)
+    context = _base_context(locale)
+    context.update(
+        {
+            "canonical_url": f"{settings.PUBLIC_BASE_URL}/{locale}/",
+            "hreflang_links": [
+                (code, f"{settings.PUBLIC_BASE_URL}/{code}/")
+                for code, _name in settings.LANGUAGES
+            ],
+            "x_default_url": f"{settings.PUBLIC_BASE_URL}/{settings.LANGUAGE_CODE}/",
+            "launch_cities": LAUNCH_CITIES,
+        }
+    )
     with translation.override(locale):
-        context = _base_context(locale)
-        context.update(
-            {
-                "categories": Category.objects.prefetch_related("labels").order_by("slug"),
-                "municipalities": Municipality.objects.filter(
-                    region__country__code="FI", code__in=("091", "049", "092")
-                ).order_by("name"),
-            }
-        )
         return render(request, "discovery/home.html", context)
 
 
