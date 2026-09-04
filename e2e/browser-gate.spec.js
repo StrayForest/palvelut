@@ -55,3 +55,45 @@ for (const width of [360, 1440]) {
     expect(evidence.pageErrors).toEqual([]);
   });
 }
+
+test.describe("progressive discovery without JavaScript", () => {
+  test.use({ javaScriptEnabled: false });
+
+  test("home search submits as a normal GET and renders usable results", async ({ page }) => {
+    await page.goto("/palvelut/en/");
+    await page.getByLabel("What service?").fill("accountant");
+    await page.getByRole("button", { name: "Search" }).click();
+
+    await expect(page).toHaveURL(/\/palvelut\/en\/search\/.*q=accountant/);
+    await expect(page.locator("#discovery-results")).toBeVisible();
+    await expect(page.locator("#discovery-service")).toHaveValue("accountant");
+  });
+});
+
+test("HTMX filters preserve focus, push URL state, and restore history", async ({ page }, testInfo) => {
+  const evidence = browserEvidence.get(testInfo.testId);
+
+  await page.goto("/palvelut/en/search/");
+  await page.waitForFunction(() => Boolean(window.htmx));
+
+  const service = page.locator("#discovery-service");
+  await service.fill("accountant");
+  await service.focus();
+  await service.press("Enter");
+
+  await expect(page).toHaveURL(/q=accountant/);
+  await expect(page.locator("#discovery-service")).toHaveValue("accountant");
+  await expect(page.locator("#discovery-service")).toBeFocused();
+
+  await page.locator("#discovery-service").fill("bookkeeper");
+  await page.locator("#discovery-service").press("Enter");
+  await expect(page).toHaveURL(/q=bookkeeper/);
+  await expect(page.locator("#discovery-service")).toBeFocused();
+
+  await page.goBack();
+  await expect(page).toHaveURL(/q=accountant/);
+  await expect(page.locator("#discovery-service")).toHaveValue("accountant");
+
+  expect(evidence.consoleMessages.filter((line) => line.startsWith("[error]"))).toEqual([]);
+  expect(evidence.pageErrors).toEqual([]);
+});
