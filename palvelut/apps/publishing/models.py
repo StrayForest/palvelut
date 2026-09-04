@@ -34,3 +34,21 @@ class ProfileRevision(UuidV7Model):
 
     class Meta:
         ordering = ("-created_at", "-id")
+
+
+class PublicProviderDocument(UuidV7Model):
+    provider = models.OneToOneField(
+        Provider,
+        on_delete=models.CASCADE,
+        related_name="public_document",
+    )
+    source_revision = models.OneToOneField(
+        ProfileRevision,
+        on_delete=models.PROTECT,
+        related_name="public_document",
+    )
+    payload = models.JSONField(default=dict)
+    published_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("provider_id",)
