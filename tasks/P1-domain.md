@@ -2,10 +2,6 @@
 
 Depends: P0. Read: `docs/01-product.md`, `docs/03-experience.md`, `docs/05-architecture.md`.
 
-## Build
-
-- Generate public read/search document only from approved state.
-
 ## Accept
 
 - A staff member can create and publish an owner-confirmed provider without SQL/manual code.
