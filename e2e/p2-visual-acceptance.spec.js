@@ -32,7 +32,11 @@ test("P2 responsive visual evidence and design checklist", async ({ page }, test
   expect(profileHref).toBeTruthy();
 
   for (const width of widths) {
-    await capture(page, testInfo, "home", "/palvelut/en/", width);
+    await capture(page, testInfo, "home", "/palvelut/en/", width, async () => {
+      const search = page.locator("#discovery-search-submit");
+      await search.focus();
+      await expect(search).toBeFocused();
+    });
     if (width === 360) {
       const searchForm = page.locator('form[action$="/search/"]');
       const searchBox = await searchForm.boundingBox();
@@ -44,10 +48,7 @@ test("P2 responsive visual evidence and design checklist", async ({ page }, test
     await capture(page, testInfo, "empty", "/palvelut/en/search/?q=definitely-no-provider", width);
     await capture(page, testInfo, "profile", profileHref, width);
     await capture(page, testInfo, "provider-cta", "/palvelut/en/", width, async () => {
-      const cta = page.locator("#provider-cta-link");
-      await cta.focus();
-      await expect(cta).toBeFocused();
-      await cta.scrollIntoViewIfNeeded();
+      await page.locator("#provider-cta").scrollIntoViewIfNeeded();
     });
   }
 });
