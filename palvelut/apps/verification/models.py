@@ -48,7 +48,9 @@ class VerificationEvent(UuidV7Model):
         on_delete=models.PROTECT,
         related_name="verification_events",
     )
-    previous_status = models.CharField(max_length=16, choices=VerificationCheck.Status.choices)
+    previous_status = models.CharField(
+        max_length=16, choices=VerificationCheck.Status.choices
+    )
     status = models.CharField(max_length=16, choices=VerificationCheck.Status.choices)
     metadata = models.JSONField(default=dict)
     created_at = models.DateTimeField(auto_now_add=True)
