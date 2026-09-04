@@ -66,7 +66,7 @@ test.describe("progressive discovery without JavaScript", () => {
 
     await expect(page).toHaveURL(/\/palvelut\/en\/search\/.*q=accountant/);
     await expect(page.locator("#discovery-results")).toBeVisible();
-    await expect(page.getByLabel("Service")).toHaveValue("accountant");
+    await expect(page.locator("#discovery-service")).toHaveValue("accountant");
   });
 });
 
