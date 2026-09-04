@@ -2,14 +2,9 @@
 
 Depends: P0. Read: `docs/01-product.md`, `docs/03-experience.md`, `docs/05-architecture.md`.
 
-## Build
-
-- Generate public read/search document only from approved state.
-
 ## Accept
 
 - A staff member can create and publish an owner-confirmed provider without SQL/manual code.
-- Pending edits never leak into the live read model.
 - Unclaimed/imported records cannot gain membership without an approved claim transition.
 - Duplicate Y-tunnus/contact/slug cases are deterministic.
 - Every moderation/verification change has an actor and timestamp.
