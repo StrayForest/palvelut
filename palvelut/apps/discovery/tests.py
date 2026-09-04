@@ -15,7 +15,7 @@ class ApprovedReadDocumentTests(TestCase):
         user_model = get_user_model()
         self.staff = user_model.objects.create_user(
             username="publisher",
-            password="not-used",
+            password="test-only",
             is_staff=True,
         )
         self.provider = Provider.objects.create(
