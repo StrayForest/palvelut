@@ -38,14 +38,20 @@ class RoutingContractTests(SimpleTestCase):
     def test_every_public_discovery_route_keeps_mount_and_locale_prefix(self):
         routes = {
             "localized-home": reverse("localized-home", kwargs={"locale": "en"}),
-            "discovery-search": reverse("discovery-search", kwargs={"locale": "en"}),
+            "discovery-search": reverse(
+                "discovery-search", kwargs={"locale": "en"}
+            ),
             "provider-profile": reverse(
                 "provider-profile",
                 kwargs={"locale": "en", "slug": "example-provider"},
             ),
             "city-category": reverse(
                 "city-category",
-                kwargs={"locale": "en", "city": "helsinki", "category": "accounting"},
+                kwargs={
+                    "locale": "en",
+                    "city": "helsinki",
+                    "category": "accounting",
+                },
             ),
         }
         self.assertEqual(
@@ -91,12 +97,18 @@ class RoutingContractTests(SimpleTestCase):
         for locale in ("ru", "fi", "en"):
             self.assertContains(
                 response,
-                f'<link rel="alternate" hreflang="{locale}" href="https://finrix.fi/palvelut/{locale}/">',
+                (
+                    f'<link rel="alternate" hreflang="{locale}" '
+                    f'href="https://finrix.fi/palvelut/{locale}/">'
+                ),
                 html=False,
             )
         self.assertContains(
             response,
-            '<link rel="alternate" hreflang="x-default" href="https://finrix.fi/palvelut/en/">',
+            (
+                '<link rel="alternate" hreflang="x-default" '
+                'href="https://finrix.fi/palvelut/en/">'
+            ),
             html=False,
         )
 
@@ -113,7 +125,14 @@ class RoutingContractTests(SimpleTestCase):
             "https://finrix.fi/palvelut/en",
             "https://finrix.fi/palvelut?x=1",
         ):
-            with self.subTest(value=value), mock.patch.dict(os.environ, {"PUBLIC_BASE_URL": value}, clear=False):
+            with (
+                self.subTest(value=value),
+                mock.patch.dict(
+                    os.environ,
+                    {"PUBLIC_BASE_URL": value},
+                    clear=False,
+                ),
+            ):
                 with self.assertRaises(RuntimeError):
                     _public_base_url()
 
