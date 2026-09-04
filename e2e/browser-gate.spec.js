@@ -55,3 +55,45 @@ for (const width of [360, 1440]) {
     expect(evidence.pageErrors).toEqual([]);
   });
 }
+
+test("discovery filters work without JavaScript", async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const page = await context.newPage();
+
+  const response = await page.goto("/palvelut/en/search/?q=accounting");
+  expect(response).not.toBeNull();
+  expect(response.status()).toBe(200);
+
+  const service = page.locator("#discovery-service");
+  await expect(service).toHaveValue("accounting");
+  await service.fill("bookkeeper");
+  await page.getByRole("button", { name: "Apply filters" }).click();
+
+  await expect(page).toHaveURL(/\/palvelut\/en\/search\/\?q=bookkeeper/);
+  await expect(page.locator("#discovery-service")).toHaveValue("bookkeeper");
+  await context.close();
+});
+
+test("HTMX discovery filters preserve URL history and focused field", async ({ page }) => {
+  await page.goto("/palvelut/en/search/?q=accounting");
+
+  const service = page.locator("#discovery-service");
+  await service.focus();
+  await expect(service).toBeFocused();
+  await service.fill("bookkeeper");
+
+  await Promise.all([
+    page.waitForResponse((response) =>
+      response.url().includes("/palvelut/en/search/?q=bookkeeper"),
+    ),
+    page.getByRole("button", { name: "Apply filters" }).click(),
+  ]);
+
+  await expect(page).toHaveURL(/\/palvelut\/en\/search\/\?q=bookkeeper/);
+  await expect(page.locator("#discovery-service")).toBeFocused();
+  await expect(page.locator("#discovery-service")).toHaveValue("bookkeeper");
+
+  await page.goBack();
+  await expect(page).toHaveURL(/\/palvelut\/en\/search\/\?q=accounting/);
+  await expect(page.locator("#discovery-service")).toHaveValue("accounting");
+});
