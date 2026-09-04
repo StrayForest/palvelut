@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from difflib import get_close_matches
 
 from django.conf import settings
 from django.db.models import Q, QuerySet
@@ -9,8 +10,8 @@ from django.shortcuts import render
 from django.utils import translation
 
 from palvelut.apps.discovery.models import ProviderReadDocument
-from palvelut.apps.providers.models import Provider
-from palvelut.apps.taxonomy.models import Category, Municipality
+from palvelut.apps.providers.models import Provider, ServiceArea
+from palvelut.apps.taxonomy.models import Category, Language, Municipality
 
 SUPPORTED_LOCALES = {code for code, _name in settings.LANGUAGES}
 LAUNCH_CITIES = ("Helsinki", "Espoo", "Vantaa")
@@ -21,6 +22,13 @@ class SearchState:
     query: str
     category: Category | None
     municipality: Municipality | None
+    language_code: str
+    mode: str
+    invalid_explicit_filter: bool = False
+
+
+def _normalize(value: str) -> str:
+    return " ".join(value.casefold().split())
 
 
 def _require_locale(locale: str) -> None:
@@ -47,8 +55,8 @@ def _public_documents() -> QuerySet[ProviderReadDocument]:
 def _category_for_query(query: str, locale: str) -> Category | None:
     if not query:
         return None
-    normalized = " ".join(query.lower().split())
-    return (
+    normalized = _normalize(query)
+    exact = (
         Category.objects.filter(
             Q(slug=normalized)
             | Q(name__iexact=normalized)
@@ -59,6 +67,28 @@ def _category_for_query(query: str, locale: str) -> Category | None:
         .order_by("slug")
         .first()
     )
+    if exact is not None or len(normalized) < 4:
+        return exact
+
+    terms: dict[str, Category] = {}
+    categories = Category.objects.prefetch_related("labels", "synonyms").order_by("slug")
+    for category in categories:
+        values = {category.slug, category.name}
+        values.update(
+            label.label for label in category.labels.all() if label.locale == locale
+        )
+        values.update(
+            synonym.value
+            for synonym in category.synonyms.all()
+            if synonym.locale == locale
+        )
+        for value in values:
+            term = _normalize(value)
+            if len(term) >= 4:
+                terms.setdefault(term, category)
+
+    match = get_close_matches(normalized, terms.keys(), n=1, cutoff=0.82)
+    return terms[match[0]] if match else None
 
 
 def _municipality_for_query(query: str) -> Municipality | None:
@@ -75,19 +105,58 @@ def _municipality_for_query(query: str) -> Municipality | None:
     )
 
 
+def _language_code_for_query(query: str) -> str:
+    if not query:
+        return ""
+    return (
+        Language.objects.filter(code__iexact=query.strip())
+        .values_list("code", flat=True)
+        .first()
+        or ""
+    )
+
+
+def _mode_for_query(query: str) -> str:
+    normalized = query.strip().casefold()
+    valid_modes = {choice for choice, _label in ServiceArea.Mode.choices}
+    return normalized if normalized in valid_modes else ""
+
+
 def _search_state(request: HttpRequest, locale: str) -> SearchState:
     query = " ".join(request.GET.get("q", "").split())
-    category_query = request.GET.get("category", "").strip() or query
+    explicit_category = request.GET.get("category", "").strip()
+    category_query = explicit_category or query
     city_query = request.GET.get("city", "").strip()
+    language_query = request.GET.get("language", "").strip()
+    mode_query = (
+        request.GET.get("mode", "").strip()
+        or request.GET.get("service_mode", "").strip()
+    )
+
+    category = _category_for_query(category_query, locale)
+    municipality = _municipality_for_query(city_query)
+    language_code = _language_code_for_query(language_query)
+    mode = _mode_for_query(mode_query)
+    invalid_explicit_filter = bool(
+        (explicit_category and category is None)
+        or (city_query and municipality is None)
+        or (language_query and not language_code)
+        or (mode_query and not mode)
+    )
     return SearchState(
         query=query,
-        category=_category_for_query(category_query, locale),
-        municipality=_municipality_for_query(city_query),
+        category=category,
+        municipality=municipality,
+        language_code=language_code,
+        mode=mode,
+        invalid_explicit_filter=invalid_explicit_filter,
     )
 
 
 def _filtered_documents(state: SearchState) -> QuerySet[ProviderReadDocument]:
     documents = _public_documents()
+    if state.invalid_explicit_filter:
+        return documents.none()
     if state.category is not None:
         documents = documents.filter(
             provider__services__category=state.category,
@@ -102,7 +171,40 @@ def _filtered_documents(state: SearchState) -> QuerySet[ProviderReadDocument]:
         documents = documents.filter(
             provider__service_areas__municipality=state.municipality
         )
+    if state.language_code:
+        documents = documents.filter(
+            provider__languages__language__code=state.language_code
+        )
+    if state.mode:
+        documents = documents.filter(provider__service_areas__mode=state.mode)
     return documents.distinct()
+
+
+def _empty_alternatives(request: HttpRequest) -> list[dict[str, str]]:
+    alternatives: list[dict[str, str]] = []
+    labels = (
+        ("mode", "Show all service modes"),
+        ("service_mode", "Show all service modes"),
+        ("language", "Show all languages"),
+        ("city", "Search all cities"),
+        ("category", "Search all categories"),
+        ("q", "Browse all services"),
+    )
+    seen_labels: set[str] = set()
+    for key, label in labels:
+        if not request.GET.get(key) or label in seen_labels:
+            continue
+        params = request.GET.copy()
+        params.pop(key, None)
+        query_string = params.urlencode()
+        alternatives.append(
+            {
+                "label": label,
+                "url": request.path + (f"?{query_string}" if query_string else ""),
+            }
+        )
+        seen_labels.add(label)
+    return alternatives
 
 
 def _base_context(locale: str) -> dict[str, object]:
@@ -137,7 +239,14 @@ def search(request: HttpRequest, locale: str) -> HttpResponse:
     state = _search_state(request, locale)
     with translation.override(locale):
         context = _base_context(locale)
-        context.update({"state": state, "documents": _filtered_documents(state)})
+        context.update(
+            {
+                "state": state,
+                "documents": _filtered_documents(state),
+                "empty_alternatives": _empty_alternatives(request),
+                "service_modes": ServiceArea.Mode.choices,
+            }
+        )
         return render(request, "discovery/results.html", context)
 
 
@@ -149,10 +258,23 @@ def city_category(
     category_obj = Category.objects.filter(slug=category).first()
     if municipality is None or category_obj is None:
         raise Http404("Unknown city/category")
-    state = SearchState(query="", category=category_obj, municipality=municipality)
+    state = SearchState(
+        query="",
+        category=category_obj,
+        municipality=municipality,
+        language_code="",
+        mode="",
+    )
     with translation.override(locale):
         context = _base_context(locale)
-        context.update({"state": state, "documents": _filtered_documents(state)})
+        context.update(
+            {
+                "state": state,
+                "documents": _filtered_documents(state),
+                "empty_alternatives": [],
+                "service_modes": ServiceArea.Mode.choices,
+            }
+        )
         return render(request, "discovery/results.html", context)
 
 
