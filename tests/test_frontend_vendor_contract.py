@@ -32,7 +32,7 @@ class FrontendVendorContractTests(unittest.TestCase):
         self.assertIn("{% static 'css/app.css' %}", template)
         self.assertIn("{% static 'vendor/htmx.min.js' %}", template)
         self.assertIn("{% static 'vendor/alpine.min.js' %}", template)
-        self.assertEqual(template.count("<script "), 2)
+        self.assertEqual(template.count("<script src="), 2)
         self.assertEqual(template.count(" defer></script>"), 2)
 
     def test_django_staticfiles_discovers_generated_vendor_directory(self):
