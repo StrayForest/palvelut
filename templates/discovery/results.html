@@ -12,10 +12,17 @@
     <p class="text-sm text-slate-500">{{ documents|length }} {% translate "results" %}</p>
   </div>
 
-  <form class="mt-6 grid gap-3 rounded-2xl border border-slate-200 p-4 md:grid-cols-4" method="get" action="{% url 'discovery-search' locale=locale %}">
+  <form class="mt-6 grid gap-3 rounded-2xl border border-slate-200 p-4 md:grid-cols-5" method="get" action="{% url 'discovery-search' locale=locale %}">
     <label class="text-sm font-medium">
       {% translate "Service" %}
       <input class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" name="q" value="{{ state.query }}" autocomplete="off">
+    </label>
+    <label class="text-sm font-medium">
+      {% translate "Category" %}
+      <select class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" name="category">
+        <option value="">{% translate "Any category" %}</option>
+        {% for category in filter_categories %}<option value="{{ category.slug }}"{% if state.category and state.category.id == category.id %} selected{% endif %}>{{ category.name }}</option>{% endfor %}
+      </select>
     </label>
     <label class="text-sm font-medium">
       {% translate "City" %}
@@ -36,8 +43,7 @@
         {% for value, label in service_modes %}<option value="{{ value }}"{% if state.mode == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
       </select>
     </label>
-    {% if state.category %}<input type="hidden" name="category" value="{{ state.category.slug }}">{% endif %}
-    <button class="rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white md:col-span-4 md:justify-self-start" type="submit">{% translate "Apply filters" %}</button>
+    <button class="rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white md:col-span-5 md:justify-self-start" type="submit">{% translate "Apply filters" %}</button>
   </form>
 
   <div class="mt-8 grid gap-4">
