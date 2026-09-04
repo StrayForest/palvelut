@@ -10,7 +10,7 @@ from django.utils import timezone
 
 from palvelut.apps.moderation.models import AuditEvent
 from palvelut.apps.providers.models import Provider
-from palvelut.apps.publishing.models import ProfileRevision
+from palvelut.apps.publishing.models import ProfileRevision, PublicProviderDocument
 
 ModerationAction = Literal["approve", "request_changes", "suspend"]
 
@@ -42,6 +42,18 @@ def _latest_reviewable_revision(provider: Provider) -> ProfileRevision:
     return revision
 
 
+def _publish_document(*, provider: Provider, revision: ProfileRevision) -> None:
+    if revision.status != ProfileRevision.Status.APPROVED:
+        raise ValidationError("Public documents can only use approved revisions")
+    PublicProviderDocument.objects.update_or_create(
+        provider=provider,
+        defaults={
+            "source_revision": revision,
+            "payload": revision.payload,
+        },
+    )
+
+
 @transaction.atomic
 def moderate_provider(
     *,
@@ -56,6 +68,7 @@ def moderate_provider(
         previous = provider.lifecycle
         provider.lifecycle = Provider.Lifecycle.SUSPENDED
         provider.save(update_fields=("lifecycle", "updated_at"))
+        PublicProviderDocument.objects.filter(provider=provider).delete()
         AuditEvent.objects.create(
             provider=provider,
             actor=actor,
@@ -99,6 +112,7 @@ def moderate_provider(
     revision.save(update_fields=("status", "reviewed_at"))
     provider.lifecycle = Provider.Lifecycle.PUBLISHED
     provider.save(update_fields=("lifecycle", "updated_at"))
+    _publish_document(provider=provider, revision=revision)
     AuditEvent.objects.create(
         provider=provider,
         actor=actor,
