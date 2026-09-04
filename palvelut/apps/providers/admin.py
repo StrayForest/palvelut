@@ -12,6 +12,7 @@ from palvelut.apps.providers.models import (
     ProviderService,
     ServiceArea,
 )
+from palvelut.apps.providers.services import merge_duplicate_providers
 
 
 class ProviderMembershipInline(admin.TabularInline):
@@ -69,6 +70,7 @@ class ProviderAdmin(admin.ModelAdmin):
         "approve_selected",
         "request_changes_selected",
         "suspend_selected",
+        "merge_selected_duplicates",
     )
 
     def save_model(
@@ -113,3 +115,28 @@ class ProviderAdmin(admin.ModelAdmin):
     @admin.action(description="Suspend selected providers")
     def suspend_selected(self, request: HttpRequest, queryset) -> None:
         self._run_action(request, queryset, "suspend")
+
+    @admin.action(description="Merge two selected duplicates")
+    def merge_selected_duplicates(self, request: HttpRequest, queryset) -> None:
+        providers = sorted(queryset, key=lambda provider: str(provider.pk))
+        if len(providers) != 2:
+            self.message_user(
+                request,
+                "Select exactly two providers to merge.",
+                level=messages.ERROR,
+            )
+            return
+        target, source = providers
+        try:
+            merge_duplicate_providers(
+                actor=request.user,
+                target_id=target.pk,
+                source_id=source.pk,
+            )
+        except ValidationError as exc:
+            self.message_user(request, exc.message, level=messages.ERROR)
+        else:
+            self.message_user(
+                request,
+                f"Merged {source} into canonical provider {target}.",
+            )
