@@ -4,7 +4,6 @@ Depends: P0. Read: `docs/01-product.md`, `docs/03-experience.md`, `docs/05-archi
 
 ## Build
 
-- Complete staff back office for non-public create/import and merge duplicates.
 - Generate public read/search document only from approved state.
 
 ## Accept
