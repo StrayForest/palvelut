@@ -15,10 +15,9 @@ Generate the denormalized public read/search document only from approved provide
 
 ## Verification
 
-- Implementation exact-head CI `33830424874` passes Ruff lint/format, mypy, dependency audit and secret scan.
-- Migration checks, Django deploy checks, canonical non-browser tests, browser evidence and disposable smoke gate pass.
-- Canonical CI gates must pass on the exact archival PR head before merge.
+- Exact archival PR head `08f4e7bbc7c5df5d95d0c73bff90506426c012ee` passed the full Compose stack workflow in run `33831183602`.
+- Passed bootstrap/contracts, Ruff lint/format, mypy, dependency audit, secret scan, reproducible build, migrations, Django deploy checks, canonical non-browser tests, browser/Playwright evidence and smoke.
 
 ## Remaining
 
-Staff create/import completion, claim-to-membership enforcement, deterministic duplicate handling and the remaining P1 acceptance/gates stay active in `tasks/P1-domain.md`.
+Only the still-active P1 acceptance criteria and gates remain in `tasks/P1-domain.md`.
