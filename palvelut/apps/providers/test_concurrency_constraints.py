@@ -63,8 +63,12 @@ class ProviderConcurrencyConstraintTests(TransactionTestCase):
             claim_status=Provider.ClaimStatus.APPROVED,
             claim_evidence={"kind": "staff_review", "reference": "concurrency-test"},
         )
-        first_user = get_user_model().objects.create_user(username="concurrent-owner-1")
-        second_user = get_user_model().objects.create_user(username="concurrent-owner-2")
+        first_user = get_user_model().objects.create_user(
+            username="concurrent-owner-1"
+        )
+        second_user = get_user_model().objects.create_user(
+            username="concurrent-owner-2"
+        )
 
         def create_owner(user_id: int) -> None:
             ProviderMembership.objects.create(
