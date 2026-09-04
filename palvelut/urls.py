@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import path
 
+from palvelut.apps.discovery.contact import contact_redirect
 from palvelut.apps.discovery.views import city_category, home, provider_profile, search
 from palvelut.views import health_live, health_ready, public_mount_root
 
@@ -15,6 +16,11 @@ urlpatterns = [
         "palvelut/<str:locale>/professionals/<slug:slug>/",
         provider_profile,
         name="provider-profile",
+    ),
+    path(
+        "palvelut/<str:locale>/go/<uuid:provider_id>/<str:channel>/",
+        contact_redirect,
+        name="contact-redirect",
     ),
     path(
         "palvelut/<str:locale>/<slug:city>/<slug:category>/",
