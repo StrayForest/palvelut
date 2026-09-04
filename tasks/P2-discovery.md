@@ -4,8 +4,6 @@ Depends: P1. Read: `docs/03-experience.md`, `docs/04-design.md`, `docs/05-archit
 
 ## Build
 
-- Public cache headers/read-through cache with explicit authenticated bypass.
-
 ## Accept
 
 - Anonymous user reaches a relevant provider and contact in ≤3 actions.
