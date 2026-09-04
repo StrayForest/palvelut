@@ -130,9 +130,10 @@ def _search_state(request: HttpRequest, locale: str) -> SearchState:
     category_query = explicit_category or query
     city_query = request.GET.get("city", "").strip()
     language_query = request.GET.get("language", "").strip()
-    mode_query = request.GET.get("mode", "").strip() or request.GET.get(
-        "service_mode", ""
-    ).strip()
+    mode_query = (
+        request.GET.get("mode", "").strip()
+        or request.GET.get("service_mode", "").strip()
+    )
 
     category = _category_for_query(category_query, locale)
     municipality = _municipality_for_query(city_query)
