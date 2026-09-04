@@ -306,7 +306,9 @@ def city_category(
 
 def provider_profile(request: HttpRequest, locale: str, slug: str) -> HttpResponse:
     _require_locale(locale)
-    slug_record = ProviderSlug.objects.filter(slug=slug).select_related("provider").first()
+    slug_record = (
+        ProviderSlug.objects.filter(slug=slug).select_related("provider").first()
+    )
     if slug_record is None:
         raise Http404("Provider not found")
     if not slug_record.is_current:
@@ -386,14 +388,18 @@ def sitemap_xml(request: HttpRequest) -> HttpResponse:
             for service in document.provider.services.all()
             if service.is_active
         }
-        cities = {area.municipality.name for area in document.provider.service_areas.all()}
+        cities = {
+            area.municipality.name
+            for area in document.provider.service_areas.all()
+        }
         for city_name in cities:
             city_slug = city_name.casefold().replace(" ", "-")
             for category_slug in categories:
                 key = (city_slug, category_slug)
                 landing_providers.setdefault(key, set()).add(document.provider_id)
                 landing_lastmod[key] = max(
-                    landing_lastmod.get(key, ""), document.generated_at.date().isoformat()
+                    landing_lastmod.get(key, ""),
+                    document.generated_at.date().isoformat(),
                 )
 
     for (city_slug, category_slug), provider_ids in landing_providers.items():
