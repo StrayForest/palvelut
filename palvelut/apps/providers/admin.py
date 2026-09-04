@@ -19,6 +19,7 @@ from palvelut.apps.providers.models import (
     ProviderService,
     ServiceArea,
 )
+from palvelut.apps.publishing.models import ProfileRevision
 
 
 class ProviderImportForm(forms.Form):
@@ -78,6 +79,15 @@ def _audit(provider: Provider, actor, action: str, **metadata: object) -> None:
         action=action,
         metadata=metadata,
     )
+
+
+def _initial_revision_payload(provider: Provider) -> dict[str, object]:
+    return {
+        "provider_type": provider.provider_type,
+        "legal_name": provider.legal_name,
+        "display_name": provider.display_name,
+        "y_tunnus": provider.y_tunnus,
+    }
 
 
 @admin.register(Provider)
@@ -179,7 +189,17 @@ class ProviderAdmin(admin.ModelAdmin):
             obj.lifecycle = Provider.Lifecycle.UNCLAIMED
         super().save_model(request, obj, form, change)
         if not change:
-            _audit(obj, request.user, "provider.created")
+            revision = ProfileRevision.objects.create(
+                provider=obj,
+                created_by=request.user,
+                payload=_initial_revision_payload(obj),
+            )
+            _audit(
+                obj,
+                request.user,
+                "provider.created",
+                revision_id=str(revision.pk),
+            )
 
     def _run_action(self, request: HttpRequest, queryset, action: str) -> None:
         completed = 0
