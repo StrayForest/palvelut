@@ -13,10 +13,10 @@
   </div>
 
   <form class="mt-6 grid gap-3 rounded-2xl border border-slate-200 p-4 md:grid-cols-4" method="get" hx-get="{{ request.path }}" hx-target="#discovery-results" hx-select="#discovery-results" hx-swap="outerHTML" hx-push-url="true">
-    <label class="text-sm" for="discovery-service">{% translate "Service" %}<input class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" id="discovery-service" name="q" value="{{ state.query }}"></label>
-    <label class="text-sm" for="discovery-city">{% translate "City" %}<input class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" id="discovery-city" name="city" value="{% if state.municipality %}{{ state.municipality.name }}{% endif %}"></label>
-    <label class="text-sm" for="discovery-language">{% translate "Language" %}<input class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" id="discovery-language" name="language" value="{{ state.language_code }}" placeholder="fi / en / ru"></label>
-    <label class="text-sm" for="discovery-mode">{% translate "Service mode" %}<select class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" id="discovery-mode" name="mode"><option value="">{% translate "Any" %}</option>{% for value,label in service_modes %}<option value="{{ value }}"{% if state.mode == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+    <label class="text-sm" for="discovery-service">{% translate "Service" %}<input class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" id="discovery-service" name="q" value="{{ state.query }}" hx-preserve></label>
+    <label class="text-sm" for="discovery-city">{% translate "City" %}<input class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" id="discovery-city" name="city" value="{% if state.municipality %}{{ state.municipality.name }}{% endif %}" hx-preserve></label>
+    <label class="text-sm" for="discovery-language">{% translate "Language" %}<input class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" id="discovery-language" name="language" value="{{ state.language_code }}" placeholder="fi / en / ru" hx-preserve></label>
+    <label class="text-sm" for="discovery-mode">{% translate "Service mode" %}<select class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" id="discovery-mode" name="mode" hx-preserve><option value="">{% translate "Any" %}</option>{% for value,label in service_modes %}<option value="{{ value }}"{% if state.mode == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
     <button class="rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white md:col-span-4" type="submit">{% translate "Apply filters" %}</button>
   </form>
 
