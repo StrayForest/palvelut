@@ -19,7 +19,9 @@ def _cache_key(request: HttpRequest, namespace: str) -> str:
     return f"discovery:{namespace}:{digest}"
 
 
-def _cache_control(*, shared_max_age: int | None, stale_while_revalidate: int) -> str:
+def _cache_control(
+    *, shared_max_age: int | None, stale_while_revalidate: int
+) -> str:
     if shared_max_age is None:
         return "public, max-age=0, s-maxage=0"
     directives = ["public", "max-age=0", f"s-maxage={shared_max_age}"]
@@ -50,7 +52,10 @@ def public_read_through_cache(
             if not isinstance(request, HttpRequest):
                 raise TypeError("cached discovery views must receive HttpRequest first")
 
-            if request.method not in {"GET", "HEAD"} or request.user.is_authenticated:
+            if (
+                request.method not in {"GET", "HEAD"}
+                or request.user.is_authenticated
+            ):
                 return _private_response(view(*args, **kwargs))
 
             key = _cache_key(request, namespace)
