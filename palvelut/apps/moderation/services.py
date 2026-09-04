@@ -15,6 +15,7 @@ from palvelut.apps.discovery.services import (
 from palvelut.apps.moderation.models import AuditEvent
 from palvelut.apps.providers.models import Provider
 from palvelut.apps.publishing.models import ProfileRevision
+from palvelut.apps.publishing.services import ensure_provider_slug
 
 ModerationAction = Literal["approve", "request_changes", "suspend"]
 
@@ -104,6 +105,7 @@ def moderate_provider(
     revision.save(update_fields=("status", "reviewed_at"))
     provider.lifecycle = Provider.Lifecycle.PUBLISHED
     provider.save(update_fields=("lifecycle", "updated_at"))
+    ensure_provider_slug(provider_id=provider.pk)
     rebuild_provider_read_document(provider_id=provider.pk)
     AuditEvent.objects.create(
         provider=provider,
