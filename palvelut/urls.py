@@ -3,12 +3,21 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import path
 
 from palvelut.apps.discovery.contact import contact_redirect
-from palvelut.apps.discovery.views import city_category, home, provider_profile, search
+from palvelut.apps.discovery.views import (
+    city_category,
+    home,
+    provider_profile,
+    robots_txt,
+    search,
+    sitemap_xml,
+)
 from palvelut.views import health_live, health_ready, public_mount_root
 
 urlpatterns = [
     path("palvelut/health/live", health_live, name="health-live"),
     path("palvelut/health/ready", health_ready, name="health-ready"),
+    path("palvelut/robots.txt", robots_txt, name="robots-txt"),
+    path("palvelut/sitemap.xml", sitemap_xml, name="sitemap-xml"),
     path("palvelut/", public_mount_root, name="public-mount-root"),
     path("palvelut/<str:locale>/", home, name="localized-home"),
     path("palvelut/<str:locale>/search/", search, name="discovery-search"),

@@ -6,9 +6,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}{% translate "Finrix Palvelut" %}{% endblock %}</title>
+  {% if meta_description %}<meta name="description" content="{{ meta_description }}">{% endif %}
+  {% if robots_meta %}<meta name="robots" content="{{ robots_meta }}">{% endif %}
   {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
   {% for hreflang, href in hreflang_links %}<link rel="alternate" hreflang="{{ hreflang }}" href="{{ href }}">{% endfor %}
   {% if x_default_url %}<link rel="alternate" hreflang="x-default" href="{{ x_default_url }}">{% endif %}
+  {% if structured_data_json %}<script type="application/ld+json">{{ structured_data_json|safe }}</script>{% endif %}
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
   <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
   <script src="{% static 'vendor/alpine.min.js' %}" defer></script>
