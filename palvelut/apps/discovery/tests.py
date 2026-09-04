@@ -33,7 +33,9 @@ class ProviderReadDocumentTests(TestCase):
         )
 
     def test_approve_builds_document_from_exact_approved_revision(self) -> None:
-        revision = self._revision({"display_name": "Approved name", "summary": "Approved"})
+        revision = self._revision(
+            {"display_name": "Approved name", "summary": "Approved"}
+        )
 
         moderate_provider(
             provider_id=self.provider.pk,
