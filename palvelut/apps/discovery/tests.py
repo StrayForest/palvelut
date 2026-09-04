@@ -31,7 +31,11 @@ class ApprovedReadDocumentTests(TestCase):
             status=status,
             payload=payload,
             created_by=self.staff,
-            reviewed_at=(timezone.now() if status == ProfileRevision.Status.APPROVED else None),
+            reviewed_at=(
+                timezone.now()
+                if status == ProfileRevision.Status.APPROVED
+                else None
+            ),
         )
 
     def test_pending_revision_cannot_generate_public_document(self) -> None:
