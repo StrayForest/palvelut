@@ -38,7 +38,7 @@ class VerificationCheck(UuidV7Model):
 
 
 class VerificationEvent(UuidV7Model):
-    check = models.ForeignKey(
+    verification_check = models.ForeignKey(
         VerificationCheck,
         on_delete=models.CASCADE,
         related_name="events",
