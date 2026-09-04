@@ -6,7 +6,6 @@ Depends: P1. Read: `docs/03-experience.md`, `docs/04-design.md`, `docs/05-archit
 
 ## Accept
 
-- Core flow works without JavaScript; HTMX preserves URL/history/focus.
 - No unpublished/suspended provider appears in HTML, schema, sitemap or cache.
 - Ranking is deterministic/tested; arbitrary filter pages are not indexed.
 - Meets performance budgets with beta-sized fixtures.
