@@ -75,7 +75,10 @@ class PublicDiscoveryCachePolicyTests(TestCase):
         first = self.client.get("/palvelut/en/professionals/cache-policy/")
         self.assertContains(first, "Cached Provider")
 
-        self.document.document = {"display_name": "Fresh Provider", "about": "Fresh copy"}
+        self.document.document = {
+            "display_name": "Fresh Provider",
+            "about": "Fresh copy",
+        }
         self.document.save(update_fields=["document"])
 
         second = self.client.get("/palvelut/en/professionals/cache-policy/")
@@ -86,7 +89,10 @@ class PublicDiscoveryCachePolicyTests(TestCase):
         first = self.client.get("/palvelut/en/professionals/cache-policy/")
         self.assertContains(first, "Cached Provider")
 
-        self.document.document = {"display_name": "Fresh Provider", "about": "Fresh copy"}
+        self.document.document = {
+            "display_name": "Fresh Provider",
+            "about": "Fresh copy",
+        }
         self.document.save(update_fields=["document"])
 
         self.client.force_login(self.viewer)
