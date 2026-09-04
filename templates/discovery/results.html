@@ -7,10 +7,38 @@
   <div class="mt-4 flex flex-wrap items-end justify-between gap-4">
     <div>
       <h1 class="text-3xl font-bold tracking-tight">{% translate "Specialists" %}</h1>
-      <p class="mt-2 text-slate-600">{% if state.category %}{{ state.category.name }}{% elif state.query %}{{ state.query }}{% endif %}{% if state.municipality %} · {{ state.municipality.name }}{% endif %}</p>
+      <p class="mt-2 text-slate-600">{% if state.category %}{{ state.category.name }}{% elif state.query %}{{ state.query }}{% endif %}{% if state.municipality %} · {{ state.municipality.name }}{% endif %}{% if state.language %} · {{ state.language.name }}{% endif %}{% if state.mode %} · {{ state.mode }}{% endif %}</p>
     </div>
     <p class="text-sm text-slate-500">{{ documents|length }} {% translate "results" %}</p>
   </div>
+
+  <form class="mt-6 grid gap-3 rounded-2xl border border-slate-200 p-4 md:grid-cols-4" method="get" action="{% url 'discovery-search' locale=locale %}">
+    <label class="text-sm font-medium">
+      {% translate "Service" %}
+      <input class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" name="q" value="{{ state.query }}" autocomplete="off">
+    </label>
+    <label class="text-sm font-medium">
+      {% translate "City" %}
+      <input class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" name="city" value="{% if state.municipality %}{{ state.municipality.name }}{% endif %}" list="launch-cities" autocomplete="address-level2">
+      <datalist id="launch-cities">{% for city in launch_cities %}<option value="{{ city }}">{% endfor %}</datalist>
+    </label>
+    <label class="text-sm font-medium">
+      {% translate "Language" %}
+      <select class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" name="language">
+        <option value="">{% translate "Any language" %}</option>
+        {% for language in filter_languages %}<option value="{{ language.code }}"{% if state.language and state.language.id == language.id %} selected{% endif %}>{{ language.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label class="text-sm font-medium">
+      {% translate "Service mode" %}
+      <select class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2" name="mode">
+        <option value="">{% translate "Any mode" %}</option>
+        {% for value, label in service_modes %}<option value="{{ value }}"{% if state.mode == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </label>
+    {% if state.category %}<input type="hidden" name="category" value="{{ state.category.slug }}">{% endif %}
+    <button class="rounded-lg bg-slate-950 px-4 py-2 text-sm font-semibold text-white md:col-span-4 md:justify-self-start" type="submit">{% translate "Apply filters" %}</button>
+  </form>
 
   <div class="mt-8 grid gap-4">
     {% for item in documents %}
@@ -23,7 +51,7 @@
               {% for service in provider.services.all %}{% if service.is_active %}{{ service.category.name }}{% if not forloop.last %}, {% endif %}{% endif %}{% endfor %}
             </p>
             <p class="mt-2 text-sm text-slate-600">
-              {% for area in provider.service_areas.all %}{{ area.municipality.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+              {% for area in provider.service_areas.all %}{{ area.municipality.name }} ({{ area.get_mode_display }}){% if not forloop.last %}, {% endif %}{% endfor %}
               · {% for language in provider.languages.all %}{{ language.language.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
             </p>
           </div>
@@ -34,7 +62,11 @@
     {% empty %}
       <div class="rounded-2xl border border-dashed border-slate-300 p-8">
         <h2 class="text-xl font-semibold">{% translate "No matching specialists yet" %}</h2>
-        <p class="mt-2 text-slate-600">{% translate "Try another service or one of Helsinki, Espoo or Vantaa." %}</p>
+        {% if alternative_cities %}
+          <p class="mt-2 text-slate-600">{% translate "The same filters have matches in:" %} {{ alternative_cities|join:", " }}.</p>
+        {% else %}
+          <p class="mt-2 text-slate-600">{% translate "Try removing one filter or changing the service." %}</p>
+        {% endif %}
       </div>
     {% endfor %}
   </div>
