@@ -63,7 +63,8 @@ class DiscoverySeoMetadataTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(
             response,
-            '<link rel="canonical" href="https://finrix.fi/palvelut/en/professionals/seo-accounting/">',
+            '<link rel="canonical" '
+            'href="https://finrix.fi/palvelut/en/professionals/seo-accounting/">',
             html=False,
         )
         self.assertContains(response, 'hreflang="fi"', html=False)
@@ -82,13 +83,23 @@ class DiscoverySeoMetadataTests(TestCase):
 
     def test_search_and_thin_city_category_are_noindex(self) -> None:
         search = self.client.get("/palvelut/en/search/?q=accounting")
-        self.assertContains(search, '<meta name="robots" content="noindex,follow">', html=False)
+        self.assertContains(
+            search,
+            '<meta name="robots" content="noindex,follow">',
+            html=False,
+        )
 
         landing = self.client.get("/palvelut/en/helsinki/accounting/")
         self.assertEqual(landing.status_code, 200)
-        self.assertContains(landing, '<meta name="robots" content="noindex,follow">', html=False)
+        self.assertContains(
+            landing,
+            '<meta name="robots" content="noindex,follow">',
+            html=False,
+        )
 
-    def test_sitemap_contains_published_profile_but_not_thin_landing_or_search(self) -> None:
+    def test_sitemap_contains_published_profile_but_not_thin_landing_or_search(
+        self,
+    ) -> None:
         response = self.client.get("/palvelut/sitemap.xml")
         self.assertEqual(response.status_code, 200)
         body = response.content.decode()
