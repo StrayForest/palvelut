@@ -27,7 +27,10 @@ def _collect_searchable_strings(value: Any) -> list[str]:
 
 
 def publish_approved_revision(*, revision: ProfileRevision) -> ProviderReadDocument:
-    if revision.status != ProfileRevision.Status.APPROVED or revision.reviewed_at is None:
+    if (
+        revision.status != ProfileRevision.Status.APPROVED
+        or revision.reviewed_at is None
+    ):
         raise ValidationError("Public read documents require an approved revision")
     if revision.provider.lifecycle != Provider.Lifecycle.PUBLISHED:
         raise ValidationError("Public read documents require a published provider")
