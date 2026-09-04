@@ -67,7 +67,9 @@ class PublicProviderDocumentTests(TestCase):
             actor=self.staff,
             action="approve",
         )
-        self.assertTrue(PublicProviderDocument.objects.filter(provider=self.provider).exists())
+        self.assertTrue(
+            PublicProviderDocument.objects.filter(provider=self.provider).exists()
+        )
 
         moderate_provider(
             provider_id=self.provider.pk,
@@ -75,7 +77,9 @@ class PublicProviderDocumentTests(TestCase):
             action="suspend",
         )
 
-        self.assertFalse(PublicProviderDocument.objects.filter(provider=self.provider).exists())
+        self.assertFalse(
+            PublicProviderDocument.objects.filter(provider=self.provider).exists()
+        )
 
     def test_unpublished_provider_cannot_keep_public_document(self) -> None:
         revision = ProfileRevision.objects.create(
@@ -93,4 +97,6 @@ class PublicProviderDocumentTests(TestCase):
         result = sync_public_provider_document(provider_id=self.provider.pk)
 
         self.assertIsNone(result)
-        self.assertFalse(PublicProviderDocument.objects.filter(provider=self.provider).exists())
+        self.assertFalse(
+            PublicProviderDocument.objects.filter(provider=self.provider).exists()
+        )
