@@ -1,9 +1,11 @@
 from django.conf import settings
 from django.core.cache import cache
 from django.db import connection
-from django.http import Http404, JsonResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils import translation
+
+from palvelut.metrics import render_prometheus
 
 SUPPORTED_LOCALES = {code for code, _name in settings.LANGUAGES}
 
@@ -57,3 +59,12 @@ def health_ready(request):
     except Exception:
         return _health_response("unavailable", http_status=503)
     return _health_response("ok")
+
+
+def metrics(request):
+    response = HttpResponse(
+        render_prometheus(),
+        content_type="text/plain; version=0.0.4; charset=utf-8",
+    )
+    response["Cache-Control"] = "no-store"
+    return response

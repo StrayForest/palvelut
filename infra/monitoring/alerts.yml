@@ -1,0 +1,87 @@
+groups:
+  - name: palvelut
+    rules:
+      - alert: PalvelutNoTraffic
+        expr: sum(rate(palvelut_http_requests_total[15m])) == 0
+        for: 30m
+        labels: {severity: warning}
+        annotations:
+          summary: "No application traffic observed"
+          runbook_url: "https://github.com/StrayForest/palvelut/blob/main/infra/monitoring/RUNBOOK.md#traffic"
+      - alert: PalvelutHighLatency
+        expr: histogram_quantile(0.95, sum by (le) (rate(palvelut_http_request_duration_seconds_bucket[5m]))) > 0.8
+        for: 10m
+        labels: {severity: warning}
+        annotations:
+          summary: "Application p95 latency exceeds 800 ms"
+          runbook_url: "https://github.com/StrayForest/palvelut/blob/main/infra/monitoring/RUNBOOK.md#latency-errors-and-cache"
+      - alert: PalvelutHigh5xxRate
+        expr: sum(rate(palvelut_http_5xx_total[5m])) / clamp_min(sum(rate(palvelut_http_requests_total[5m])), 0.001) > 0.001
+        for: 10m
+        labels: {severity: critical}
+        annotations:
+          summary: "5xx rate exceeds the 0.1% SLO"
+          runbook_url: "https://github.com/StrayForest/palvelut/blob/main/infra/monitoring/RUNBOOK.md#latency-errors-and-cache"
+      - alert: PalvelutLowCacheHitRatio
+        expr: sum(rate(palvelut_cache_requests_total{result="hit"}[15m])) / clamp_min(sum(rate(palvelut_cache_requests_total{result=~"hit|miss"}[15m])), 0.001) < 0.70
+        for: 20m
+        labels: {severity: warning}
+        annotations:
+          summary: "Application public-read cache hit ratio is below 70%"
+          runbook_url: "https://github.com/StrayForest/palvelut/blob/main/infra/monitoring/RUNBOOK.md#latency-errors-and-cache"
+      - alert: PalvelutDbConcurrencyHigh
+        expr: max_over_time(palvelut_db_connections_in_use[5m]) > 20
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "Database query concurrency is unexpectedly high"
+          runbook_url: "https://github.com/StrayForest/palvelut/blob/main/infra/monitoring/RUNBOOK.md#database"
+      - alert: PalvelutSlowQueries
+        expr: increase(palvelut_db_slow_queries_total[10m]) > 5
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "Repeated database queries exceed 300 ms"
+          runbook_url: "https://github.com/StrayForest/palvelut/blob/main/infra/monitoring/RUNBOOK.md#database"
+      - alert: PalvelutQueueOld
+        expr: histogram_quantile(0.95, sum by (le) (rate(palvelut_queue_age_seconds_bucket[10m]))) > 120
+        for: 10m
+        labels: {severity: warning}
+        annotations:
+          summary: "Queue age p95 exceeds two minutes"
+          runbook_url: "https://github.com/StrayForest/palvelut/blob/main/infra/monitoring/RUNBOOK.md#queue"
+      - alert: PalvelutQueueFailures
+        expr: increase(palvelut_queue_failures_total[10m]) > 0
+        for: 1m
+        labels: {severity: warning}
+        annotations:
+          summary: "Background task failures detected"
+          runbook_url: "https://github.com/StrayForest/palvelut/blob/main/infra/monitoring/RUNBOOK.md#queue"
+      - alert: PalvelutEmailFailures
+        expr: increase(palvelut_email_delivery_total{result="failed"}[15m]) > 0
+        for: 1m
+        labels: {severity: warning}
+        annotations:
+          summary: "Email delivery failures detected"
+          runbook_url: "https://github.com/StrayForest/palvelut/blob/main/infra/monitoring/RUNBOOK.md#email"
+      - alert: PalvelutMediaFailures
+        expr: increase(palvelut_media_failures_total[15m]) > 2
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "Repeated media processing failures detected"
+          runbook_url: "https://github.com/StrayForest/palvelut/blob/main/infra/monitoring/RUNBOOK.md#media"
+      - alert: PalvelutBackupMissing
+        expr: absent(palvelut_backup_last_success_timestamp_seconds) or (time() - palvelut_backup_last_success_timestamp_seconds > 93600)
+        for: 15m
+        labels: {severity: critical}
+        annotations:
+          summary: "No successful backup metric within 26 hours"
+          runbook_url: "https://github.com/StrayForest/palvelut/blob/main/infra/monitoring/RUNBOOK.md#backups"
+      - alert: PalvelutBackupFailure
+        expr: increase(palvelut_backup_failures_total[24h]) > 0
+        for: 1m
+        labels: {severity: critical}
+        annotations:
+          summary: "Backup job reported a failure"
+          runbook_url: "https://github.com/StrayForest/palvelut/blob/main/infra/monitoring/RUNBOOK.md#backups"

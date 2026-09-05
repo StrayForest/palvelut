@@ -1,0 +1,21 @@
+{
+  "title": "Palvelut production",
+  "uid": "palvelut-production",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "tags": ["palvelut", "production"],
+  "time": {"from": "now-6h", "to": "now"},
+  "panels": [
+    {"id": 1, "type": "timeseries", "title": "Traffic req/s", "targets": [{"expr": "sum(rate(palvelut_http_requests_total[5m]))", "refId": "A"}]},
+    {"id": 2, "type": "timeseries", "title": "HTTP p95 latency", "targets": [{"expr": "histogram_quantile(0.95, sum by (le) (rate(palvelut_http_request_duration_seconds_bucket[5m])))", "refId": "A"}]},
+    {"id": 3, "type": "timeseries", "title": "5xx rate", "targets": [{"expr": "sum(rate(palvelut_http_5xx_total[5m])) / clamp_min(sum(rate(palvelut_http_requests_total[5m])), 0.001)", "refId": "A"}]},
+    {"id": 4, "type": "timeseries", "title": "Cache hit ratio", "targets": [{"expr": "sum(rate(palvelut_cache_requests_total{result=\"hit\"}[5m])) / clamp_min(sum(rate(palvelut_cache_requests_total{result=~\"hit|miss\"}[5m])), 0.001)", "refId": "A"}]},
+    {"id": 5, "type": "timeseries", "title": "DB concurrency / slow queries", "targets": [{"expr": "palvelut_db_connections_in_use", "refId": "A"}, {"expr": "rate(palvelut_db_slow_queries_total[5m])", "refId": "B"}]},
+    {"id": 6, "type": "timeseries", "title": "Queue age p95 / failures", "targets": [{"expr": "histogram_quantile(0.95, sum by (le) (rate(palvelut_queue_age_seconds_bucket[5m])))", "refId": "A"}, {"expr": "rate(palvelut_queue_failures_total[5m])", "refId": "B"}]},
+    {"id": 7, "type": "timeseries", "title": "Email delivery", "targets": [{"expr": "sum by (result) (rate(palvelut_email_delivery_total[5m]))", "refId": "A"}]},
+    {"id": 8, "type": "timeseries", "title": "Media failures", "targets": [{"expr": "rate(palvelut_media_failures_total[5m])", "refId": "A"}]},
+    {"id": 9, "type": "stat", "title": "Backup age seconds", "targets": [{"expr": "time() - palvelut_backup_last_success_timestamp_seconds", "refId": "A"}]},
+    {"id": 10, "type": "timeseries", "title": "Backup failures", "targets": [{"expr": "increase(palvelut_backup_failures_total[24h])", "refId": "A"}]}
+  ]
+}
