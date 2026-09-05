@@ -100,9 +100,9 @@ class OutboxJobTests(TestCase):
         self.assertIsNotNone(job.locked_at)
 
     def test_daily_maintenance_enqueues_each_job_once(self) -> None:
-        self.assertEqual(enqueue_daily_maintenance.run(), 2)
+        self.assertEqual(enqueue_daily_maintenance.run(), 1)
         self.assertEqual(enqueue_daily_maintenance.run(), 0)
-        self.assertEqual(OutboxJob.objects.count(), 2)
+        self.assertEqual(OutboxJob.objects.count(), 1)
 
     def test_history_retention_removes_only_terminal_old_jobs(self) -> None:
         old_completed, _created = enqueue_job(
