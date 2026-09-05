@@ -36,6 +36,7 @@ class ModerationCaseAdmin(ReadOnlyAdmin):
         "status",
         "opened_by",
         "opened_at",
+        "closed_by",
         "closed_at",
     )
     list_filter = ("status",)

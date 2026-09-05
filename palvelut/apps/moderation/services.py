@@ -12,12 +12,13 @@ from palvelut.apps.discovery.services import (
     rebuild_provider_read_document,
     remove_provider_read_document,
 )
-from palvelut.apps.moderation.models import AuditEvent
+from palvelut.apps.moderation.models import AuditEvent, ModerationCase, ModerationEvent
 from palvelut.apps.providers.models import Provider
 from palvelut.apps.publishing.models import ProfileRevision
 from palvelut.apps.publishing.services import ensure_provider_slug
 
 ModerationAction = Literal["approve", "request_changes", "suspend"]
+ModerationCaseResolution = Literal["resolved", "dismissed"]
 
 
 @dataclass(frozen=True)
@@ -45,6 +46,39 @@ def _latest_reviewable_revision(provider: Provider) -> ProfileRevision:
     if revision is None:
         raise ValidationError("Provider has no draft or pending revision to review")
     return revision
+
+
+@transaction.atomic
+def close_moderation_case(
+    *,
+    case_id: object,
+    actor: AbstractBaseUser,
+    resolution: ModerationCaseResolution,
+    note: str = "",
+) -> ModerationCase:
+    _require_staff(actor)
+    case = ModerationCase.objects.select_for_update().get(pk=case_id)
+    if case.status != ModerationCase.Status.OPEN:
+        raise ValidationError("Only an open moderation case can be closed")
+    if resolution not in (
+        ModerationCase.Status.RESOLVED,
+        ModerationCase.Status.DISMISSED,
+    ):
+        raise ValidationError(f"Unsupported moderation case resolution: {resolution}")
+
+    now = timezone.now()
+    case.status = resolution
+    case.closed_by = actor
+    case.closed_at = now
+    case.save(update_fields=("status", "closed_by", "closed_at"))
+    ModerationEvent.objects.create(
+        case=case,
+        event_type=f"case.{resolution}",
+        actor=actor,
+        note=note,
+        metadata={"previous_status": ModerationCase.Status.OPEN},
+    )
+    return case
 
 
 @transaction.atomic
