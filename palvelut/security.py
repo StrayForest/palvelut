@@ -27,6 +27,8 @@ class SecurityHeadersMiddleware:
                     "object-src 'none'",
                     f"script-src 'self' 'nonce-{nonce}'",
                     "style-src 'self'",
+                    "style-src-elem 'self'",
+                    "style-src-attr 'unsafe-inline'",
                     "img-src 'self' data:",
                     "font-src 'self'",
                     "connect-src 'self'",
