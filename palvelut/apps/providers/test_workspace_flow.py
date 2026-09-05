@@ -108,7 +108,9 @@ class ProviderWorkspaceFlowTests(TestCase):
             },
         )
         self.assertEqual(response.status_code, 403)
-        self.assertFalse(ProfileRevision.objects.filter(provider=self.provider).exists())
+        self.assertFalse(
+            ProfileRevision.objects.filter(provider=self.provider).exists()
+        )
 
     def test_owner_can_preview_and_submit_through_http(self):
         self.client.force_login(self.owner)
