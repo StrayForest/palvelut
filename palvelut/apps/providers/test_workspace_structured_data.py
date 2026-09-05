@@ -18,7 +18,13 @@ from palvelut.apps.providers.workspace_services import (
     submit_revision,
 )
 from palvelut.apps.publishing.workflow import approve_revision
-from palvelut.apps.taxonomy.models import Category, Country, Language, Municipality, Region
+from palvelut.apps.taxonomy.models import (
+    Category,
+    Country,
+    Language,
+    Municipality,
+    Region,
+)
 
 
 class ProviderStructuredWorkspaceTests(TestCase):
@@ -97,15 +103,16 @@ class ProviderStructuredWorkspaceTests(TestCase):
             {
                 "contacts": '[{"kind":"phone","value":"+358401234567"}]',
                 "services": (
-                    '[{"category_id":"%s","title":"Sports massage","price_text":"60 €"}]'
-                    % self.category.pk
+                    '[{"category_id":"%s","title":"Sports massage",'
+                    '"price_text":"60 €"}]' % self.category.pk
                 ),
                 "service_areas": (
                     '[{"municipality_id":"%s","mode":"onsite"}]'
                     % self.municipality.pk
                 ),
                 "languages": (
-                    '[{"language_id":"%s","declared":true}]' % self.language.pk
+                    '[{"language_id":"%s","declared":true}]'
+                    % self.language.pk
                 ),
             }
         )
@@ -123,8 +130,12 @@ class ProviderStructuredWorkspaceTests(TestCase):
         )
         revision = submit_revision(provider_id=self.provider.pk, account=self.owner)
 
-        self.assertFalse(ContactChannel.objects.filter(provider=self.provider).exists())
-        self.assertFalse(ProviderService.objects.filter(provider=self.provider).exists())
+        self.assertFalse(
+            ContactChannel.objects.filter(provider=self.provider).exists()
+        )
+        self.assertFalse(
+            ProviderService.objects.filter(provider=self.provider).exists()
+        )
 
         approve_revision(revision_id=revision.pk, actor=self.staff)
 

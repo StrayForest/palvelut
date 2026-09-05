@@ -13,7 +13,11 @@ from palvelut.apps.publishing.models import ProfileRevision
 
 PROFILE_FIELDS = ("provider_type", "legal_name", "display_name", "y_tunnus")
 STRUCTURED_FIELDS = ("contacts", "services", "service_areas", "languages", "media")
-ALLOWED_IMAGE_TYPES = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
+ALLOWED_IMAGE_TYPES = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/webp": ".webp",
+}
 MAX_IMAGE_BYTES = 10 * 1024 * 1024
 
 
@@ -134,17 +138,29 @@ def autosave_revision(
 
 
 @transaction.atomic
-def stage_media_upload(*, provider_id: object, account, uploaded_file, alt_text: str = "") -> ProfileRevision:
+def stage_media_upload(
+    *,
+    provider_id: object,
+    account,
+    uploaded_file,
+    alt_text: str = "",
+) -> ProfileRevision:
     provider = provider_for_account(provider_id=provider_id, account=account)
     provider = Provider.objects.select_for_update().get(pk=provider.pk)
     content_type = str(getattr(uploaded_file, "content_type", ""))
     if content_type not in ALLOWED_IMAGE_TYPES:
         raise ValidationError("unsupported image content type")
-    if int(getattr(uploaded_file, "size", 0)) <= 0 or uploaded_file.size > MAX_IMAGE_BYTES:
+    if (
+        int(getattr(uploaded_file, "size", 0)) <= 0
+        or uploaded_file.size > MAX_IMAGE_BYTES
+    ):
         raise ValidationError("image must be between 1 byte and 10 MiB")
     suffix = ALLOWED_IMAGE_TYPES[content_type]
     original_suffix = Path(str(getattr(uploaded_file, "name", ""))).suffix.lower()
-    if original_suffix not in {suffix, ".jpeg" if suffix == ".jpg" else suffix}:
+    allowed_suffixes = {suffix}
+    if suffix == ".jpg":
+        allowed_suffixes.add(".jpeg")
+    if original_suffix not in allowed_suffixes:
         raise ValidationError("image extension does not match content type")
     revision = editable_revision(provider=provider, account=account)
     key = f"provider-media/staging/{provider.pk}/{uuid4().hex}{suffix}"
@@ -180,7 +196,9 @@ def submit_revision(*, provider_id: object, account) -> ProfileRevision:
         if not revision.payload.get(field)
     ]
     if missing:
-        raise ValidationError(f"missing required profile fields: {', '.join(missing)}")
+        raise ValidationError(
+            f"missing required profile fields: {', '.join(missing)}"
+        )
     revision.status = ProfileRevision.Status.PENDING
     revision.save(update_fields=("status",))
     if provider.lifecycle != Provider.Lifecycle.PUBLISHED:
