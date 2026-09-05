@@ -50,9 +50,7 @@ def staff_data_subject_request_list(request: HttpRequest) -> HttpResponse:
 @cache_control(private=True, no_store=True)
 @login_required
 @require_http_methods(["GET", "POST"])
-def staff_data_subject_request_detail(
-    request: HttpRequest, request_id
-) -> HttpResponse:
+def staff_data_subject_request_detail(request: HttpRequest, request_id) -> HttpResponse:
     if not request.user.is_staff:
         raise PermissionDenied
     row = get_object_or_404(
