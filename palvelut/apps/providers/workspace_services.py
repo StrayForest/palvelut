@@ -196,9 +196,7 @@ def submit_revision(*, provider_id: object, account) -> ProfileRevision:
         if not revision.payload.get(field)
     ]
     if missing:
-        raise ValidationError(
-            f"missing required profile fields: {', '.join(missing)}"
-        )
+        raise ValidationError(f"missing required profile fields: {', '.join(missing)}")
     revision.status = ProfileRevision.Status.PENDING
     revision.save(update_fields=("status",))
     if provider.lifecycle != Provider.Lifecycle.PUBLISHED:
