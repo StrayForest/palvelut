@@ -4,11 +4,12 @@ test("provider completes onboarding on mobile without staff edits", async ({ pag
   await page.setViewportSize({ width: 360, height: 800 });
 
   await page.goto("/palvelut/account/login/");
-  await page.getByLabel(/username/i).fill("mobile-onboarding@example.test");
+  await page.getByLabel("Email").fill("mobile-onboarding@example.test");
   await page.getByLabel(/password/i).fill("test-only-pass");
   await page.getByRole("button", { name: "Sign in" }).click();
 
-  await expect(page).toHaveURL(/\/palvelut\/account\/profile\/$/);
+  await expect(page).toHaveURL(/\/palvelut\/fi\/$/);
+  await page.goto("/palvelut/account/profile/");
   await expect(page.getByRole("heading", { name: "Provider workspace" })).toBeVisible();
   await expect(page.getByText("Mobile Onboarding Draft", { exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360);
