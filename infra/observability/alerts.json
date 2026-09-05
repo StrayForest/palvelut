@@ -1,0 +1,15 @@
+{
+  "runbook": "docs/runbooks/observability.md",
+  "alerts": [
+    {"name": "AvailabilityBudgetBurn", "expr": "sum(rate(palvelut_http_requests_total{status_class=\"5xx\"}[5m])) / clamp_min(sum(rate(palvelut_http_requests_total[5m])), 0.001) > 0.001", "for": "10m"},
+    {"name": "PublicLatencyHigh", "expr": "histogram_quantile(0.95, sum by (le) (rate(palvelut_http_request_duration_seconds_bucket{route_class=\"public\"}[5m]))) > 0.8", "for": "10m"},
+    {"name": "DatabaseWaiting", "expr": "palvelut_db_waiting_connections > 0", "for": "5m"},
+    {"name": "SlowQueries", "expr": "increase(palvelut_db_slow_query_total[10m]) > 5", "for": "5m"},
+    {"name": "QueueBacklog", "expr": "palvelut_queue_depth > 100 or palvelut_queue_age_seconds > 300", "for": "10m"},
+    {"name": "QueueFailures", "expr": "increase(palvelut_queue_failures_total[15m]) > 0", "for": "1m"},
+    {"name": "EmailDeliveryFailures", "expr": "increase(palvelut_email_delivery_total{result=\"failure\"}[15m]) > 0", "for": "1m"},
+    {"name": "MediaFailures", "expr": "increase(palvelut_media_failures_total[15m]) > 0", "for": "1m"},
+    {"name": "BackupMissingOrFailed", "expr": "increase(palvelut_backup_runs_total{result=\"success\"}[26h]) < 1 or increase(palvelut_backup_runs_total{result=\"failure\"}[26h]) > 0", "for": "15m"},
+    {"name": "CacheHitRatioLow", "expr": "sum(rate(palvelut_cache_requests_total{result=\"hit\"}[15m])) / clamp_min(sum(rate(palvelut_cache_requests_total{result=~\"hit|miss\"}[15m])), 0.001) < 0.7", "for": "30m"}
+  ]
+}
