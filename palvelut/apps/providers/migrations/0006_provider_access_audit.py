@@ -47,7 +47,7 @@ class Migration(migrations.Migration):
                 "indexes": [
                     models.Index(
                         fields=["target_provider_id", "created_at"],
-                        name="provider_access_target_created_idx",
+                        name="prov_access_target_created_idx",
                     )
                 ],
             },
