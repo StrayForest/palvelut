@@ -133,11 +133,15 @@ def provider_case_list(request: HttpRequest) -> HttpResponse:
         account=request.user,
         is_active=True,
     ).values_list("provider_id", flat=True)
-    cases = ModerationCase.objects.filter(
-        provider_id__in=provider_ids,
-        kind=ModerationCase.Kind.CONTENT_REPORT,
-        events__visible_to_provider=True,
-    ).select_related("provider").distinct()
+    cases = (
+        ModerationCase.objects.filter(
+            provider_id__in=provider_ids,
+            kind=ModerationCase.Kind.CONTENT_REPORT,
+            events__visible_to_provider=True,
+        )
+        .select_related("provider")
+        .distinct()
+    )
     return render(
         request,
         "moderation/provider_case_list.html",
