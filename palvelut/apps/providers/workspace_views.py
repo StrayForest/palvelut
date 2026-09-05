@@ -10,6 +10,7 @@ from palvelut.apps.providers.workspace_forms import ProviderProfileForm
 from palvelut.apps.providers.workspace_services import (
     autosave_revision,
     editable_revision,
+    stage_media_upload,
     submit_revision,
 )
 
@@ -69,6 +70,25 @@ def edit_profile(request, provider_id):
         "providers/edit_profile.html",
         {"provider": membership.provider, "revision": revision, "form": form},
     )
+
+
+@login_required
+@require_POST
+def upload_profile_media(request, provider_id):
+    _membership_for_request(request, provider_id)
+    uploaded_file = request.FILES.get("image")
+    if uploaded_file is None:
+        return HttpResponseBadRequest("image is required")
+    try:
+        stage_media_upload(
+            provider_id=provider_id,
+            account=request.user,
+            uploaded_file=uploaded_file,
+            alt_text=request.POST.get("alt_text", ""),
+        )
+    except ValidationError as exc:
+        return HttpResponseBadRequest(str(exc))
+    return redirect("provider-workspace-edit", provider_id=provider_id)
 
 
 @login_required

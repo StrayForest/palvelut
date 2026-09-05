@@ -3,11 +3,26 @@
 <main>
   <h1>Edit {{ provider.display_name }}</h1>
   {% if revision.status == "changes_requested" %}<p role="status">Corrections requested. Update the draft and submit again.</p>{% endif %}
+  <p>Contacts, services/prices, service areas/modes and languages are stored as structured JSON in the moderated draft.</p>
   <form method="post" hx-post="." hx-trigger="change delay:500ms" hx-swap="none">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit">Save draft</button>
   </form>
+  <section aria-labelledby="media-heading">
+    <h2 id="media-heading">Images</h2>
+    <form method="post" enctype="multipart/form-data" action="{% url 'provider-workspace-media-upload' provider.id %}">
+      {% csrf_token %}
+      <p><label for="provider-image">Image</label> <input id="provider-image" type="file" name="image" accept="image/jpeg,image/png,image/webp" required></p>
+      <p><label for="provider-image-alt">Alt text</label> <input id="provider-image-alt" type="text" name="alt_text" maxlength="240"></p>
+      <button type="submit">Upload image</button>
+    </form>
+    {% if revision.payload.media %}
+      <ul>
+        {% for image in revision.payload.media %}<li>{{ image.alt_text|default:image.storage_key }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+  </section>
   <p><a href="{% url 'provider-workspace-preview' provider.id %}">Preview</a></p>
 </main>
 {% endblock %}

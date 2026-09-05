@@ -5,7 +5,14 @@ from django.db import transaction
 from django.utils import timezone
 
 from palvelut.apps.moderation.models import AuditEvent
-from palvelut.apps.providers.models import Provider
+from palvelut.apps.providers.models import (
+    ContactChannel,
+    MediaAsset,
+    Provider,
+    ProviderLanguage,
+    ProviderService,
+    ServiceArea,
+)
 from palvelut.apps.publishing.models import ProfileRevision
 
 PROFILE_FIELDS = ("provider_type", "legal_name", "display_name", "y_tunnus")
@@ -14,6 +21,79 @@ PROFILE_FIELDS = ("provider_type", "legal_name", "display_name", "y_tunnus")
 def _require_staff(actor) -> None:
     if not actor.is_staff:
         raise PermissionDenied("staff required")
+
+
+def _sync_structured_state(*, provider: Provider, payload: dict) -> None:
+    if "contacts" in payload:
+        provider.contacts.all().delete()
+        ContactChannel.objects.bulk_create(
+            [
+                ContactChannel(
+                    provider=provider,
+                    kind=item["kind"],
+                    value=item["value"],
+                    label=item.get("label", ""),
+                    is_public=bool(item.get("is_public", True)),
+                    sort_order=int(item.get("sort_order", 0)),
+                )
+                for item in payload.get("contacts", [])
+            ]
+        )
+    if "services" in payload:
+        provider.services.all().delete()
+        ProviderService.objects.bulk_create(
+            [
+                ProviderService(
+                    provider=provider,
+                    category_id=item["category_id"],
+                    title=item.get("title", ""),
+                    description=item.get("description", ""),
+                    price_text=item.get("price_text", ""),
+                    is_active=bool(item.get("is_active", True)),
+                )
+                for item in payload.get("services", [])
+            ]
+        )
+    if "service_areas" in payload:
+        provider.service_areas.all().delete()
+        ServiceArea.objects.bulk_create(
+            [
+                ServiceArea(
+                    provider=provider,
+                    municipality_id=item["municipality_id"],
+                    mode=item["mode"],
+                )
+                for item in payload.get("service_areas", [])
+            ]
+        )
+    if "languages" in payload:
+        provider.languages.all().delete()
+        ProviderLanguage.objects.bulk_create(
+            [
+                ProviderLanguage(
+                    provider=provider,
+                    language_id=item["language_id"],
+                    declared=bool(item.get("declared", True)),
+                )
+                for item in payload.get("languages", [])
+            ]
+        )
+    if "media" in payload:
+        provider.media_assets.all().delete()
+        MediaAsset.objects.bulk_create(
+            [
+                MediaAsset(
+                    provider=provider,
+                    storage_key=item["storage_key"],
+                    content_type=item["content_type"],
+                    alt_text=item.get("alt_text", ""),
+                    width=item.get("width"),
+                    height=item.get("height"),
+                    sort_order=int(item.get("sort_order", 0)),
+                )
+                for item in payload.get("media", [])
+            ]
+        )
 
 
 @transaction.atomic
@@ -59,6 +139,7 @@ def approve_revision(*, revision_id: object, actor) -> ProfileRevision:
     for field in PROFILE_FIELDS:
         if field in revision.payload:
             setattr(provider, field, revision.payload[field])
+    _sync_structured_state(provider=provider, payload=revision.payload)
     provider.lifecycle = Provider.Lifecycle.PUBLISHED
     provider.save(update_fields=(*PROFILE_FIELDS, "lifecycle", "updated_at"))
     (

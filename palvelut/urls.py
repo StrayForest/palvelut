@@ -34,6 +34,7 @@ from palvelut.apps.providers.workspace_views import (
     edit_profile,
     preview_profile,
     submit_profile,
+    upload_profile_media,
     workspace,
 )
 from palvelut.views import health_live, health_ready, public_mount_root
@@ -109,6 +110,11 @@ urlpatterns = [
         "palvelut/account/profile/<uuid:provider_id>/",
         edit_profile,
         name="provider-workspace-edit",
+    ),
+    path(
+        "palvelut/account/profile/<uuid:provider_id>/media/",
+        upload_profile_media,
+        name="provider-workspace-media-upload",
     ),
     path(
         "palvelut/account/profile/<uuid:provider_id>/preview/",
