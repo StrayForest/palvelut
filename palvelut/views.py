@@ -62,6 +62,11 @@ def health_ready(request):
 
 
 def internal_metrics(request):
+    token = settings.OBSERVABILITY_METRICS_TOKEN
+    if settings.ENVIRONMENT in {"staging", "production"}:
+        supplied = request.headers.get("Authorization", "")
+        if not token or supplied != f"Bearer {token}":
+            raise Http404
     response = HttpResponse(
         prometheus_payload(),
         content_type="text/plain; version=0.0.4; charset=utf-8",
