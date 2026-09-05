@@ -20,7 +20,11 @@ class ProviderAccountSecurityTests(TestCase):
     def test_registration_requires_email_verification_and_uses_argon2(self):
         response = self.client.post(
             reverse("account-register"),
-            {"email": "Provider@Example.com", "password1": "Strong-passphrase-2026!", "password2": "Strong-passphrase-2026!"},
+            {
+                "email": "Provider@Example.com",
+                "password1": "Strong-passphrase-2026!",
+                "password2": "Strong-passphrase-2026!",
+            },
         )
         self.assertEqual(response.status_code, 201)
         user = get_user_model().objects.get(email="provider@example.com")
@@ -33,11 +37,18 @@ class ProviderAccountSecurityTests(TestCase):
         token_match = re.search(r"/verify/([^/]+)/", mail.outbox[0].body)
         self.assertIsNotNone(token_match)
         token = token_match.group(1)
-        verified = self.client.get(reverse("account-verify-email", kwargs={"token": token}))
+        verified = self.client.get(
+            reverse("account-verify-email", kwargs={"token": token})
+        )
         self.assertRedirects(verified, reverse("account-login"))
         user.refresh_from_db()
         self.assertTrue(user.is_active)
-        self.assertEqual(self.client.get(reverse("account-verify-email", kwargs={"token": token})).status_code, 400)
+        self.assertEqual(
+            self.client.get(
+                reverse("account-verify-email", kwargs={"token": token})
+            ).status_code,
+            400,
+        )
 
     def test_login_is_rate_limited_and_rotates_session(self):
         user = get_user_model().objects.create_user(
@@ -65,7 +76,9 @@ class ProviderAccountSecurityTests(TestCase):
             reverse("account-login"),
             {"username": user.email, "password": "Strong-passphrase-2026!"},
         )
-        self.assertRedirects(success, reverse("localized-home", kwargs={"locale": "fi"}))
+        self.assertRedirects(
+            success, reverse("localized-home", kwargs={"locale": "fi"})
+        )
         self.assertNotEqual(old_key, self.client.session.session_key)
 
     def test_password_reset_does_not_reveal_account_and_is_rate_limited(self):
@@ -74,15 +87,21 @@ class ProviderAccountSecurityTests(TestCase):
             email="provider@example.com",
             password="Strong-passphrase-2026!",
         )
-        existing = self.client.post(reverse("account-password-reset"), {"email": "provider@example.com"})
-        missing = self.client.post(reverse("account-password-reset"), {"email": "missing@example.com"})
+        existing = self.client.post(
+            reverse("account-password-reset"), {"email": "provider@example.com"}
+        )
+        missing = self.client.post(
+            reverse("account-password-reset"), {"email": "missing@example.com"}
+        )
         self.assertEqual(existing.status_code, 302)
         self.assertEqual(missing.status_code, 302)
         self.assertEqual(existing.url, missing.url)
         self.assertEqual(len(mail.outbox), 1)
 
         with patch("palvelut.apps.accounts.views.rate_limited", return_value=True):
-            limited = self.client.post(reverse("account-password-reset"), {"email": "provider@example.com"})
+            limited = self.client.post(
+                reverse("account-password-reset"), {"email": "provider@example.com"}
+            )
         self.assertRedirects(limited, reverse("account-password-reset-done"))
         self.assertEqual(len(mail.outbox), 1)
 
@@ -102,7 +121,10 @@ class ProviderAccountSecurityTests(TestCase):
         setup = self.client.get(reverse("staff-mfa"))
         self.assertEqual(setup.status_code, 200)
         device = StaffMFADevice.objects.get(user=staff)
-        verified = self.client.post(f"{reverse('staff-mfa')}?next=https://attacker.invalid/", {"code": totp_code(device.secret)})
+        verified = self.client.post(
+            f"{reverse('staff-mfa')}?next=https://attacker.invalid/",
+            {"code": totp_code(device.secret)},
+        )
         self.assertRedirects(verified, reverse("admin:index"))
         self.assertTrue(self.client.session["staff_mfa_verified"])
         self.assertEqual(self.client.get(reverse("admin:index")).status_code, 200)
@@ -115,5 +137,7 @@ class ProviderAccountSecurityTests(TestCase):
         )
         self.client.force_login(provider)
         response = self.client.get(reverse("staff-mfa"))
-        self.assertRedirects(response, reverse("localized-home", kwargs={"locale": "fi"}))
+        self.assertRedirects(
+            response, reverse("localized-home", kwargs={"locale": "fi"})
+        )
         self.assertFalse(StaffMFADevice.objects.filter(user=provider).exists())

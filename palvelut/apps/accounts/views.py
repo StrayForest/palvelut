@@ -62,7 +62,9 @@ class ProviderLoginView(LoginView):
     def dispatch(self, request, *args, **kwargs):
         if request.method == "POST":
             identity = request.POST.get("username", "")
-            if rate_limited("login", f"{request.META.get('REMOTE_ADDR', '')}:{identity}"):
+            if rate_limited(
+                "login", f"{request.META.get('REMOTE_ADDR', '')}:{identity}"
+            ):
                 form = self.get_form()
                 form.add_error(None, "Too many attempts. Try again later.")
                 return self.form_invalid(form)
@@ -93,7 +95,9 @@ class SecurePasswordResetView(PasswordResetView):
 
     def form_valid(self, form):
         email = form.cleaned_data["email"]
-        if rate_limited("password-reset", f"{self.request.META.get('REMOTE_ADDR', '')}:{email}"):
+        if rate_limited(
+            "password-reset", f"{self.request.META.get('REMOTE_ADDR', '')}:{email}"
+        ):
             return redirect(self.success_url)
         return super().form_valid(form)
 
@@ -127,7 +131,9 @@ def staff_mfa(request: HttpRequest) -> HttpResponse:
     device = get_or_create_staff_device(request.user)
     form = MFAForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
-        if rate_limited("mfa", f"{request.user.pk}:{request.META.get('REMOTE_ADDR', '')}", limit=8):
+        if rate_limited(
+            "mfa", f"{request.user.pk}:{request.META.get('REMOTE_ADDR', '')}", limit=8
+        ):
             form.add_error(None, "Too many attempts. Try again later.")
         elif valid_totp(device.secret, form.cleaned_data["code"]):
             if device.confirmed_at is None:
@@ -136,7 +142,11 @@ def staff_mfa(request: HttpRequest) -> HttpResponse:
             request.session.cycle_key()
             request.session["staff_mfa_verified"] = True
             destination = request.GET.get("next") or reverse("admin:index")
-            if not url_has_allowed_host_and_scheme(destination, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+            if not url_has_allowed_host_and_scheme(
+                destination,
+                allowed_hosts={request.get_host()},
+                require_https=request.is_secure(),
+            ):
                 destination = reverse("admin:index")
             return redirect(destination)
         else:

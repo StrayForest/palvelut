@@ -56,10 +56,20 @@ urlpatterns = [
     path("palvelut/robots.txt", robots_txt, name="robots-txt"),
     path("palvelut/sitemap.xml", sitemap_xml, name="sitemap-xml"),
     path("palvelut/account/register/", register, name="account-register"),
-    path("palvelut/account/verify/<str:token>/", verify_email, name="account-verify-email"),
+    path(
+        "palvelut/account/verify/<str:token>/",
+        verify_email,
+        name="account-verify-email",
+    ),
     path("palvelut/account/login/", ProviderLoginView.as_view(), name="account-login"),
-    path("palvelut/account/logout/", ProviderLogoutView.as_view(), name="account-logout"),
-    path("palvelut/account/password-reset/", SecurePasswordResetView.as_view(), name="account-password-reset"),
+    path(
+        "palvelut/account/logout/", ProviderLogoutView.as_view(), name="account-logout"
+    ),
+    path(
+        "palvelut/account/password-reset/",
+        SecurePasswordResetView.as_view(),
+        name="account-password-reset",
+    ),
     path(
         "palvelut/account/password-reset/done/",
         SecurePasswordResetDoneView.as_view(),

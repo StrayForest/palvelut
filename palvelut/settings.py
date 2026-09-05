@@ -6,11 +6,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 ENVIRONMENT = os.getenv("PALVELUT_ENVIRONMENT", "local").strip().lower()
 if ENVIRONMENT not in {"local", "test", "staging", "production"}:
-    raise RuntimeError("PALVELUT_ENVIRONMENT must be one of local, test, staging or production")
+    raise RuntimeError(
+        "PALVELUT_ENVIRONMENT must be one of local, test, staging or production"
+    )
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "p0-bootstrap-only-not-for-production")
 DEBUG = os.getenv("DJANGO_DEBUG", "1") == "1"
-ALLOWED_HOSTS = [host for host in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,[::1]").split(",") if host]
+ALLOWED_HOSTS = [
+    host
+    for host in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,[::1]").split(
+        ","
+    )
+    if host
+]
 
 
 def _public_base_url() -> str:
@@ -19,7 +27,9 @@ def _public_base_url() -> str:
     if parsed.scheme not in {"http", "https"} or not parsed.netloc:
         raise RuntimeError("PUBLIC_BASE_URL must be an absolute http(s) URL")
     if parsed.path != "/palvelut" or parsed.query or parsed.fragment:
-        raise RuntimeError("PUBLIC_BASE_URL must end at the /palvelut mount with no query or fragment")
+        raise RuntimeError(
+            "PUBLIC_BASE_URL must end at the /palvelut mount with no query or fragment"
+        )
     return value
 
 
@@ -34,7 +44,10 @@ def _validate_environment() -> None:
     errors = []
     if DEBUG:
         errors.append("DJANGO_DEBUG must be 0")
-    if not os.getenv("DJANGO_SECRET_KEY") or SECRET_KEY == "p0-bootstrap-only-not-for-production":
+    if (
+        not os.getenv("DJANGO_SECRET_KEY")
+        or SECRET_KEY == "p0-bootstrap-only-not-for-production"
+    ):
         errors.append("DJANGO_SECRET_KEY must be explicitly configured")
     if not os.getenv("DJANGO_ALLOWED_HOSTS") or not ALLOWED_HOSTS:
         errors.append("DJANGO_ALLOWED_HOSTS must be explicitly configured")
@@ -129,7 +142,9 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "palvelut@local.invalid")
 
 OBJECT_STORAGE_ENDPOINT_URL = os.getenv("S3_ENDPOINT_URL", "http://minio:9000")
 OBJECT_STORAGE_ACCESS_KEY_ID = os.getenv("S3_ACCESS_KEY_ID", "palvelut-local")
-OBJECT_STORAGE_SECRET_ACCESS_KEY = os.getenv("S3_SECRET_ACCESS_KEY", "palvelut-local-only")
+OBJECT_STORAGE_SECRET_ACCESS_KEY = os.getenv(
+    "S3_SECRET_ACCESS_KEY", "palvelut-local-only"
+)
 OBJECT_STORAGE_BUCKET_NAME = os.getenv("S3_BUCKET_NAME", "palvelut-local")
 
 PASSWORD_HASHERS = [
@@ -161,7 +176,9 @@ USE_TZ = True
 STATIC_URL = "/palvelut/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin" if ENVIRONMENT in {"staging", "production"} else None
+SECURE_CROSS_ORIGIN_OPENER_POLICY = (
+    "same-origin" if ENVIRONMENT in {"staging", "production"} else None
+)
 
 LOGGING = {
     "version": 1,

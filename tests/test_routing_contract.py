@@ -77,7 +77,10 @@ class RoutingContractTests(SimpleTestCase):
             "https://finrix.fi/palvelut/en",
             "https://finrix.fi/palvelut?x=1",
         ):
-            with self.subTest(value=value), mock.patch.dict(os.environ, {"PUBLIC_BASE_URL": value}, clear=False):
+            with (
+                self.subTest(value=value),
+                mock.patch.dict(os.environ, {"PUBLIC_BASE_URL": value}, clear=False),
+            ):
                 with self.assertRaises(RuntimeError):
                     _public_base_url()
 

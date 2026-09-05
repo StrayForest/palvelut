@@ -53,6 +53,13 @@ class ObservabilityContractTests(SimpleTestCase):
     def test_settings_use_request_id_middleware_and_json_console_logging(self):
         from django.conf import settings
 
-        self.assertEqual(settings.MIDDLEWARE[0], "palvelut.observability.RequestIdMiddleware")
-        self.assertEqual(settings.LOGGING["formatters"]["json"]["()"], "palvelut.observability.JsonFormatter")
-        self.assertEqual(settings.LOGGING["handlers"]["console"]["filters"], ["request_id"])
+        self.assertEqual(
+            settings.MIDDLEWARE[0], "palvelut.observability.RequestIdMiddleware"
+        )
+        self.assertEqual(
+            settings.LOGGING["formatters"]["json"]["()"],
+            "palvelut.observability.JsonFormatter",
+        )
+        self.assertEqual(
+            settings.LOGGING["handlers"]["console"]["filters"], ["request_id"]
+        )
