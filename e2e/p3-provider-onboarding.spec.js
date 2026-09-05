@@ -1,4 +1,5 @@
 const { test, expect } = require("@playwright/test");
+const AxeBuilder = require("@axe-core/playwright").default;
 
 const ONE_PIXEL_PNG = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
@@ -47,7 +48,7 @@ test("provider completes onboarding on mobile without staff edits", async ({ pag
   await expect(page.getByText("Revision: Pending")).toBeVisible();
 });
 
-test("provider workspace has a keyboard and semantic accessibility smoke", async ({ page }) => {
+test("provider workspace has keyboard and accessibility smoke coverage", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/palvelut/account/login/");
   await page.getByLabel("Email").fill("provider-e2e@example.test");
@@ -68,15 +69,9 @@ test("provider workspace has a keyboard and semantic accessibility smoke", async
   await expect(page.getByLabel("Price text")).toBeVisible();
   await expect(page.getByRole("button", { name: "Save draft" })).toBeVisible();
 
-  const unlabeledControls = await page.locator("input, textarea, select, button").evaluateAll((nodes) =>
-    nodes.filter((node) => {
-      if (node.tagName === "BUTTON") {
-        return !(node.textContent || "").trim() && !node.getAttribute("aria-label");
-      }
-      const id = node.getAttribute("id");
-      const hasForLabel = id && document.querySelector(`label[for="${CSS.escape(id)}"]`);
-      return !hasForLabel && !node.getAttribute("aria-label") && !node.getAttribute("aria-labelledby");
-    }).length,
+  const results = await new AxeBuilder({ page }).analyze();
+  const blocking = results.violations.filter((violation) =>
+    ["serious", "critical"].includes(violation.impact),
   );
-  expect(unlabeledControls).toBe(0);
+  expect(blocking, blocking.map((item) => item.id).join(", ")).toEqual([]);
 });
