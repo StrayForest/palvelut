@@ -17,7 +17,8 @@ def _provider_ids_from_response(response: HttpResponse) -> tuple[str, ...]:
         return ()
     return tuple(
         dict.fromkeys(
-            match.decode("ascii") for match in _PROVIDER_MARKER_RE.findall(response.content)
+            match.decode("ascii")
+            for match in _PROVIDER_MARKER_RE.findall(response.content)
         )
     )
 
@@ -48,7 +49,9 @@ def track_provider_events(kind: str) -> Callable:
     return decorator
 
 
-def aggregate_provider_metrics(provider_ids: Iterable[object]) -> dict[str, dict[str, int]]:
+def aggregate_provider_metrics(
+    provider_ids: Iterable[object],
+) -> dict[str, dict[str, int]]:
     ids = [str(provider_id) for provider_id in provider_ids]
     metrics = {
         provider_id: {

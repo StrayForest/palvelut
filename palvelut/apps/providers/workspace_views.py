@@ -56,7 +56,9 @@ def _dashboard_payload(provider):
             {"value": contact.value, "is_public": contact.is_public}
             for contact in provider.contacts.all()
         ],
-        "services": [{"is_active": service.is_active} for service in provider.services.all()],
+        "services": [
+            {"is_active": service.is_active} for service in provider.services.all()
+        ],
         "service_areas": [{} for _area in provider.service_areas.all()],
         "languages": [{} for _language in provider.languages.all()],
         "media": [{} for _media in provider.media_assets.all()],
@@ -67,11 +69,23 @@ def _completion_checklist(payload):
     contacts = payload.get("contacts") or []
     services = payload.get("services") or []
     checks = (
-        ("Identity", all(payload.get(field) for field in ("provider_type", "legal_name", "display_name"))),
+        (
+            "Identity",
+            all(
+                payload.get(field)
+                for field in ("provider_type", "legal_name", "display_name")
+            ),
+        ),
         ("Service", any(item.get("is_active", True) for item in services)),
         ("Service area", bool(payload.get("service_areas"))),
         ("Language", bool(payload.get("languages"))),
-        ("Public contact", any(item.get("is_public", True) and item.get("value") for item in contacts)),
+        (
+            "Public contact",
+            any(
+                item.get("is_public", True) and item.get("value")
+                for item in contacts
+            ),
+        ),
         ("Image", bool(payload.get("media"))),
     )
     return checks, sum(1 for _label, complete in checks if complete)

@@ -110,9 +110,18 @@ class ProviderDashboardAnalyticsTests(TestCase):
     def test_workspace_shows_status_checklist_and_provider_scoped_aggregates(self):
         AnalyticsEvent.objects.bulk_create(
             [
-                AnalyticsEvent(kind=AnalyticsEvent.Kind.IMPRESSION, provider=self.provider),
-                AnalyticsEvent(kind=AnalyticsEvent.Kind.IMPRESSION, provider=self.provider),
-                AnalyticsEvent(kind=AnalyticsEvent.Kind.PROFILE_VIEW, provider=self.provider),
+                AnalyticsEvent(
+                    kind=AnalyticsEvent.Kind.IMPRESSION,
+                    provider=self.provider,
+                ),
+                AnalyticsEvent(
+                    kind=AnalyticsEvent.Kind.IMPRESSION,
+                    provider=self.provider,
+                ),
+                AnalyticsEvent(
+                    kind=AnalyticsEvent.Kind.PROFILE_VIEW,
+                    provider=self.provider,
+                ),
                 AnalyticsEvent(
                     kind=AnalyticsEvent.Kind.CONTACT_CLICK,
                     provider=self.provider,
