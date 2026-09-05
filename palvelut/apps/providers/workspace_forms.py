@@ -26,9 +26,9 @@ class ProviderProfileForm(forms.Form):
     )
     price_text = forms.CharField(max_length=160, required=False)
     primary_municipality = forms.ModelChoiceField(
-        queryset=Municipality.objects.filter(
-            region__country__code="FI"
-        ).order_by("name"),
+        queryset=Municipality.objects.filter(region__country__code="FI").order_by(
+            "name"
+        ),
         required=False,
         empty_label="Choose a city",
     )
@@ -200,9 +200,7 @@ class ProviderProfileForm(forms.Form):
             services = [
                 {
                     "category_id": str(category.pk),
-                    "title": str(
-                        self.cleaned_data.get("service_title") or ""
-                    ).strip(),
+                    "title": str(self.cleaned_data.get("service_title") or "").strip(),
                     "description": str(
                         self.cleaned_data.get("service_description") or ""
                     ).strip(),
