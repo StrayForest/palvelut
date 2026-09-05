@@ -61,7 +61,7 @@ class ProviderLoginView(LoginView):
 
     def dispatch(self, request, *args, **kwargs):
         if request.method == "POST":
-            identity = request.POST.get("username", "")
+            identity = request.POST.get("username", "").strip()
             if rate_limited(
                 "login", f"{request.META.get('REMOTE_ADDR', '')}:{identity}"
             ):
