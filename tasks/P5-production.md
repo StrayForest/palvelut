@@ -4,7 +4,6 @@ Depends: P4. Read: `docs/06-quality.md`, `docs/07-operations.md`.
 
 ## Build
 
-- Blue/green web deploy/rollback plus worker drain/replace and singleton scheduler workflows using the exact tested image digest and backward-compatible migrations.
 - Synthetic monitoring for home, search, profile and contact redirect.
 
 ## Accept
