@@ -158,7 +158,11 @@ urlpatterns = [
         provider_case_detail,
         name="provider-content-case-detail",
     ),
-    path("palvelut/report/status/<uuid:case_id>/", report_status, name="content-report-status"),
+    path(
+        "palvelut/report/status/<uuid:case_id>/",
+        report_status,
+        name="content-report-status",
+    ),
     path("palvelut/staff/claims/", staff_claim_list, name="staff-claim-list"),
     path(
         "palvelut/staff/claims/<uuid:provider_id>/",
