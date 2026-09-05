@@ -71,6 +71,7 @@ DOMAIN_APPS = [
     "palvelut.apps.discovery.apps.DiscoveryConfig",
     "palvelut.apps.analytics.apps.AnalyticsConfig",
     "palvelut.apps.content.apps.ContentConfig",
+    "palvelut.apps.jobs.apps.JobsConfig",
 ]
 
 INSTALLED_APPS = [
@@ -138,10 +139,14 @@ CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://valkey:6379/1")
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://valkey:6379/2")
 CELERY_TIMEZONE = "Europe/Helsinki"
 CELERY_BEAT_SCHEDULE = {
-    "purge-expired-analytics": {
-        "task": "palvelut.analytics.purge_expired",
+    "enqueue-daily-maintenance": {
+        "task": "palvelut.jobs.enqueue_daily_maintenance",
         "schedule": crontab(hour=3, minute=20),
-    }
+    },
+    "dispatch-outbox": {
+        "task": "palvelut.jobs.dispatch_outbox",
+        "schedule": crontab(),
+    },
 }
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
