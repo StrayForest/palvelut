@@ -18,7 +18,10 @@ class HealthContractTests(SimpleTestCase):
         self.client = Client()
 
     def test_liveness_is_dependency_free_and_not_cacheable(self):
-        with mock.patch("palvelut.views.connection") as database, mock.patch("palvelut.views.cache") as cache:
+        with (
+            mock.patch("palvelut.views.connection") as database,
+            mock.patch("palvelut.views.cache") as cache,
+        ):
             response = self.client.get("/palvelut/health/live")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {"status": "ok"})
@@ -35,7 +38,10 @@ class HealthContractTests(SimpleTestCase):
         cache = mock.MagicMock()
         cache.get.return_value = "ok"
 
-        with mock.patch("palvelut.views.connection", database), mock.patch("palvelut.views.cache", cache):
+        with (
+            mock.patch("palvelut.views.connection", database),
+            mock.patch("palvelut.views.cache", cache),
+        ):
             response = self.client.get("/palvelut/health/ready")
 
         self.assertEqual(response.status_code, 200)
@@ -57,11 +63,16 @@ class HealthContractTests(SimpleTestCase):
                 cache = mock.MagicMock()
                 cache.get.return_value = "ok"
                 if failed_dependency == "database":
-                    database.cursor.side_effect = RuntimeError("database detail must not leak")
+                    database.cursor.side_effect = RuntimeError(
+                        "database detail must not leak"
+                    )
                 else:
                     cache.get.return_value = None
 
-                with mock.patch("palvelut.views.connection", database), mock.patch("palvelut.views.cache", cache):
+                with (
+                    mock.patch("palvelut.views.connection", database),
+                    mock.patch("palvelut.views.cache", cache),
+                ):
                     response = self.client.get("/palvelut/health/ready")
 
                 self.assertEqual(response.status_code, 503)
@@ -80,12 +91,18 @@ class EnvironmentValidationTests(SimpleTestCase):
         with (
             mock.patch.object(app_settings, "ENVIRONMENT", "production"),
             mock.patch.object(app_settings, "DEBUG", True),
-            mock.patch.object(app_settings, "SECRET_KEY", "p0-bootstrap-only-not-for-production"),
+            mock.patch.object(
+                app_settings, "SECRET_KEY", "p0-bootstrap-only-not-for-production"
+            ),
             mock.patch.object(app_settings, "ALLOWED_HOSTS", ["localhost"]),
-            mock.patch.object(app_settings, "PUBLIC_BASE_URL", "http://localhost:8000/palvelut"),
+            mock.patch.object(
+                app_settings, "PUBLIC_BASE_URL", "http://localhost:8000/palvelut"
+            ),
             mock.patch.dict(os.environ, {}, clear=True),
         ):
-            with self.assertRaisesRegex(RuntimeError, "Unsafe production configuration"):
+            with self.assertRaisesRegex(
+                RuntimeError, "Unsafe production configuration"
+            ):
                 app_settings._validate_environment()
 
     def test_production_like_environment_accepts_explicit_https_configuration(self):
@@ -98,7 +115,9 @@ class EnvironmentValidationTests(SimpleTestCase):
             mock.patch.object(app_settings, "DEBUG", False),
             mock.patch.object(app_settings, "SECRET_KEY", "explicit-secret"),
             mock.patch.object(app_settings, "ALLOWED_HOSTS", ["finrix.fi"]),
-            mock.patch.object(app_settings, "PUBLIC_BASE_URL", "https://finrix.fi/palvelut"),
+            mock.patch.object(
+                app_settings, "PUBLIC_BASE_URL", "https://finrix.fi/palvelut"
+            ),
             mock.patch.dict(os.environ, env, clear=True),
         ):
             app_settings._validate_environment()

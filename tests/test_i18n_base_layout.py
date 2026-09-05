@@ -22,7 +22,7 @@ class I18nBaseLayoutContractTests(TestCase):
 
         self.assertIn('<html lang="fi">', html)
         self.assertIn('href="#main-content"', html)
-        self.assertIn('<nav aria-label=', html)
+        self.assertIn("<nav aria-label=", html)
         self.assertIn('id="main-content"', html)
         self.assertIn('tabindex="-1"', html)
 

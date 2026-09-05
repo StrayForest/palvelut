@@ -13,7 +13,15 @@ class ComposeContractTests(unittest.TestCase):
         self.dockerfile = (self.root / "Dockerfile").read_text()
 
     def test_required_services_are_declared(self) -> None:
-        for service in ("postgres", "valkey", "mailpit", "minio", "web", "worker", "nginx"):
+        for service in (
+            "postgres",
+            "valkey",
+            "mailpit",
+            "minio",
+            "web",
+            "worker",
+            "nginx",
+        ):
             self.assertIn(f"\n  {service}:\n", self.compose)
 
     def test_database_and_cache_are_not_published_to_host(self) -> None:
@@ -41,12 +49,19 @@ class ComposeContractTests(unittest.TestCase):
         deps = "\n".join(dependencies).lower()
         for dependency in ("celery", "gunicorn", "psycopg", "uvicorn-worker"):
             self.assertIn(dependency, deps)
-        uvicorn_worker = next(dep for dep in dependencies if dep.lower().startswith("uvicorn-worker"))
+        uvicorn_worker = next(
+            dep for dep in dependencies if dep.lower().startswith("uvicorn-worker")
+        )
         self.assertEqual(uvicorn_worker, "uvicorn-worker>=0.4,<0.5")
 
     def test_django_is_wired_to_postgres_valkey_mailpit_and_minio(self) -> None:
-        self.assertEqual(settings.DATABASES["default"]["ENGINE"], "django.db.backends.postgresql")
-        self.assertEqual(settings.CACHES["default"]["BACKEND"], "django.core.cache.backends.redis.RedisCache")
+        self.assertEqual(
+            settings.DATABASES["default"]["ENGINE"], "django.db.backends.postgresql"
+        )
+        self.assertEqual(
+            settings.CACHES["default"]["BACKEND"],
+            "django.core.cache.backends.redis.RedisCache",
+        )
         self.assertTrue(settings.CELERY_BROKER_URL.startswith("redis://"))
         self.assertEqual(settings.EMAIL_HOST, "mailpit")
         self.assertEqual(settings.OBJECT_STORAGE_ENDPOINT_URL, "http://minio:9000")
