@@ -63,7 +63,7 @@ def capture_exception(exc: BaseException, *, request_id: str | None = None) -> N
             "values": [
                 {
                     "type": type(exc).__name__,
-                    "value": str(exc)[:500],
+                    "value": "Unhandled exception; correlate by request_id in private logs",
                 }
             ]
         },
