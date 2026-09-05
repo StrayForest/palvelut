@@ -20,6 +20,7 @@ class EnvExampleContractTests(SimpleTestCase):
             "DJANGO_DEBUG",
             "DJANGO_ALLOWED_HOSTS",
             "PUBLIC_BASE_URL",
+            "SYNTHETIC_MONITOR_TOKEN",
             "POSTGRES_DB",
             "POSTGRES_USER",
             "POSTGRES_PASSWORD",
@@ -40,6 +41,7 @@ class EnvExampleContractTests(SimpleTestCase):
 
         for key in {
             "DJANGO_SECRET_KEY",
+            "SYNTHETIC_MONITOR_TOKEN",
             "POSTGRES_PASSWORD",
             "S3_ACCESS_KEY_ID",
             "S3_SECRET_ACCESS_KEY",
