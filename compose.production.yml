@@ -26,6 +26,36 @@ x-app-environment: &app-environment
   S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:?set S3_SECRET_ACCESS_KEY}
   S3_BUCKET_NAME: ${S3_BUCKET_NAME:?set S3_BUCKET_NAME}
 
+x-web: &web
+  image: ${PALVELUT_IMAGE:?set PALVELUT_IMAGE to ghcr.io/strayforest/palvelut@sha256:<digest>}
+  pull_policy: always
+  restart: unless-stopped
+  environment: *app-environment
+  depends_on:
+    postgres:
+      condition: service_healthy
+    valkey:
+      condition: service_healthy
+  healthcheck:
+    test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/palvelut/health/ready', timeout=2).read()"]
+    interval: 5s
+    timeout: 3s
+    retries: 30
+  networks: [backend]
+
+x-worker: &worker
+  image: ${PALVELUT_IMAGE:?set PALVELUT_IMAGE to ghcr.io/strayforest/palvelut@sha256:<digest>}
+  pull_policy: always
+  restart: unless-stopped
+  environment: *app-environment
+  depends_on:
+    postgres:
+      condition: service_healthy
+    valkey:
+      condition: service_healthy
+  stop_grace_period: 60s
+  networks: [backend]
+
 services:
   postgres:
     image: postgres:18-alpine@sha256:d3e1620b530c944afa6e887d22eb899824da68e19c52024bf98f5220c88a65b2
@@ -56,30 +86,29 @@ services:
       - valkey_data:/data
     networks: [backend]
 
-  web:
-    image: ${PALVELUT_IMAGE:?set PALVELUT_IMAGE to ghcr.io/strayforest/palvelut@sha256:<digest>}
-    pull_policy: always
-    restart: unless-stopped
-    environment: *app-environment
-    depends_on:
-      postgres:
-        condition: service_healthy
-      valkey:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/palvelut/health/ready', timeout=2).read()"]
-      interval: 5s
-      timeout: 3s
-      retries: 30
+  web_blue:
+    <<: *web
     ports:
-      - "127.0.0.1:8080:8000"
-    networks: [backend]
+      - "127.0.0.1:8081:8000"
 
-  worker:
+  web_green:
+    <<: *web
+    ports:
+      - "127.0.0.1:8082:8000"
+
+  worker_blue:
+    <<: *worker
+    command: ["celery", "-A", "palvelut.celery:app", "worker", "--loglevel=INFO", "--concurrency=2", "--hostname=worker-blue@%h"]
+
+  worker_green:
+    <<: *worker
+    command: ["celery", "-A", "palvelut.celery:app", "worker", "--loglevel=INFO", "--concurrency=2", "--hostname=worker-green@%h"]
+
+  scheduler:
     image: ${PALVELUT_IMAGE:?set PALVELUT_IMAGE to ghcr.io/strayforest/palvelut@sha256:<digest>}
     pull_policy: always
     restart: unless-stopped
-    command: ["celery", "-A", "palvelut.celery:app", "worker", "--loglevel=INFO", "--concurrency=2"]
+    command: ["celery", "-A", "palvelut.celery:app", "beat", "--loglevel=INFO"]
     environment: *app-environment
     depends_on:
       postgres:
