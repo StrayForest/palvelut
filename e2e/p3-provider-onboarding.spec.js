@@ -9,7 +9,7 @@ test("provider completes onboarding on mobile without staff edits", async ({ pag
   await page.setViewportSize({ width: 360, height: 800 });
 
   await page.goto("/palvelut/account/login/");
-  await page.getByLabel("Username").fill("provider-e2e@example.test");
+  await page.getByLabel("Email").fill("provider-e2e@example.test");
   await page.getByLabel("Password").fill("provider-e2e-pass");
   await page.getByRole("button", { name: "Sign in" }).click();
 
