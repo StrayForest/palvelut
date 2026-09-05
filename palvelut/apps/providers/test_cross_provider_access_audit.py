@@ -48,7 +48,9 @@ class CrossProviderAccessAuditTests(TestCase):
         path = reverse("provider-workspace-preview", args=[self.provider.pk])
         response = self.client.get(path)
         self._assert_denied_and_audited(response, method="GET", path=path)
-        self.assertFalse(ProfileRevision.objects.filter(provider=self.provider).exists())
+        self.assertFalse(
+            ProfileRevision.objects.filter(provider=self.provider).exists()
+        )
 
     def test_cross_provider_write_is_hidden_audited_and_does_not_mutate(self):
         path = reverse("provider-workspace-edit", args=[self.provider.pk])
@@ -65,7 +67,9 @@ class CrossProviderAccessAuditTests(TestCase):
         self.provider.refresh_from_db()
         self.assertEqual(self.provider.legal_name, "Protected Oy")
         self.assertEqual(self.provider.display_name, "Protected")
-        self.assertFalse(ProfileRevision.objects.filter(provider=self.provider).exists())
+        self.assertFalse(
+            ProfileRevision.objects.filter(provider=self.provider).exists()
+        )
 
     def test_denials_are_independently_audited_for_sensitive_actions(self):
         preview_path = reverse("provider-workspace-preview", args=[self.provider.pk])
