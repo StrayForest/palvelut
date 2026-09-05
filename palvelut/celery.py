@@ -3,7 +3,11 @@ import time
 
 from celery import Celery, signals
 
-from palvelut.observability import capture_exception, observe_queue_age, observe_queue_failure
+from palvelut.observability import (
+    capture_exception,
+    observe_queue_age,
+    observe_queue_failure,
+)
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "palvelut.settings")
 
