@@ -28,7 +28,9 @@ class CodespacesContractTests(unittest.TestCase):
         self.assertIn("DJANGO_CSRF_TRUSTED_ORIGINS", overlay)
         self.assertIn("app.github.dev", overlay)
 
-    def test_codespaces_start_script_waits_and_emits_localhost_forward_links(self) -> None:
+    def test_codespaces_start_script_waits_and_emits_localhost_forward_links(
+        self,
+    ) -> None:
         script = ROOT / ".devcontainer" / "start-codespace.sh"
         subprocess.run(["bash", "-n", str(script)], check=True)
         content = script.read_text()
