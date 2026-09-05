@@ -1,5 +1,6 @@
 import importlib.util
 from pathlib import Path
+import subprocess
 import tomllib
 import unittest
 
@@ -23,6 +24,17 @@ class BootstrapContractTests(unittest.TestCase):
     def setUp(self) -> None:
         self.root = Path(__file__).resolve().parents[1]
         self.workflow = (self.root / ".github/workflows/p0-compose.yml").read_text()
+
+    def test_ruff_format_debug(self) -> None:
+        result = subprocess.run(
+            ["ruff", "format", "--diff", "palvelut/metrics.py"],
+            cwd=self.root,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        print(result.stdout)
+        self.fail("temporary Ruff format debug")
 
     def test_python_and_django_contract_is_locked(self) -> None:
         project = tomllib.loads((self.root / "pyproject.toml").read_text())
