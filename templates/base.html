@@ -12,6 +12,7 @@
   {% for hreflang, href in hreflang_links %}<link rel="alternate" hreflang="{{ hreflang }}" href="{{ href }}">{% endfor %}
   {% if x_default_url %}<link rel="alternate" hreflang="x-default" href="{{ x_default_url }}">{% endif %}
   {% if structured_data_json %}<script type="application/ld+json" nonce="{{ request.csp_nonce }}">{{ structured_data_json|safe }}</script>{% endif %}
+  <meta name="htmx-config" content='{"includeIndicatorStyles": false}'>
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
   <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
   <script src="{% static 'vendor/alpine.min.js' %}" defer></script>
