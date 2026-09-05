@@ -5,7 +5,6 @@ import time
 import uuid
 from contextvars import ContextVar
 from datetime import datetime, timezone
-from hashlib import sha256
 from hmac import compare_digest
 from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
@@ -34,9 +33,7 @@ GAUGE_METRICS = {
     "palvelut_queue_oldest_age_seconds",
     "palvelut_backup_age_seconds",
 }
-OBSERVATION_METRICS = {
-    "palvelut_http_request_duration_seconds",
-}
+OBSERVATION_METRICS = {"palvelut_http_request_duration_seconds"}
 
 
 def current_request_id() -> str | None:
@@ -107,15 +104,15 @@ def render_prometheus_metrics() -> str:
         lines.extend(
             (
                 f"# TYPE {name} summary",
-                f'{name}_sum {total:g}',
-                f'{name}_count {count:g}',
+                f"{name}_sum {total:g}",
+                f"{name}_count {count:g}",
             )
         )
     return "\n".join(lines) + "\n"
 
 
 def metrics(request: HttpRequest) -> HttpResponse:
-    token = settings.METRICS_TOKEN
+    token = os.getenv("METRICS_TOKEN", "")
     if not token:
         return HttpResponse(status=404)
     supplied = request.headers.get("Authorization", "")
@@ -144,7 +141,7 @@ def _sentry_envelope_url(dsn: str) -> tuple[str, str] | None:
 
 
 def capture_exception(exc: BaseException) -> None:
-    dsn = settings.SENTRY_DSN
+    dsn = os.getenv("SENTRY_DSN", "")
     if not dsn:
         return
     endpoint = _sentry_envelope_url(dsn)
@@ -160,7 +157,7 @@ def capture_exception(exc: BaseException) -> None:
         "level": "error",
         "platform": "python",
         "environment": settings.ENVIRONMENT,
-        "release": settings.PALVELUT_RELEASE,
+        "release": os.getenv("PALVELUT_RELEASE", "unknown"),
         "tags": {"request_id": current_request_id() or "none"},
         "exception": {
             "values": [
