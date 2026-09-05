@@ -32,6 +32,12 @@ def set_gauge(name: str, value: float, *, labels: dict[str, str] | None = None) 
         _GAUGES[(name, _labels(labels))] = value
 
 
+def adjust_gauge(name: str, amount: float, *, labels: dict[str, str] | None = None) -> None:
+    with _LOCK:
+        key = (name, _labels(labels))
+        _GAUGES[key] = max(0.0, _GAUGES[key] + amount)
+
+
 def observe(name: str, value: float, *, labels: dict[str, str] | None = None) -> None:
     with _LOCK:
         _HISTOGRAMS[(name, _labels(labels))].append(value)
