@@ -9,7 +9,9 @@ from collections.abc import Iterable
 _LOCK = threading.Lock()
 _COUNTERS: dict[tuple[str, tuple[tuple[str, str], ...]], float] = defaultdict(float)
 _GAUGES: dict[tuple[str, tuple[tuple[str, str], ...]], float] = defaultdict(float)
-_HISTOGRAMS: dict[tuple[str, tuple[tuple[str, str], ...]], list[float]] = defaultdict(list)
+_HISTOGRAMS: dict[tuple[str, tuple[tuple[str, str], ...]], list[float]] = defaultdict(
+    list
+)
 
 REQUEST_LATENCY_BUCKETS = (0.05, 0.1, 0.3, 0.8, 1.5, 3.0)
 DB_QUERY_BUCKETS = (0.005, 0.01, 0.05, 0.1, 0.3, 1.0)
@@ -29,9 +31,7 @@ def inc(
         _COUNTERS[(name, _labels(labels))] += amount
 
 
-def set_gauge(
-    name: str, value: float, *, labels: dict[str, str] | None = None
-) -> None:
+def set_gauge(name: str, value: float, *, labels: dict[str, str] | None = None) -> None:
     with _LOCK:
         _GAUGES[(name, _labels(labels))] = value
 
@@ -44,9 +44,7 @@ def adjust_gauge(
         _GAUGES[key] = max(0.0, _GAUGES[key] + amount)
 
 
-def observe(
-    name: str, value: float, *, labels: dict[str, str] | None = None
-) -> None:
+def observe(name: str, value: float, *, labels: dict[str, str] | None = None) -> None:
     with _LOCK:
         _HISTOGRAMS[(name, _labels(labels))].append(value)
 
@@ -142,10 +140,10 @@ def render_prometheus() -> str:
         for upper in _histogram_buckets(name):
             count = sum(1 for value in values if value <= upper)
             lines.append(
-                f'{name}_bucket{_format_labels(labels, (("le", f"{upper:g}"),))} {count}'
+                f"{name}_bucket{_format_labels(labels, (('le', f'{upper:g}'),))} {count}"
             )
         lines.append(
-            f'{name}_bucket{_format_labels(labels, (("le", "+Inf"),))} {len(values)}'
+            f"{name}_bucket{_format_labels(labels, (('le', '+Inf'),))} {len(values)}"
         )
         lines.append(f"{name}_count{_format_labels(labels)} {len(values)}")
         lines.append(f"{name}_sum{_format_labels(labels)} {math.fsum(values):g}")
