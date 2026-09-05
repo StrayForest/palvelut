@@ -4,7 +4,6 @@ Depends: P3. Read: verification/staff sections of `docs/03-experience.md`; secur
 
 ## Build
 
-- YTJ/PRH verification adapter with source snapshots/metadata, retry bounds and manual fallback.
 - Extensible registry-check types; enable regulated-category sources only after legal/source review.
 - Public trust explanation, exact verification labels/dates and re-check expiry queue.
 - Anonymous content report, staff case workflow, provider notice and appeal/status trail.
