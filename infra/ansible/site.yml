@@ -11,8 +11,8 @@
           - ansible_distribution_version is version("24.04", ">=")
           - deploy_authorized_key is defined
           - deploy_authorized_key.startswith("ssh-")
-          - palvelut_secret_env is defined
-        fail_msg: "Ubuntu 24.04+, deploy_authorized_key and external palvelut_secret_env are required"
+          - palvelut_environment_file is defined
+        fail_msg: "Ubuntu 24.04+, deploy_authorized_key and external environment content are required"
 
   tasks:
     - name: Install baseline packages
@@ -29,8 +29,6 @@
     - name: Create deploy user
       ansible.builtin.user:
         name: "{{ palvelut_deploy_user }}"
-        groups: sudo
-        append: true
         shell: /bin/bash
         create_home: true
 
@@ -39,15 +37,6 @@
         user: "{{ palvelut_deploy_user }}"
         key: "{{ deploy_authorized_key }}"
         state: present
-
-    - name: Allow passwordless service administration for deploy user
-      ansible.builtin.copy:
-        dest: "/etc/sudoers.d/{{ palvelut_deploy_user }}"
-        owner: root
-        group: root
-        mode: "0440"
-        validate: "/usr/sbin/visudo -cf %s"
-        content: "{{ palvelut_deploy_user }} ALL=(ALL) NOPASSWD:ALL\n"
 
     - name: Harden SSH daemon policy
       ansible.builtin.copy:
@@ -137,7 +126,7 @@
         - { path: "{{ palvelut_root }}/shared", mode: "0750" }
         - { path: "{{ palvelut_root }}/backups", mode: "0750" }
 
-    - name: Create external secret directory
+    - name: Create external configuration directory
       ansible.builtin.file:
         path: "{{ palvelut_secret_dir }}"
         state: directory
@@ -145,13 +134,13 @@
         group: "{{ palvelut_deploy_user }}"
         mode: "0750"
 
-    - name: Place application secrets outside Git
+    - name: Place application environment outside Git
       ansible.builtin.copy:
         dest: "{{ palvelut_secret_dir }}/production.env"
         owner: root
         group: "{{ palvelut_deploy_user }}"
         mode: "0640"
-        content: "{{ palvelut_secret_env }}"
+        content: "{{ palvelut_environment_file }}"
       no_log: true
 
     - name: Install Nginx application site
