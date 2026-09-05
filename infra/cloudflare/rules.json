@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "zone": "finrix.fi",
+  "origin": "https://finrix.fi",
+  "cache_rules": [
+    {
+      "name": "palvelut-bypass-sensitive-or-stateful",
+      "priority": 10,
+      "action": "bypass_cache",
+      "expression": "starts_with(http.request.uri.path, \"/palvelut/\") and (http.request.method not in {\"GET\" \"HEAD\"} or len(http.request.headers[\"cookie\"][0]) gt 0 or starts_with(http.request.uri.path, \"/palvelut/account/\") or starts_with(http.request.uri.path, \"/palvelut/staff/\") or starts_with(http.request.uri.path, \"/palvelut/report/\") or http.request.uri.path in {\"/palvelut/health/live\" \"/palvelut/health/ready\"})"
+    },
+    {
+      "name": "palvelut-anonymous-public-respect-origin",
+      "priority": 20,
+      "action": "cache_eligible",
+      "edge_ttl_mode": "respect_origin",
+      "browser_ttl_mode": "respect_origin",
+      "expression": "http.request.method in {\"GET\" \"HEAD\"} and starts_with(http.request.uri.path, \"/palvelut/\") and len(http.request.headers[\"cookie\"][0]) eq 0 and not starts_with(http.request.uri.path, \"/palvelut/account/\") and not starts_with(http.request.uri.path, \"/palvelut/staff/\") and not starts_with(http.request.uri.path, \"/palvelut/report/\") and http.request.uri.path not in {\"/palvelut/health/live\" \"/palvelut/health/ready\"}"
+    }
+  ],
+  "waf": {
+    "managed_rulesets": [
+      "cloudflare-managed-ruleset",
+      "cloudflare-owasp-core-ruleset"
+    ],
+    "custom_rules": [
+      {
+        "name": "palvelut-reject-unused-http-methods",
+        "action": "block",
+        "expression": "starts_with(http.request.uri.path, \"/palvelut/\") and http.request.method not in {\"GET\" \"HEAD\" \"POST\" \"OPTIONS\"}"
+      }
+    ]
+  },
+  "rate_limits": [
+    {
+      "name": "palvelut-login",
+      "expression": "http.request.method eq \"POST\" and http.request.uri.path eq \"/palvelut/account/login/\"",
+      "characteristics": ["ip.src"],
+      "requests": 10,
+      "period_seconds": 60,
+      "mitigation_timeout_seconds": 600,
+      "action": "block"
+    },
+    {
+      "name": "palvelut-password-reset",
+      "expression": "http.request.method eq \"POST\" and http.request.uri.path eq \"/palvelut/account/password-reset/\"",
+      "characteristics": ["ip.src"],
+      "requests": 5,
+      "period_seconds": 900,
+      "mitigation_timeout_seconds": 900,
+      "action": "block"
+    },
+    {
+      "name": "palvelut-register",
+      "expression": "http.request.method eq \"POST\" and http.request.uri.path eq \"/palvelut/account/register/\"",
+      "characteristics": ["ip.src"],
+      "requests": 5,
+      "period_seconds": 900,
+      "mitigation_timeout_seconds": 900,
+      "action": "block"
+    },
+    {
+      "name": "palvelut-content-report",
+      "expression": "http.request.method eq \"POST\" and starts_with(http.request.uri.path, \"/palvelut/\") and contains(http.request.uri.path, \"/report/\")",
+      "characteristics": ["ip.src"],
+      "requests": 10,
+      "period_seconds": 3600,
+      "mitigation_timeout_seconds": 3600,
+      "action": "block"
+    }
+  ],
+  "purge": {
+    "mode": "exact_url_only",
+    "allowed_origin": "https://finrix.fi",
+    "allowed_path_prefix": "/palvelut/",
+    "maximum_urls_per_request": 30,
+    "purge_everything": false,
+    "script": "infra/scripts/purge-cloudflare-cache.sh"
+  }
+}
