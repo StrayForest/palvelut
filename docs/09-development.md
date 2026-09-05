@@ -57,6 +57,19 @@ Use `make reset` when disposable local state must be rebuilt. It is project-scop
 
 Docker Desktop owns the Docker daemon; do not install or start a second Docker daemon inside WSL for this workflow.
 
+## GitHub Codespaces preview
+
+Codespaces is an optional disposable preview environment for manually opening and testing the application without a separate VPS or local Docker installation. It is not a production deployment target.
+
+1. In GitHub, open **Code → Codespaces → Create codespace on main**.
+2. The repository devcontainer installs Docker-in-Docker, runs `make bootstrap`, starts the normal Compose services, applies migrations and runs `make seed-demo` equivalent setup automatically.
+3. Open forwarded port `8000` to view `/palvelut/ru/`.
+4. Open forwarded port `8025` for Mailpit when testing registration, verification and password-reset emails.
+
+The Codespaces overlay only changes the externally visible preview origin so Django accepts the GitHub forwarded HTTPS host and generates canonical URLs for that temporary environment. PostgreSQL, Valkey, Mailpit, MinIO, web, worker and nginx remain the same project services used by local development.
+
+Stopping or deleting a Codespace does not affect production or any persistent external environment.
+
 ## Command contract
 
 | Command | Purpose |
