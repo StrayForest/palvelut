@@ -14,6 +14,7 @@ concurrency:
 
 jobs:
   production:
+    if: vars.SYNTHETIC_MONITOR_ENABLED == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 3
     env:
