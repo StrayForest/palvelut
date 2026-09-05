@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+from datetime import datetime
+
 from django.contrib.auth.models import AbstractBaseUser
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
+from django.db.models import Exists, OuterRef, QuerySet
+from django.utils import timezone
 
 from palvelut.apps.providers.models import Provider
 
@@ -14,6 +18,28 @@ from .registry import get_registry_check_type
 def _require_staff(actor: AbstractBaseUser) -> None:
     if not actor.is_authenticated or not actor.is_staff:
         raise PermissionDenied("Staff access is required for verification changes")
+
+
+def recheck_expiry_queue(*, at: datetime | None = None) -> QuerySet[VerificationCheck]:
+    """Return expired latest verified facts that require a fresh registry check."""
+
+    now = at or timezone.now()
+    newer_check = VerificationCheck.objects.filter(
+        provider_id=OuterRef("provider_id"),
+        kind=OuterRef("kind"),
+        checked_at__gt=OuterRef("checked_at"),
+    )
+    return (
+        VerificationCheck.objects.filter(
+            status=VerificationCheck.Status.VERIFIED,
+            expires_at__isnull=False,
+            expires_at__lte=now,
+        )
+        .annotate(has_newer_check=Exists(newer_check))
+        .filter(has_newer_check=False)
+        .select_related("provider")
+        .order_by("expires_at", "checked_at", "id")
+    )
 
 
 @transaction.atomic

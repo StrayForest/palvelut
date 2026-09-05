@@ -38,6 +38,7 @@ from palvelut.apps.providers.workspace_views import (
     upload_profile_media,
     workspace,
 )
+from palvelut.apps.verification.views import trust
 from palvelut.views import health_live, health_ready, public_mount_root
 
 cached_home = public_read_through_cache(
@@ -69,6 +70,12 @@ cached_city_category = track_provider_events("impression")(
         stale_while_revalidate=86400,
     )(city_category)
 )
+cached_trust = public_read_through_cache(
+    namespace="trust-v1",
+    application_ttl=3600,
+    shared_max_age=3600,
+    stale_while_revalidate=86400,
+)(trust)
 
 urlpatterns = [
     path("palvelut/health/live", health_live, name="health-live"),
@@ -143,6 +150,7 @@ urlpatterns = [
     path("palvelut/", public_mount_root, name="public-mount-root"),
     path("palvelut/<str:locale>/", cached_home, name="localized-home"),
     path("palvelut/<str:locale>/search/", cached_search, name="discovery-search"),
+    path("palvelut/<str:locale>/trust/", cached_trust, name="trust"),
     path(
         "palvelut/<str:locale>/professionals/<slug:slug>/",
         cached_profile,
