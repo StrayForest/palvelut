@@ -97,7 +97,10 @@ class ObservabilityContractTests(SimpleTestCase):
             "palvelut_backup_failures_total",
         }
         for metric_name in required:
-            self.assertTrue(metric_name in rendered or metric_name in alerts, metric_name)
+            self.assertTrue(
+                metric_name in rendered or metric_name in alerts,
+                metric_name,
+            )
         for alert_block in alerts.split("- alert:")[1:]:
             self.assertIn("runbook:", alert_block)
 
