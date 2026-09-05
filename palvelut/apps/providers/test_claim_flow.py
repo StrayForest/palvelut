@@ -8,23 +8,25 @@ from palvelut.apps.moderation.models import AuditEvent
 from .claim_services import resolve_provider_claim, submit_provider_claim
 from .models import Provider, ProviderMembership
 
+TEST_PASSWORD = "Strong-passphrase-2026!"  # test-only
+
 
 class ProviderClaimFlowTests(TestCase):
     def setUp(self) -> None:
         self.claimant = get_user_model().objects.create_user(
             username="claimant@example.com",
             email="claimant@example.com",
-            password="Strong-passphrase-2026!",
+            password=TEST_PASSWORD,
         )
         self.other = get_user_model().objects.create_user(
             username="other@example.com",
             email="other@example.com",
-            password="Strong-passphrase-2026!",
+            password=TEST_PASSWORD,
         )
         self.staff = get_user_model().objects.create_user(
             username="staff-claim@example.com",
             email="staff-claim@example.com",
-            password="Strong-passphrase-2026!",
+            password=TEST_PASSWORD,
             is_staff=True,
         )
         self.provider = Provider.objects.create(
