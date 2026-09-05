@@ -54,9 +54,7 @@ class ProviderProfileForm(forms.Form):
 
     def clean_services(self) -> list[dict[str, Any]]:
         items = self._list_of_dicts("services")
-        category_ids = {
-            str(item.get("category_id", "")).strip() for item in items
-        }
+        category_ids = {str(item.get("category_id", "")).strip() for item in items}
         category_ids.discard("")
         known = set(
             Category.objects.filter(pk__in=category_ids).values_list("pk", flat=True)
@@ -101,16 +99,12 @@ class ProviderProfileForm(forms.Form):
                 raise forms.ValidationError(
                     "Each service area needs municipality_id and mode."
                 )
-            normalized.append(
-                {"municipality_id": municipality_id, "mode": mode}
-            )
+            normalized.append({"municipality_id": municipality_id, "mode": mode})
         return normalized
 
     def clean_languages(self) -> list[dict[str, Any]]:
         items = self._list_of_dicts("languages")
-        language_ids = {
-            str(item.get("language_id", "")).strip() for item in items
-        }
+        language_ids = {str(item.get("language_id", "")).strip() for item in items}
         language_ids.discard("")
         known = set(
             Language.objects.filter(pk__in=language_ids).values_list("pk", flat=True)
