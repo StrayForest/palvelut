@@ -183,6 +183,40 @@ class PublicDiscoverySurfaceTests(TestCase):
         self.assertContains(profile, "Approved Public Accounting")
         self.assertContains(profile, "Approved copy")
 
+    def test_pending_edits_do_not_replace_live_approved_public_state(self) -> None:
+        pending = ProfileRevision.objects.create(
+            provider=self.published,
+            status=ProfileRevision.Status.PENDING,
+            payload={
+                "display_name": "Unapproved Pending Accounting",
+                "about": "Pending copy must stay private",
+            },
+            created_by=get_user_model().objects.get(username="discovery-reviewer"),
+        )
+
+        read_document = ProviderReadDocument.objects.get(provider=self.published)
+        self.assertNotEqual(read_document.source_revision_id, pending.pk)
+        self.assertEqual(
+            read_document.document["display_name"], "Approved Public Accounting"
+        )
+
+        search_response = self.client.get(
+            "/palvelut/en/search/",
+            {"q": "bookkeeper", "city": "Helsinki"},
+        )
+        self.assertEqual(search_response.status_code, 200)
+        self.assertContains(search_response, "Approved Public Accounting")
+        self.assertNotContains(search_response, "Unapproved Pending Accounting")
+
+        profile_response = self.client.get(
+            "/palvelut/en/professionals/public-accounting/"
+        )
+        self.assertEqual(profile_response.status_code, 200)
+        self.assertContains(profile_response, "Approved Public Accounting")
+        self.assertContains(profile_response, "Approved copy")
+        self.assertNotContains(profile_response, "Unapproved Pending Accounting")
+        self.assertNotContains(profile_response, "Pending copy must stay private")
+
     def test_suspended_provider_profile_is_not_public(self) -> None:
         ProviderSlug.objects.create(
             provider=Provider.objects.get(legal_name="Hidden Accounting Oy"),
