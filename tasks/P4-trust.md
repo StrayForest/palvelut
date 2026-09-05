@@ -4,7 +4,6 @@ Depends: P3. Read: verification/staff sections of `docs/03-experience.md`; secur
 
 ## Build
 
-- Anonymous content report, staff case workflow, provider notice and appeal/status trail.
 - Privacy/terms/cookies/accessibility templates and data access/export/delete staff workflow.
 
 ## Accept
