@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError
 from django.http import Http404, HttpRequest, HttpResponse
 
 from palvelut.apps.analytics.models import AnalyticsEvent
+from palvelut.apps.analytics.services import is_synthetic_request
 from palvelut.apps.providers.models import ContactChannel, Provider
 
 _PHONE_RE = re.compile(r"^[+0-9().\-\s]{3,40}$")
@@ -85,11 +86,12 @@ def contact_redirect(
         raise Http404("Contact channel not found")
 
     destination = _contact_destination(contact)
-    AnalyticsEvent.objects.create(
-        kind=AnalyticsEvent.Kind.CONTACT_CLICK,
-        provider=contact.provider,
-        channel=contact.kind,
-    )
+    if not is_synthetic_request(request):
+        AnalyticsEvent.objects.create(
+            kind=AnalyticsEvent.Kind.CONTACT_CLICK,
+            provider=contact.provider,
+            channel=contact.kind,
+        )
     response = HttpResponse(status=302)
     response.headers["Location"] = destination
     response.headers["Cache-Control"] = "private, no-store"
