@@ -22,23 +22,31 @@ def _labels(labels: dict[str, str] | None) -> tuple[tuple[str, str], ...]:
     return tuple(sorted((str(key), str(value)) for key, value in labels.items()))
 
 
-def inc(name: str, *, labels: dict[str, str] | None = None, amount: float = 1.0) -> None:
+def inc(
+    name: str, *, labels: dict[str, str] | None = None, amount: float = 1.0
+) -> None:
     with _LOCK:
         _COUNTERS[(name, _labels(labels))] += amount
 
 
-def set_gauge(name: str, value: float, *, labels: dict[str, str] | None = None) -> None:
+def set_gauge(
+    name: str, value: float, *, labels: dict[str, str] | None = None
+) -> None:
     with _LOCK:
         _GAUGES[(name, _labels(labels))] = value
 
 
-def adjust_gauge(name: str, amount: float, *, labels: dict[str, str] | None = None) -> None:
+def adjust_gauge(
+    name: str, amount: float, *, labels: dict[str, str] | None = None
+) -> None:
     with _LOCK:
         key = (name, _labels(labels))
         _GAUGES[key] = max(0.0, _GAUGES[key] + amount)
 
 
-def observe(name: str, value: float, *, labels: dict[str, str] | None = None) -> None:
+def observe(
+    name: str, value: float, *, labels: dict[str, str] | None = None
+) -> None:
     with _LOCK:
         _HISTOGRAMS[(name, _labels(labels))].append(value)
 
@@ -72,7 +80,10 @@ def record_queue(*, age_seconds: float | None = None, failed: bool = False) -> N
 
 
 def record_email(*, delivered: bool) -> None:
-    inc("palvelut_email_delivery_total", labels={"result": "delivered" if delivered else "failed"})
+    inc(
+        "palvelut_email_delivery_total",
+        labels={"result": "delivered" if delivered else "failed"},
+    )
 
 
 def record_media_failure() -> None:
@@ -93,7 +104,10 @@ def _escape(value: str) -> str:
     return value.replace("\\", "\\\\").replace("\n", "\\n").replace('"', '\\"')
 
 
-def _format_labels(labels: tuple[tuple[str, str], ...], extra: Iterable[tuple[str, str]] = ()) -> str:
+def _format_labels(
+    labels: tuple[tuple[str, str], ...],
+    extra: Iterable[tuple[str, str]] = (),
+) -> str:
     pairs = [*labels, *extra]
     if not pairs:
         return ""
