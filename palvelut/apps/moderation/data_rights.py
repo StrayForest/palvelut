@@ -6,7 +6,9 @@ from .models import DataSubjectRequest, DataSubjectRequestEvent
 
 
 @transaction.atomic
-def create_data_subject_request(*, account, kind: str, note: str = "") -> DataSubjectRequest:
+def create_data_subject_request(
+    *, account, kind: str, note: str = ""
+) -> DataSubjectRequest:
     if kind not in DataSubjectRequest.Kind.values:
         raise ValidationError("Unsupported data request type")
     request = DataSubjectRequest.objects.create(
