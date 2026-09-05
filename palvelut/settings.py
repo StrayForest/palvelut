@@ -2,6 +2,8 @@ import os
 from pathlib import Path
 from urllib.parse import urlsplit
 
+from celery.schedules import crontab
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 ENVIRONMENT = os.getenv("PALVELUT_ENVIRONMENT", "local").strip().lower()
@@ -134,6 +136,12 @@ CACHES = {
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://valkey:6379/1")
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://valkey:6379/2")
 CELERY_TIMEZONE = "Europe/Helsinki"
+CELERY_BEAT_SCHEDULE = {
+    "purge-expired-analytics": {
+        "task": "palvelut.analytics.purge_expired",
+        "schedule": crontab(hour=3, minute=20),
+    }
+}
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = os.getenv("EMAIL_HOST", "mailpit")
