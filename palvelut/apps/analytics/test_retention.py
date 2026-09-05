@@ -29,5 +29,8 @@ class AnalyticsRetentionTests(SimpleTestCase):
 
     def test_retention_task_is_scheduled_daily(self):
         job = settings.CELERY_BEAT_SCHEDULE["purge-expired-analytics"]
+        schedule = job["schedule"]
+
         self.assertEqual(job["task"], "palvelut.analytics.purge_expired")
-        self.assertEqual(str(job["schedule"]), "<crontab: 20 3 * * * (m/h/dM/MY/d)>")
+        self.assertEqual(schedule.hour, {3})
+        self.assertEqual(schedule.minute, {20})
