@@ -35,8 +35,7 @@ class ProviderAccountSecurityTests(TestCase):
         self.assertNotIn(verification.token_hash, mail.outbox[0].body)
 
         token_match = re.search(r"/verify/([^/]+)/", mail.outbox[0].body)
-        if token_match is None:
-            self.fail("verification token missing from email")
+        assert token_match is not None
         token = token_match.group(1)
         verified = self.client.get(
             reverse("account-verify-email", kwargs={"token": token})
