@@ -21,6 +21,8 @@
           - ca-certificates
           - curl
           - nginx
+          - rclone
+          - restic
           - unattended-upgrades
           - ufw
         state: present
