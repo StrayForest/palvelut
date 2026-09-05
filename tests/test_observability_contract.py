@@ -68,7 +68,8 @@ class ObservabilityContractTests(SimpleTestCase):
             settings.LOGGING["handlers"]["console"]["filters"], ["request_id"]
         )
         self.assertEqual(
-            settings.EMAIL_BACKEND, "palvelut.observability.MetricsSMTPEmailBackend"
+            settings.EMAIL_BACKEND,
+            "palvelut.observability.MetricsSMTPEmailBackend",
         )
         self.assertTrue(hasattr(settings, "SENTRY_DSN"))
         self.assertTrue(hasattr(settings, "SENTRY_RELEASE"))
@@ -136,6 +137,4 @@ class ObservabilityContractTests(SimpleTestCase):
         self.assertIn('schema="quality-v1"', payload)
         self.assertIn("palvelut_db_connections 2.0", payload)
         self.assertIn("palvelut_queue_depth 3.0", payload)
-        self.assertIn(
-            'palvelut_backup_runs_total{result="success"} 4.0', payload
-        )
+        self.assertIn('palvelut_backup_runs_total{result="success"} 4.0', payload)
