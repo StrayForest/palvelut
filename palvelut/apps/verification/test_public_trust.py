@@ -1,4 +1,5 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
@@ -84,6 +85,41 @@ class PublicTrustTests(TestCase):
             f"{timezone.localtime(checked_at).date().isoformat()}",
         )
         self.assertNotIn("Verified professional", facts[0].label)
+
+    def test_label_snapshots_for_supported_fact_kinds(self) -> None:
+        checked_at = datetime(2026, 9, 6, 12, 0, tzinfo=ZoneInfo("Europe/Helsinki"))
+        expires_at = checked_at + timedelta(days=30)
+        source_urls = {
+            "business_identity": "https://avoindata.prh.fi/",
+            "professional_right": "https://julkiterhikki.valvira.fi/",
+        }
+        for kind, source_url in source_urls.items():
+            check = VerificationCheck.objects.create(
+                provider=self.provider,
+                kind=kind,
+                status=VerificationCheck.Status.VERIFIED,
+                source_url=source_url,
+                checked_by=self.staff,
+                expires_at=expires_at,
+            )
+            VerificationCheck.objects.filter(pk=check.pk).update(checked_at=checked_at)
+
+        snapshots = {
+            fact.kind: fact.label
+            for fact in public_verification_facts(self.provider, at=checked_at)
+        }
+
+        self.assertEqual(
+            snapshots,
+            {
+                "business_identity": (
+                    "Y-tunnus found in PRH YTJ Open Data API v3 · checked 2026-09-06"
+                ),
+                "professional_right": (
+                    "Professional right found in JulkiTerhikki · checked 2026-09-06"
+                ),
+            },
+        )
 
     def test_expired_fact_is_hidden_and_enters_recheck_queue(self) -> None:
         now = timezone.now()
