@@ -86,6 +86,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "palvelut.observability.RequestIdMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "palvelut.security.SecurityPolicyMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -189,6 +190,9 @@ USE_TZ = True
 STATIC_URL = "/palvelut/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+X_FRAME_OPTIONS = "DENY"
 SECURE_CROSS_ORIGIN_OPENER_POLICY = (
     "same-origin" if ENVIRONMENT in {"staging", "production"} else None
 )
