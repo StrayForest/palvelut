@@ -24,7 +24,9 @@ _access_logger = logging.getLogger("palvelut.request")
 _observability_logger = logging.getLogger("palvelut.observability")
 _metrics_lock = threading.Lock()
 _counters: dict[tuple[str, tuple[tuple[str, str], ...]], float] = defaultdict(float)
-_histograms: dict[tuple[str, tuple[tuple[str, str], ...]], list[float]] = defaultdict(list)
+_histograms: dict[tuple[str, tuple[tuple[str, str], ...]], list[float]] = defaultdict(
+    list
+)
 
 REQUEST_BUCKETS = (0.05, 0.1, 0.3, 0.8, 1.5, 3.0, 10.0)
 DB_BUCKETS = (0.01, 0.05, 0.1, 0.3, 1.0, 3.0)
@@ -68,14 +70,18 @@ def _shared_increment(signal: str, amount: int = 1) -> None:
         cache.add(key, 0, timeout=None)
         cache.incr(key, amount)
     except Exception:
-        _observability_logger.warning("shared_metric_increment_failed", extra={"signal": signal})
+        _observability_logger.warning(
+            "shared_metric_increment_failed", extra={"signal": signal}
+        )
 
 
 def _shared_set(signal: str, value: float) -> None:
     try:
         cache.set(_SHARED_SIGNAL_KEYS[signal], value, timeout=None)
     except Exception:
-        _observability_logger.warning("shared_metric_set_failed", extra={"signal": signal})
+        _observability_logger.warning(
+            "shared_metric_set_failed", extra={"signal": signal}
+        )
 
 
 def observe_queue_age(seconds: float) -> None:
@@ -100,7 +106,12 @@ def _sentry_endpoint() -> tuple[str, str] | None:
         return None
     parsed = urllib_parse.urlsplit(dsn)
     project_id = parsed.path.strip("/")
-    if parsed.scheme not in {"http", "https"} or not parsed.hostname or not parsed.username or not project_id:
+    if (
+        parsed.scheme not in {"http", "https"}
+        or not parsed.hostname
+        or not parsed.username
+        or not project_id
+    ):
         return None
     host = parsed.hostname
     if parsed.port:
@@ -121,7 +132,9 @@ def capture_exception(exc: BaseException, *, request_id: str | None = None) -> N
         "timestamp": now,
         "platform": "python",
         "level": "error",
-        "environment": getattr(settings, "SENTRY_ENVIRONMENT", settings.ENVIRONMENT),
+        "environment": getattr(
+            settings, "SENTRY_ENVIRONMENT", settings.ENVIRONMENT
+        ),
         "release": getattr(settings, "SENTRY_RELEASE", "") or None,
         "tags": {"request_id": request_id or "none"},
         "exception": {
@@ -136,8 +149,13 @@ def capture_exception(exc: BaseException, *, request_id: str | None = None) -> N
     }
     envelope = "\n".join(
         (
-            json.dumps({"event_id": event_id, "sent_at": now}, separators=(",", ":")),
-            json.dumps({"type": "event", "content_type": "application/json"}, separators=(",", ":")),
+            json.dumps(
+                {"event_id": event_id, "sent_at": now}, separators=(",", ":")
+            ),
+            json.dumps(
+                {"type": "event", "content_type": "application/json"},
+                separators=(",", ":"),
+            ),
             json.dumps(event, separators=(",", ":")),
         )
     ).encode()
@@ -146,7 +164,10 @@ def capture_exception(exc: BaseException, *, request_id: str | None = None) -> N
         data=envelope,
         headers={
             "Content-Type": "application/x-sentry-envelope",
-            "X-Sentry-Auth": f"Sentry sentry_version=7, sentry_key={public_key}, sentry_client=palvelut/1",
+            "X-Sentry-Auth": (
+                "Sentry sentry_version=7, "
+                f"sentry_key={public_key}, sentry_client=palvelut/1"
+            ),
         },
         method="POST",
     )
@@ -165,7 +186,9 @@ class RequestIdFilter(logging.Filter):
 class JsonFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         payload: dict[str, Any] = {
-            "timestamp": datetime.fromtimestamp(record.created, tz=timezone.utc).isoformat(),
+            "timestamp": datetime.fromtimestamp(
+                record.created, tz=timezone.utc
+            ).isoformat(),
             "level": record.levelname,
             "logger": record.name,
             "message": record.getMessage(),
@@ -187,7 +210,9 @@ def _db_execute_observer(execute, sql, params, many, context):
     finally:
         duration = time.monotonic() - started
         metric_observe("palvelut_db_query_duration_seconds", duration)
-        slow_threshold = getattr(settings, "OBSERVABILITY_SLOW_QUERY_MS", 300) / 1000
+        slow_threshold = (
+            getattr(settings, "OBSERVABILITY_SLOW_QUERY_MS", 300) / 1000
+        )
         if duration >= slow_threshold:
             metric_inc("palvelut_db_slow_query_total")
 
@@ -211,7 +236,8 @@ class RequestIdMiddleware:
             response["X-Request-ID"] = request_id
             duration = time.monotonic() - started
             duration_ms = round(duration * 1000, 2)
-            route_name = getattr(getattr(request, "resolver_match", None), "url_name", None) or "unmatched"
+            resolver_match = getattr(request, "resolver_match", None)
+            route_name = getattr(resolver_match, "url_name", None) or "unmatched"
             route_class = (
                 "health"
                 if route_name.startswith("health-")
@@ -259,7 +285,11 @@ class MetricsSMTPEmailBackend(SMTPEmailBackend):
         return sent
 
 
-def _metric_line(name: str, value: float, labels: tuple[tuple[str, str], ...] = ()) -> str:
+def _metric_line(
+    name: str,
+    value: float,
+    labels: tuple[tuple[str, str], ...] = (),
+) -> str:
     label_text = ""
     if labels:
         rendered = ",".join(
@@ -279,8 +309,18 @@ def _histogram_lines(
     lines: list[str] = []
     for bucket in buckets:
         bucket_labels = labels + (("le", str(bucket)),)
-        lines.append(_metric_line(f"{name}_bucket", sum(value <= bucket for value in values), bucket_labels))
-    lines.append(_metric_line(f"{name}_bucket", len(values), labels + (("le", "+Inf"),)))
+        lines.append(
+            _metric_line(
+                f"{name}_bucket",
+                sum(value <= bucket for value in values),
+                bucket_labels,
+            )
+        )
+    lines.append(
+        _metric_line(
+            f"{name}_bucket", len(values), labels + (("le", "+Inf"),)
+        )
+    )
     lines.append(_metric_line(f"{name}_count", len(values), labels))
     lines.append(_metric_line(f"{name}_sum", sum(values), labels))
     return lines
@@ -310,7 +350,11 @@ def _queue_depth() -> float:
     try:
         from redis import Redis
 
-        client = Redis.from_url(settings.CELERY_BROKER_URL, socket_connect_timeout=1, socket_timeout=1)
+        client = Redis.from_url(
+            settings.CELERY_BROKER_URL,
+            socket_connect_timeout=1,
+            socket_timeout=1,
+        )
         return float(client.llen("celery"))
     except Exception:
         return 0.0
@@ -319,8 +363,13 @@ def _queue_depth() -> float:
 def prometheus_payload() -> str:
     with _metrics_lock:
         counters = list(_counters.items())
-        histograms = [(key, list(values)) for key, values in _histograms.items()]
-    lines = ["# HELP palvelut_build_info Static build metadata.", "# TYPE palvelut_build_info gauge"]
+        histograms = [
+            (key, list(values)) for key, values in _histograms.items()
+        ]
+    lines = [
+        "# HELP palvelut_build_info Static build metadata.",
+        "# TYPE palvelut_build_info gauge",
+    ]
     build_labels = _labels(
         environment=settings.ENVIRONMENT,
         release=getattr(settings, "SENTRY_RELEASE", "") or "unknown",
@@ -330,17 +379,55 @@ def prometheus_payload() -> str:
     for (name, labels), value in sorted(counters):
         lines.append(_metric_line(name, value, labels))
     for (name, labels), values in sorted(histograms):
-        buckets = DB_BUCKETS if name.startswith("palvelut_db_") else REQUEST_BUCKETS
+        buckets = (
+            DB_BUCKETS if name.startswith("palvelut_db_") else REQUEST_BUCKETS
+        )
         lines.extend(_histogram_lines(name, values, labels, buckets))
     total_connections, waiting_connections = _db_connection_gauges()
     lines.append(_metric_line("palvelut_db_connections", total_connections))
-    lines.append(_metric_line("palvelut_db_waiting_connections", waiting_connections))
+    lines.append(
+        _metric_line("palvelut_db_waiting_connections", waiting_connections)
+    )
     lines.append(_metric_line("palvelut_queue_depth", _queue_depth()))
-    lines.append(_metric_line("palvelut_queue_age_seconds", _shared_value("queue_age")))
-    lines.append(_metric_line("palvelut_queue_failures_total", _shared_value("queue_failure")))
-    lines.append(_metric_line("palvelut_email_delivery_total", _shared_value("email_success"), _labels(result="success")))
-    lines.append(_metric_line("palvelut_email_delivery_total", _shared_value("email_failure"), _labels(result="failure")))
-    lines.append(_metric_line("palvelut_media_failures_total", _shared_value("media_failure")))
-    lines.append(_metric_line("palvelut_backup_runs_total", _shared_value("backup_success"), _labels(result="success")))
-    lines.append(_metric_line("palvelut_backup_runs_total", _shared_value("backup_failure"), _labels(result="failure")))
+    lines.append(
+        _metric_line("palvelut_queue_age_seconds", _shared_value("queue_age"))
+    )
+    lines.append(
+        _metric_line(
+            "palvelut_queue_failures_total", _shared_value("queue_failure")
+        )
+    )
+    lines.append(
+        _metric_line(
+            "palvelut_email_delivery_total",
+            _shared_value("email_success"),
+            _labels(result="success"),
+        )
+    )
+    lines.append(
+        _metric_line(
+            "palvelut_email_delivery_total",
+            _shared_value("email_failure"),
+            _labels(result="failure"),
+        )
+    )
+    lines.append(
+        _metric_line(
+            "palvelut_media_failures_total", _shared_value("media_failure")
+        )
+    )
+    lines.append(
+        _metric_line(
+            "palvelut_backup_runs_total",
+            _shared_value("backup_success"),
+            _labels(result="success"),
+        )
+    )
+    lines.append(
+        _metric_line(
+            "palvelut_backup_runs_total",
+            _shared_value("backup_failure"),
+            _labels(result="failure"),
+        )
+    )
     return "\n".join(lines) + "\n"
