@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="mx-auto max-w-3xl px-4 py-10">
+  <h1 class="text-2xl font-semibold">Claim an existing profile</h1>
+  <p class="mt-2">A claim requires independent evidence that you control the business. Your account email alone is not sufficient.</p>
+  <ul class="mt-6 space-y-3">
+    {% for provider in providers %}
+      <li><a href="{% url 'account-claim-provider' provider.id %}">{{ provider.display_name }}</a></li>
+    {% empty %}
+      <li>No claimable profiles are available.</li>
+    {% endfor %}
+  </ul>
+</main>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="mx-auto max-w-xl px-4 py-10">
+  <h1 class="text-2xl font-semibold">Review {{ provider.display_name }}</h1>
+  <dl class="mt-4">
+    <dt>Evidence type</dt><dd>{{ provider.claim_evidence.kind }}</dd>
+    <dt>Evidence reference</dt><dd>{{ provider.claim_evidence.reference }}</dd>
+  </dl>
+  <form method="post" class="mt-6 space-y-4">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="rounded bg-slate-900 px-4 py-2 text-white">Record decision</button>
+  </form>
+</main>
+{% endblock %}

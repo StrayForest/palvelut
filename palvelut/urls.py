@@ -24,6 +24,12 @@ from palvelut.apps.discovery.views import (
     search,
     sitemap_xml,
 )
+from palvelut.apps.providers.claim_views import (
+    claim_candidates,
+    claim_provider,
+    staff_claim_list,
+    staff_claim_review,
+)
 from palvelut.views import health_live, health_ready, public_mount_root
 
 cached_home = public_read_through_cache(
@@ -86,6 +92,18 @@ urlpatterns = [
         name="account-password-reset-complete",
     ),
     path("palvelut/account/mfa/", staff_mfa, name="staff-mfa"),
+    path("palvelut/account/claims/", claim_candidates, name="account-claim-list"),
+    path(
+        "palvelut/account/claims/<uuid:provider_id>/",
+        claim_provider,
+        name="account-claim-provider",
+    ),
+    path("palvelut/staff/claims/", staff_claim_list, name="staff-claim-list"),
+    path(
+        "palvelut/staff/claims/<uuid:provider_id>/",
+        staff_claim_review,
+        name="staff-claim-review",
+    ),
     path("palvelut/staff/", admin.site.urls),
     path("palvelut/", public_mount_root, name="public-mount-root"),
     path("palvelut/<str:locale>/", cached_home, name="localized-home"),

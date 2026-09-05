@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="mx-auto max-w-3xl px-4 py-10">
+  <h1 class="text-2xl font-semibold">Pending provider claims</h1>
+  <ul class="mt-6 space-y-3">
+    {% for provider in claims %}
+      <li><a href="{% url 'staff-claim-review' provider.id %}">{{ provider.display_name }}</a></li>
+    {% empty %}
+      <li>No pending claims.</li>
+    {% endfor %}
+  </ul>
+</main>
+{% endblock %}
