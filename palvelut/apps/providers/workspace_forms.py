@@ -63,6 +63,14 @@ class ProviderProfileForm(forms.Form):
         self._seed_friendly_initial(initial)
         kwargs["initial"] = initial
         super().__init__(*args, **kwargs)
+        control_style = (
+            "width:100%;max-width:100%;min-width:0;box-sizing:border-box;"
+            "margin-top:0.25rem;padding:0.625rem 0.75rem;border:1px solid #cbd5e1;"
+            "border-radius:0.5rem;background:#fff"
+        )
+        for name, field in self.fields.items():
+            if name not in {"contacts", "services", "service_areas", "languages"}:
+                field.widget.attrs.setdefault("style", control_style)
 
     @staticmethod
     def _first(payload: dict[str, Any], field: str) -> dict[str, Any]:
@@ -196,40 +204,38 @@ class ProviderProfileForm(forms.Form):
         contact_value = str(self.cleaned_data.get("contact_value") or "").strip()
 
         services = list(self.cleaned_data.get("services") or [])
-        if not services and category is not None:
-            services = [
-                {
-                    "category_id": str(category.pk),
-                    "title": str(self.cleaned_data.get("service_title") or "").strip(),
-                    "description": str(
-                        self.cleaned_data.get("service_description") or ""
-                    ).strip(),
-                    "price_text": str(
-                        self.cleaned_data.get("price_text") or ""
-                    ).strip(),
-                    "is_active": True,
-                }
-            ]
+        if category is not None:
+            visible_service = {
+                "category_id": str(category.pk),
+                "title": str(self.cleaned_data.get("service_title") or "").strip(),
+                "description": str(
+                    self.cleaned_data.get("service_description") or ""
+                ).strip(),
+                "price_text": str(self.cleaned_data.get("price_text") or "").strip(),
+                "is_active": True,
+            }
+            services = [visible_service, *services[1:]]
 
         service_areas = list(self.cleaned_data.get("service_areas") or [])
-        if not service_areas and municipality is not None and mode:
-            service_areas = [{"municipality_id": str(municipality.pk), "mode": mode}]
+        if municipality is not None and mode:
+            visible_area = {"municipality_id": str(municipality.pk), "mode": mode}
+            service_areas = [visible_area, *service_areas[1:]]
 
         languages = list(self.cleaned_data.get("languages") or [])
-        if not languages and language is not None:
-            languages = [{"language_id": str(language.pk), "declared": True}]
+        if language is not None:
+            visible_language = {"language_id": str(language.pk), "declared": True}
+            languages = [visible_language, *languages[1:]]
 
         contacts = list(self.cleaned_data.get("contacts") or [])
-        if not contacts and contact_kind and contact_value:
-            contacts = [
-                {
-                    "kind": contact_kind,
-                    "value": contact_value,
-                    "label": "",
-                    "is_public": True,
-                    "sort_order": 0,
-                }
-            ]
+        if contact_kind and contact_value:
+            visible_contact = {
+                "kind": contact_kind,
+                "value": contact_value,
+                "label": "",
+                "is_public": True,
+                "sort_order": 0,
+            }
+            contacts = [visible_contact, *contacts[1:]]
 
         return {
             "contacts": contacts,
