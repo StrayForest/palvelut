@@ -4,7 +4,6 @@ Depends: P2. Read: provider sections of `docs/01-product.md` and `docs/03-experi
 
 ## Build
 
-- Claim flow for an existing unclaimed draft using independent business-control evidence and staff approval; email possession alone is insufficient.
 - Onboarding, draft autosave, preview, submit, corrections and live-profile revision flow.
 - Structured contacts, services/prices, areas/modes, languages and image upload pipeline.
 - Status/checklist dashboard and aggregate impressions/views/contact-clicks.
