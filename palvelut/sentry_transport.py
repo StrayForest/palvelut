@@ -12,7 +12,11 @@ from django.conf import settings
 
 def _endpoint_and_auth(dsn: str) -> tuple[str, str] | None:
     parsed = urlsplit(dsn)
-    if parsed.scheme not in {"http", "https"} or not parsed.hostname or not parsed.username:
+    if (
+        parsed.scheme not in {"http", "https"}
+        or not parsed.hostname
+        or not parsed.username
+    ):
         return None
     project_id = parsed.path.strip("/")
     if not project_id.isdigit():
@@ -63,7 +67,9 @@ def capture_exception(exc: BaseException, *, request_id: str | None = None) -> N
             "values": [
                 {
                     "type": type(exc).__name__,
-                    "value": "Unhandled exception; correlate by request_id in private logs",
+                    "value": (
+                        "Unhandled exception; correlate by request_id in private logs"
+                    ),
                 }
             ]
         },
