@@ -5,7 +5,6 @@ Depends: P3. Read: verification/staff sections of `docs/03-experience.md`; secur
 ## Accept
 
 - Public legal/controller/contact surfaces are complete after owner/legal review.
-- Accessibility manual checklist passes WCAG 2.2 AA target.
 
 ## Gates
 
