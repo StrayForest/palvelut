@@ -25,6 +25,14 @@ from palvelut.apps.discovery.views import (
     search,
     sitemap_xml,
 )
+from palvelut.apps.moderation.views import (
+    provider_case_detail,
+    provider_case_list,
+    report_provider,
+    report_status,
+    staff_case_detail,
+    staff_case_list,
+)
 from palvelut.apps.providers.claim_views import (
     claim_candidates,
     claim_provider,
@@ -140,17 +148,47 @@ urlpatterns = [
         submit_profile,
         name="provider-workspace-submit",
     ),
+    path(
+        "palvelut/account/content-cases/",
+        provider_case_list,
+        name="provider-content-case-list",
+    ),
+    path(
+        "palvelut/account/content-cases/<uuid:case_id>/",
+        provider_case_detail,
+        name="provider-content-case-detail",
+    ),
+    path(
+        "palvelut/report/status/<uuid:case_id>/",
+        report_status,
+        name="content-report-status",
+    ),
     path("palvelut/staff/claims/", staff_claim_list, name="staff-claim-list"),
     path(
         "palvelut/staff/claims/<uuid:provider_id>/",
         staff_claim_review,
         name="staff-claim-review",
     ),
+    path(
+        "palvelut/staff/content-cases/",
+        staff_case_list,
+        name="staff-content-case-list",
+    ),
+    path(
+        "palvelut/staff/content-cases/<uuid:case_id>/",
+        staff_case_detail,
+        name="staff-content-case-detail",
+    ),
     path("palvelut/staff/", admin.site.urls),
     path("palvelut/", public_mount_root, name="public-mount-root"),
     path("palvelut/<str:locale>/", cached_home, name="localized-home"),
     path("palvelut/<str:locale>/search/", cached_search, name="discovery-search"),
     path("palvelut/<str:locale>/trust/", cached_trust, name="trust"),
+    path(
+        "palvelut/<str:locale>/report/<slug:slug>/",
+        report_provider,
+        name="content-report-provider",
+    ),
     path(
         "palvelut/<str:locale>/professionals/<slug:slug>/",
         cached_profile,

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Report status · Finrix Palvelut{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-2xl px-4 py-10">
+  <h1 class="text-3xl font-bold">Report status</h1>
+  <form method="post" class="mt-6 space-y-4">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="rounded bg-slate-900 px-4 py-2 text-white">Check status</button>
+  </form>
+  {% if case %}
+    <div class="mt-8 rounded border p-4">
+      <p><strong>Status:</strong> {{ case.get_status_display }}</p>
+      <p class="mt-2"><strong>Opened:</strong> {{ case.opened_at }}</p>
+      {% if case.closed_at %}<p class="mt-2"><strong>Closed:</strong> {{ case.closed_at }}</p>{% endif %}
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Content report queue · Finrix Palvelut{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-4xl px-4 py-10">
+  <h1 class="text-3xl font-bold">Content report queue</h1>
+  <div class="mt-6 space-y-3">
+    {% for case in cases %}
+      <a class="block rounded border p-4" href="{% url 'staff-content-case-detail' case_id=case.id %}">
+        <strong>{{ case.provider.display_name }}</strong> · {{ case.reason }} · {{ case.get_status_display }}
+        <span class="block text-sm text-slate-600">Opened {{ case.opened_at }}</span>
+      </a>
+    {% empty %}<p>No content reports.</p>{% endfor %}
+  </div>
+</section>
+{% endblock %}
