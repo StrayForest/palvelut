@@ -1,5 +1,7 @@
 from django import forms
 
+from .models import DataSubjectRequest
+
 
 class ContentReportForm(forms.Form):
     category = forms.ChoiceField(
@@ -29,4 +31,24 @@ class StaffContentCaseForm(forms.Form):
 
 
 class ProviderAppealForm(forms.Form):
+    note = forms.CharField(max_length=2000, widget=forms.Textarea(attrs={"rows": 5}))
+
+
+class DataSubjectRequestForm(forms.Form):
+    kind = forms.ChoiceField(choices=DataSubjectRequest.Kind.choices)
+    note = forms.CharField(
+        max_length=1000,
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 4}),
+    )
+
+
+class StaffDataSubjectRequestForm(forms.Form):
+    action = forms.ChoiceField(
+        choices=(
+            ("start", "Start processing"),
+            ("complete", "Mark completed"),
+            ("reject", "Reject"),
+        )
+    )
     note = forms.CharField(max_length=2000, widget=forms.Textarea(attrs={"rows": 5}))
