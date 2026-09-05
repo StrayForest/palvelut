@@ -71,6 +71,7 @@ DOMAIN_APPS = [
     "palvelut.apps.discovery.apps.DiscoveryConfig",
     "palvelut.apps.analytics.apps.AnalyticsConfig",
     "palvelut.apps.content.apps.ContentConfig",
+    "palvelut.apps.jobs.apps.JobsConfig",
 ]
 
 INSTALLED_APPS = [
@@ -141,7 +142,15 @@ CELERY_BEAT_SCHEDULE = {
     "purge-expired-analytics": {
         "task": "palvelut.analytics.purge_expired",
         "schedule": crontab(hour=3, minute=20),
-    }
+    },
+    "enqueue-daily-maintenance": {
+        "task": "palvelut.jobs.enqueue_daily_maintenance",
+        "schedule": crontab(hour=3, minute=25),
+    },
+    "dispatch-outbox": {
+        "task": "palvelut.jobs.dispatch_outbox",
+        "schedule": crontab(),
+    },
 }
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"

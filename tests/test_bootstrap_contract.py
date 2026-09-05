@@ -1,7 +1,7 @@
 import importlib.util
-from pathlib import Path
 import tomllib
 import unittest
+from pathlib import Path
 
 from palvelut import settings
 
@@ -16,6 +16,7 @@ EXPECTED_APPS = {
     "discovery",
     "analytics",
     "content",
+    "jobs",
 }
 
 
