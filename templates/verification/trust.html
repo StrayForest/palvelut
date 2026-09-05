@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Trust and verification" %} · Finrix Palvelut{% endblock %}
+{% block content %}
+<article class="mx-auto max-w-3xl">
+  <h1 class="text-3xl font-bold tracking-tight">{% translate "Trust and verification" %}</h1>
+  <p class="mt-4 text-slate-700">{{ trust_explanation }}</p>
+  <section class="mt-8 border-t border-slate-200 pt-6">
+    <h2 class="text-xl font-semibold">{% translate "What a verification label means" %}</h2>
+    <p class="mt-3 text-slate-700">{% translate "Each label names the fact checked, the official source and the date of that check. Expired facts are removed until a fresh check succeeds." %}</p>
+  </section>
+  <section class="mt-8 border-t border-slate-200 pt-6">
+    <h2 class="text-xl font-semibold">{% translate "What it does not mean" %}</h2>
+    <p class="mt-3 text-slate-700">{% translate "A verification label is not a rating of service quality and does not prove any licence or professional right that is not named in the label." %}</p>
+  </section>
+</article>
+{% endblock %}
