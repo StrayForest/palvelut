@@ -65,7 +65,11 @@ class AtomicProviderAcceptanceTests(TestCase):
     def test_claim_approval_rolls_back_if_audit_write_fails(self) -> None:
         self._submit_claim()
 
-        with patch.object(AuditEvent.objects, "create", side_effect=RuntimeError("audit failed")):
+        with patch.object(
+            AuditEvent.objects,
+            "create",
+            side_effect=RuntimeError("audit failed"),
+        ):
             with self.assertRaises(RuntimeError):
                 resolve_provider_claim(
                     provider_id=self.provider.pk,
@@ -84,7 +88,11 @@ class AtomicProviderAcceptanceTests(TestCase):
     def test_claim_rejection_rolls_back_if_audit_write_fails(self) -> None:
         self._submit_claim()
 
-        with patch.object(AuditEvent.objects, "create", side_effect=RuntimeError("audit failed")):
+        with patch.object(
+            AuditEvent.objects,
+            "create",
+            side_effect=RuntimeError("audit failed"),
+        ):
             with self.assertRaises(RuntimeError):
                 resolve_provider_claim(
                     provider_id=self.provider.pk,
@@ -106,7 +114,11 @@ class AtomicProviderAcceptanceTests(TestCase):
             invited_account=self.editor,
         )
 
-        with patch.object(AuditEvent.objects, "create", side_effect=RuntimeError("audit failed")):
+        with patch.object(
+            AuditEvent.objects,
+            "create",
+            side_effect=RuntimeError("audit failed"),
+        ):
             with self.assertRaises(RuntimeError):
                 accept_invitation(invitation=invitation, actor=self.editor)
 
@@ -129,7 +141,11 @@ class AtomicProviderAcceptanceTests(TestCase):
         )
         accept_invitation(invitation=invitation, actor=self.editor)
 
-        with patch.object(AuditEvent.objects, "create", side_effect=RuntimeError("audit failed")):
+        with patch.object(
+            AuditEvent.objects,
+            "create",
+            side_effect=RuntimeError("audit failed"),
+        ):
             with self.assertRaises(RuntimeError):
                 transfer_ownership(
                     provider=self.provider,
@@ -156,7 +172,9 @@ class AtomicProviderAcceptanceTests(TestCase):
             1,
         )
 
-    def test_approved_claim_and_team_changes_cannot_publish_unapproved_profile(self) -> None:
+    def test_approved_claim_and_team_changes_cannot_publish_unapproved_profile(
+        self,
+    ) -> None:
         self._approve_claim()
         invitation = invite_editor(
             provider=self.provider,
