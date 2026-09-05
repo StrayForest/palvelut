@@ -116,7 +116,9 @@ def transfer_ownership(*, provider: Provider, actor, target_account) -> None:
         .first()
     )
     if target is None:
-        raise ValidationError("Ownership can be transferred only to an active team member.")
+        raise ValidationError(
+            "Ownership can be transferred only to an active team member."
+        )
 
     current_owner.role = ProviderMembership.Role.EDITOR
     current_owner.save(update_fields=("role",))
