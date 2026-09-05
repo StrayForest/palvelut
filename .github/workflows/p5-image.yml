@@ -1,0 +1,54 @@
+name: Production image
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  image:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Fetch exact commit
+        env:
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          git init repo
+          cd repo
+          git remote add origin "https://github.com/${REPOSITORY}.git"
+          git fetch --depth=1 origin "${SHA}"
+          git checkout --detach FETCH_HEAD
+
+      - name: Build immutable application image
+        working-directory: repo
+        env:
+          OWNER: ${{ github.repository_owner }}
+          SHA: ${{ github.sha }}
+        run: |
+          owner="$(printf '%s' "$OWNER" | tr '[:upper:]' '[:lower:]')"
+          image="ghcr.io/${owner}/palvelut"
+          docker build --pull=false --tag "${image}:${SHA}" .
+          docker image inspect "${image}:${SHA}" >/dev/null
+
+      - name: Push commit-tagged image and report digest
+        working-directory: repo
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ACTOR: ${{ github.actor }}
+          OWNER: ${{ github.repository_owner }}
+          SHA: ${{ github.sha }}
+        run: |
+          owner="$(printf '%s' "$OWNER" | tr '[:upper:]' '[:lower:]')"
+          image="ghcr.io/${owner}/palvelut"
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io --username "$ACTOR" --password-stdin
+          docker push "${image}:${SHA}"
+          digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "${image}:${SHA}")"
+          test -n "$digest"
+          printf 'Immutable production image: %s\n' "$digest"
