@@ -14,6 +14,7 @@ from palvelut.apps.accounts.views import (
     staff_mfa,
     verify_email,
 )
+from palvelut.apps.analytics.services import track_provider_events
 from palvelut.apps.discovery.cache import public_read_through_cache
 from palvelut.apps.discovery.contact import contact_redirect
 from palvelut.apps.discovery.views import (
@@ -45,23 +46,29 @@ cached_home = public_read_through_cache(
     shared_max_age=3600,
     stale_while_revalidate=3600,
 )(home)
-cached_search = public_read_through_cache(
-    namespace="search-v1",
-    application_ttl=120,
-    shared_max_age=None,
-)(search)
-cached_profile = public_read_through_cache(
-    namespace="profile-v1",
-    application_ttl=300,
-    shared_max_age=300,
-    stale_while_revalidate=86400,
-)(provider_profile)
-cached_city_category = public_read_through_cache(
-    namespace="city-category-v1",
-    application_ttl=300,
-    shared_max_age=300,
-    stale_while_revalidate=86400,
-)(city_category)
+cached_search = track_provider_events("impression")(
+    public_read_through_cache(
+        namespace="search-v1",
+        application_ttl=120,
+        shared_max_age=None,
+    )(search)
+)
+cached_profile = track_provider_events("profile_view")(
+    public_read_through_cache(
+        namespace="profile-v1",
+        application_ttl=300,
+        shared_max_age=300,
+        stale_while_revalidate=86400,
+    )(provider_profile)
+)
+cached_city_category = track_provider_events("impression")(
+    public_read_through_cache(
+        namespace="city-category-v1",
+        application_ttl=300,
+        shared_max_age=300,
+        stale_while_revalidate=86400,
+    )(city_category)
+)
 
 urlpatterns = [
     path("palvelut/health/live", health_live, name="health-live"),

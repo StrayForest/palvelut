@@ -3,16 +3,42 @@
 <main>
   <h1>Provider workspace</h1>
   {% if request.GET.submitted %}<p role="status">Profile submitted for review.</p>{% endif %}
-  <ul>
-    {% for membership in memberships %}
-      <li>
-        <strong>{{ membership.provider.display_name }}</strong>
-        <span>{{ membership.provider.get_lifecycle_display }}</span>
-        <a href="{% url 'provider-workspace-edit' membership.provider.id %}">Edit profile</a>
-      </li>
+  <div class="mt-6 grid gap-6">
+    {% for row in dashboard_rows %}
+      {% with membership=row.membership provider=row.membership.provider %}
+      <section class="rounded-2xl border border-slate-200 p-5" aria-labelledby="provider-{{ provider.id }}">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2 id="provider-{{ provider.id }}" class="text-xl font-semibold">{{ provider.display_name }}</h2>
+            <p class="mt-1 text-sm text-slate-600">Status: {{ provider.get_lifecycle_display }}{% if row.revision %} · Revision: {{ row.revision.get_status_display }}{% endif %}</p>
+          </div>
+          <a class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium" href="{% url 'provider-workspace-edit' provider.id %}">Edit profile</a>
+        </div>
+
+        <div class="mt-5">
+          <h3 class="font-semibold">Profile checklist</h3>
+          <p class="mt-1 text-sm text-slate-600">{{ row.completed }}/{{ row.total }} complete</p>
+          <ul class="mt-3 grid gap-2 sm:grid-cols-2">
+            {% for label,complete in row.checklist %}
+              <li class="text-sm">{% if complete %}✓{% else %}○{% endif %} {{ label }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        <div class="mt-5">
+          <h3 class="font-semibold">Aggregate analytics</h3>
+          <dl class="mt-3 grid gap-3 sm:grid-cols-3">
+            <div><dt class="text-sm text-slate-600">Impressions</dt><dd class="text-2xl font-semibold">{{ row.impressions }}</dd></div>
+            <div><dt class="text-sm text-slate-600">Profile views</dt><dd class="text-2xl font-semibold">{{ row.profile_views }}</dd></div>
+            <div><dt class="text-sm text-slate-600">Contact clicks</dt><dd class="text-2xl font-semibold">{{ row.contact_clicks }}</dd></div>
+          </dl>
+          <p class="mt-2 text-xs text-slate-500">Anonymous provider-level totals only; no visitor identity is shown.</p>
+        </div>
+      </section>
+      {% endwith %}
     {% empty %}
-      <li>No provider workspace yet.</li>
+      <p>No provider workspace yet.</p>
     {% endfor %}
-  </ul>
+  </div>
 </main>
 {% endblock %}
