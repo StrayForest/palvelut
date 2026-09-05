@@ -5,7 +5,9 @@ import uuid
 from contextvars import ContextVar
 from datetime import datetime, timezone
 
+from django.core.signals import got_request_exception
 from django.db import connection
+from django.dispatch import receiver
 from django.http import HttpRequest, HttpResponse
 
 from palvelut.metrics import adjust_gauge, record_db_query, record_request
@@ -17,6 +19,13 @@ _access_logger = logging.getLogger("palvelut.request")
 
 def current_request_id() -> str | None:
     return _request_id.get()
+
+
+@receiver(got_request_exception)
+def _capture_request_exception(sender, request=None, **kwargs):
+    exc = kwargs.get("exception")
+    if isinstance(exc, BaseException):
+        capture_exception(exc, request_id=current_request_id())
 
 
 class RequestIdFilter(logging.Filter):
@@ -72,9 +81,6 @@ class RequestIdMiddleware:
             status = response.status_code
             response["X-Request-ID"] = request_id
             return response
-        except Exception as exc:
-            capture_exception(exc, request_id=request_id)
-            raise
         finally:
             duration_seconds = time.monotonic() - started
             record_request(request.method, status, duration_seconds)
