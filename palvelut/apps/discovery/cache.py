@@ -9,6 +9,8 @@ from django.core.cache import cache
 from django.http import HttpRequest, HttpResponse
 from django.utils.cache import patch_vary_headers
 
+from palvelut.observability import increment_metric
+
 P = ParamSpec("P")
 
 CachedPayload = tuple[int, bytes, str]
@@ -56,6 +58,7 @@ def public_read_through_cache(
             key = _cache_key(request, namespace)
             payload = cache.get(key)
             if payload is None:
+                increment_metric("palvelut_cache_misses_total")
                 response = view(*args, **kwargs)
                 if response.status_code != 200:
                     return response
@@ -66,6 +69,7 @@ def public_read_through_cache(
                 )
                 cache.set(key, payload, timeout=application_ttl)
             else:
+                increment_metric("palvelut_cache_hits_total")
                 status, content, content_type = payload
                 response = HttpResponse(
                     content,

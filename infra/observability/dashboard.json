@@ -1,0 +1,15 @@
+{
+  "title": "Palvelut quality signals",
+  "schemaVersion": 39,
+  "panels": [
+    {"title": "Traffic", "targets": [{"expr": "rate(palvelut_http_requests_total[5m])"}]},
+    {"title": "Latency", "targets": [{"expr": "rate(palvelut_http_request_duration_seconds_sum[5m]) / clamp_min(rate(palvelut_http_request_duration_seconds_count[5m]), 1)"}]},
+    {"title": "5xx", "targets": [{"expr": "rate(palvelut_http_5xx_total[5m])"}]},
+    {"title": "Cache hit ratio", "targets": [{"expr": "rate(palvelut_cache_hits_total[5m]) / clamp_min(rate(palvelut_cache_hits_total[5m]) + rate(palvelut_cache_misses_total[5m]), 1)"}]},
+    {"title": "DB pool / slow queries", "targets": [{"expr": "palvelut_db_pool_in_use"}, {"expr": "rate(palvelut_db_slow_queries_total[5m])"}]},
+    {"title": "Queue age / failures", "targets": [{"expr": "palvelut_queue_oldest_age_seconds"}, {"expr": "rate(palvelut_queue_failures_total[5m])"}]},
+    {"title": "Email delivery failures", "targets": [{"expr": "rate(palvelut_email_delivery_failures_total[5m])"}]},
+    {"title": "Media failures", "targets": [{"expr": "rate(palvelut_media_failures_total[5m])"}]},
+    {"title": "Backups", "targets": [{"expr": "palvelut_backup_age_seconds"}, {"expr": "increase(palvelut_backup_failures_total[24h])"}]}
+  ]
+}

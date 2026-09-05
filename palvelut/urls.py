@@ -53,6 +53,7 @@ from palvelut.apps.providers.workspace_views import (
     workspace,
 )
 from palvelut.apps.verification.views import trust
+from palvelut.observability import metrics
 from palvelut.views import health_live, health_ready, public_mount_root
 
 cached_home = public_read_through_cache(
@@ -94,6 +95,7 @@ cached_trust = public_read_through_cache(
 urlpatterns = [
     path("palvelut/health/live", health_live, name="health-live"),
     path("palvelut/health/ready", health_ready, name="health-ready"),
+    path("palvelut/metrics", metrics, name="metrics"),
     path("palvelut/robots.txt", robots_txt, name="robots-txt"),
     path("palvelut/sitemap.xml", sitemap_xml, name="sitemap-xml"),
     path("palvelut/account/register/", register, name="account-register"),
