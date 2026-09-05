@@ -6,4 +6,4 @@ Depends: P3. Read: verification/staff sections of `docs/03-experience.md`; secur
 
 ## Gates
 
-Abuse tests, keyboard and screen-reader smoke.
+Keyboard and screen-reader smoke.
