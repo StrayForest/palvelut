@@ -1,4 +1,5 @@
 import re
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -14,6 +15,16 @@ class WorkflowSecurityContractTests(unittest.TestCase):
         self.dockerfiles.append((self.root / "Dockerfile").read_text())
         self.dockerfiles.append((self.root / "Dockerfile.e2e").read_text())
         self.dockerfiles.append((self.root / "Dockerfile.quality").read_text())
+
+    def test_debug_ruff_format_diff(self) -> None:
+        result = subprocess.run(
+            ["ruff", "format", "--diff", "palvelut/observability.py"],
+            cwd=self.root,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.fail(result.stdout or result.stderr or "ruff produced no diff")
 
     def test_workflow_default_permissions_are_read_only(self) -> None:
         lines = self.workflow.splitlines()
