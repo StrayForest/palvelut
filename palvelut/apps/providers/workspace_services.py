@@ -5,9 +5,11 @@ from typing import Any
 from uuid import uuid4
 
 from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.db import transaction
 
+from palvelut.apps.providers.image_safety import sanitize_image
 from palvelut.apps.providers.models import Provider, ProviderMembership
 from palvelut.apps.publishing.models import ProfileRevision
 
@@ -155,25 +157,30 @@ def stage_media_upload(
         or uploaded_file.size > MAX_IMAGE_BYTES
     ):
         raise ValidationError("image must be between 1 byte and 10 MiB")
-    suffix = ALLOWED_IMAGE_TYPES[content_type]
+    expected_suffix = ALLOWED_IMAGE_TYPES[content_type]
     original_suffix = Path(str(getattr(uploaded_file, "name", ""))).suffix.lower()
-    allowed_suffixes = {suffix}
-    if suffix == ".jpg":
+    allowed_suffixes = {expected_suffix}
+    if expected_suffix == ".jpg":
         allowed_suffixes.add(".jpeg")
     if original_suffix not in allowed_suffixes:
         raise ValidationError("image extension does not match content type")
+
+    sanitized = sanitize_image(
+        payload=uploaded_file.read(),
+        declared_content_type=content_type,
+    )
     revision = editable_revision(provider=provider, account=account)
-    key = f"provider-media/staging/{provider.pk}/{uuid4().hex}{suffix}"
-    stored_key = default_storage.save(key, uploaded_file)
+    key = f"provider-media/staging/{provider.pk}/{uuid4().hex}{sanitized.extension}"
+    stored_key = default_storage.save(key, ContentFile(sanitized.data))
     payload = dict(revision.payload)
     media = list(payload.get("media", []))
     media.append(
         {
             "storage_key": stored_key,
-            "content_type": content_type,
+            "content_type": sanitized.content_type,
             "alt_text": alt_text.strip()[:240],
-            "width": None,
-            "height": None,
+            "width": sanitized.width,
+            "height": sanitized.height,
             "sort_order": len(media),
         }
     )

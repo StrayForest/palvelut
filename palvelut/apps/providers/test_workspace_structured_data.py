@@ -1,3 +1,6 @@
+import struct
+import zlib
+
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
@@ -25,6 +28,23 @@ from palvelut.apps.taxonomy.models import (
     Municipality,
     Region,
 )
+
+
+def _png_chunk(kind: bytes, data: bytes) -> bytes:
+    crc = zlib.crc32(kind)
+    crc = zlib.crc32(data, crc) & 0xFFFFFFFF
+    return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", crc)
+
+
+def _one_pixel_png() -> bytes:
+    ihdr = struct.pack(">IIBBBBB", 1, 1, 8, 6, 0, 0, 0)
+    raw = b"\x00\xff\x00\x00\xff"
+    return (
+        b"\x89PNG\r\n\x1a\n"
+        + _png_chunk(b"IHDR", ihdr)
+        + _png_chunk(b"IDAT", zlib.compress(raw))
+        + _png_chunk(b"IEND", b"")
+    )
 
 
 class ProviderStructuredWorkspaceTests(TestCase):
@@ -154,7 +174,7 @@ class ProviderStructuredWorkspaceTests(TestCase):
     def test_uploaded_image_is_staged_in_revision_until_approval(self):
         upload = SimpleUploadedFile(
             "photo.png",
-            b"not-yet-decoded-image-payload",
+            _one_pixel_png(),
             content_type="image/png",
         )
         revision = stage_media_upload(
@@ -169,6 +189,8 @@ class ProviderStructuredWorkspaceTests(TestCase):
                 f"provider-media/staging/{self.provider.pk}/"
             )
         )
+        self.assertEqual(revision.payload["media"][0]["width"], 1)
+        self.assertEqual(revision.payload["media"][0]["height"], 1)
         self.assertFalse(MediaAsset.objects.filter(provider=self.provider).exists())
 
         submitted = submit_revision(provider_id=self.provider.pk, account=self.owner)

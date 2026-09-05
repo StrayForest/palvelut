@@ -6,7 +6,6 @@ Depends: P2. Read: provider sections of `docs/01-product.md` and `docs/03-experi
 
 ## Accept
 
-- Untrusted/bomb/spoofed images fail; accepted images are re-encoded and metadata-free.
 - Analytics reveal no visitor identity and definitions are visible.
 
 ## Gates
