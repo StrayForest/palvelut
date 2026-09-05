@@ -2,6 +2,17 @@ from django.conf import settings
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import path
 
+from palvelut.apps.accounts.views import (
+    account_home,
+    account_login,
+    account_logout,
+    password_reset_confirm,
+    password_reset_request,
+    register,
+    staff_mfa,
+    staff_mfa_setup,
+    verify_email,
+)
 from palvelut.apps.discovery.cache import public_read_through_cache
 from palvelut.apps.discovery.contact import contact_redirect
 from palvelut.apps.discovery.views import (
@@ -46,6 +57,27 @@ urlpatterns = [
     path("palvelut/", public_mount_root, name="public-mount-root"),
     path("palvelut/<str:locale>/", cached_home, name="localized-home"),
     path("palvelut/<str:locale>/search/", cached_search, name="discovery-search"),
+    path("palvelut/<str:locale>/account/", account_home, name="account-home"),
+    path("palvelut/<str:locale>/account/register/", register, name="account-register"),
+    path("palvelut/<str:locale>/account/login/", account_login, name="account-login"),
+    path("palvelut/<str:locale>/account/logout/", account_logout, name="account-logout"),
+    path("palvelut/<str:locale>/account/mfa/", staff_mfa, name="account-mfa"),
+    path("palvelut/<str:locale>/account/mfa/setup/", staff_mfa_setup, name="account-mfa-setup"),
+    path(
+        "palvelut/<str:locale>/account/verify/<uidb64>/<token>/",
+        verify_email,
+        name="account-verify",
+    ),
+    path(
+        "palvelut/<str:locale>/account/password-reset/",
+        password_reset_request,
+        name="account-password-reset",
+    ),
+    path(
+        "palvelut/<str:locale>/account/password-reset/<uidb64>/<token>/",
+        password_reset_confirm,
+        name="account-password-reset-confirm",
+    ),
     path(
         "palvelut/<str:locale>/professionals/<slug:slug>/",
         cached_profile,
