@@ -1,2 +1,16 @@
 @import "tailwindcss";
 @source "../templates";
+
+@layer components {
+  .provider-form-control {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    margin-top: 0.25rem;
+    padding: 0.625rem 0.75rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.5rem;
+    background: #fff;
+  }
+}
