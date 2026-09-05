@@ -89,9 +89,11 @@ def create_anonymous_report(
 
 
 def get_public_report_case(*, token: str) -> ModerationCase:
-    return ContentReport.objects.select_related("case", "case__provider").get(
-        public_token_hash=_hash_public_token(token)
-    ).case
+    return (
+        ContentReport.objects.select_related("case", "case__provider")
+        .get(public_token_hash=_hash_public_token(token))
+        .case
+    )
 
 
 @transaction.atomic
