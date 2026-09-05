@@ -2,13 +2,37 @@ name: Compose stack
 
 on:
   pull_request:
+    paths:
+      - "Makefile"
+      - "compose.yml"
+      - "Dockerfile"
+      - "Dockerfile.e2e"
+      - "Dockerfile.quality"
+      - ".dockerignore"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "frontend/**"
+      - "playwright.config.js"
+      - "e2e/**"
+      - "palvelut/**"
+      - "infra/nginx/**"
+      - "infra/scripts/**"
+      - "tests/**"
+      - "tasks/P0-foundation.md"
+      - "tasks/P1-domain.md"
+      - "tasks/archive/**"
+      - ".github/workflows/p0-compose.yml"
 
 permissions:
   contents: read
 
 jobs:
   compose-stack:
+    name: compose-stack
     runs-on: ubuntu-24.04
+    env:
+      COMPOSE_PROJECT_NAME: palvelut-ci-${{ github.run_id }}-${{ github.run_attempt }}
+
     steps:
       - name: Fetch exact PR head and base
         env:
@@ -22,10 +46,271 @@ jobs:
           git branch ci-base FETCH_HEAD
           git fetch --depth=1 origin "${HEAD_SHA}"
           git checkout --detach FETCH_HEAD
-      - name: Show Ruff formatter diff
+
+      - name: Verify canonical bootstrap from clean checkout
         working-directory: repo
         run: |
-          python3 -m pip install --disable-pip-version-check --no-input "ruff==0.12.12"
+          test ! -e .venv
+          test ! -d frontend/node_modules
+
+          bootstrap_bin="$(mktemp -d)"
+          trap 'rm -rf "$bootstrap_bin"' EXIT
+          ln -s "$(command -v git)" "$bootstrap_bin/git"
+          ln -s "$(command -v make)" "$bootstrap_bin/make"
+          ln -s "$(command -v docker)" "$bootstrap_bin/docker"
+
+          env -i \
+            HOME="$HOME" \
+            PATH="$bootstrap_bin" \
+            COMPOSE_PROJECT_NAME="$COMPOSE_PROJECT_NAME-bootstrap" \
+            "$bootstrap_bin/make" bootstrap
+
+          test ! -e .venv
+          test ! -d frontend/node_modules
+
+      - name: Install pinned CI tools
+        working-directory: repo
+        run: |
+          python3 -m pip install --disable-pip-version-check --no-input \
+            "uv==0.10.0" \
+            "ruff==0.12.12" \
+            "mypy==1.17.1" \
+            "pip-audit==2.9.0" \
+            "detect-secrets==1.5.0"
+
+      - name: Verify dependency and command contracts
+        working-directory: repo
+        run: |
+          uv lock --check
+          uv sync --locked
+          uv run python -m unittest -v tests.test_bootstrap_contract tests.test_compose_contract tests.test_make_contract tests.test_workflow_security_contract
+
+      - name: Lint and format check
+        working-directory: repo
+        run: |
+          ruff check --extend-per-file-ignores 'tests/*.py:E402' manage.py palvelut tests
           mapfile -t changed_python < <(git diff --name-only ci-base HEAD -- '*.py')
-          ruff format --diff "${changed_python[@]}"
-          exit 1
+          if ((${#changed_python[@]})); then
+            ruff format --check "${changed_python[@]}"
+          else
+            echo "No changed Python files to format-check"
+          fi
+
+      - name: Type check
+        working-directory: repo
+        run: mypy --ignore-missing-imports --follow-imports=skip --check-untyped-defs manage.py palvelut
+
+      - name: Dependency audit
+        working-directory: repo
+        run: |
+          uv export --locked --no-dev --format requirements-txt --output-file /tmp/palvelut-requirements.txt
+          pip-audit --disable-pip -r /tmp/palvelut-requirements.txt
+
+      - name: Secret scan
+        working-directory: repo
+        run: |
+          mapfile -t tracked_files < <(git ls-files | grep -Ev '^(uv\.lock|frontend/package-lock\.json)$')
+          detect-secrets scan \
+            --exclude-lines 'local-only|bootstrap-only|test-only|ci-only|explicit-secret' \
+            "${tracked_files[@]}" \
+            > /tmp/detect-secrets.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path('/tmp/detect-secrets.json').read_text())
+          results = report.get('results', {})
+          if results:
+              for path, findings in results.items():
+                  for finding in findings:
+                      print(f"{path}:{finding.get('line_number')}: {finding.get('type')}")
+              raise SystemExit('detect-secrets found candidate credentials')
+          PY
+
+      - name: Build frontend stage
+        working-directory: repo
+        run: docker build --target frontend -t palvelut-frontend-ci .
+
+      - name: Verify reproducible static build
+        working-directory: repo
+        run: |
+          static_a="$RUNNER_TEMP/palvelut-static-a"
+          static_b="$RUNNER_TEMP/palvelut-static-b"
+          rm -rf "$static_a" "$static_b"
+          mkdir -p "$static_a" "$static_b"
+
+          export_static() {
+            image="$1"
+            destination="$2"
+            docker build --no-cache --target frontend -t "$image" .
+            container="$(docker create "$image")"
+            trap 'docker rm -f "$container" >/dev/null 2>&1 || true' RETURN
+            docker cp "$container:/frontend-dist/." "$destination/"
+            docker rm "$container" >/dev/null
+            trap - RETURN
+          }
+
+          export_static palvelut-static-repro-a "$static_a"
+          export_static palvelut-static-repro-b "$static_b"
+          diff -ruN "$static_a" "$static_b"
+
+      - name: Build application container
+        working-directory: repo
+        run: docker build -t palvelut-ci .
+
+      - name: Verify canonical development startup
+        working-directory: repo
+        run: |
+          docker compose --project-name "$COMPOSE_PROJECT_NAME" down -v --remove-orphans || true
+          setsid make dev >/tmp/palvelut-dev.log 2>&1 &
+          dev_pid=$!
+
+          cleanup_dev() {
+            kill -TERM -- "-$dev_pid" 2>/dev/null || true
+            wait "$dev_pid" 2>/dev/null || true
+            docker compose --project-name "$COMPOSE_PROJECT_NAME" down -v --remove-orphans
+          }
+          trap cleanup_dev EXIT
+
+          ready=0
+          for _ in $(seq 1 90); do
+            if ! kill -0 "$dev_pid" 2>/dev/null; then
+              cat /tmp/palvelut-dev.log
+              exit 1
+            fi
+
+            services="$(docker compose --project-name "$COMPOSE_PROJECT_NAME" ps --status running --services)"
+            all_running=1
+            for service in postgres valkey mailpit minio web worker nginx; do
+              grep -Fxq "$service" <<<"$services" || all_running=0
+            done
+
+            if test "$all_running" = "1" \
+              && curl -fsS http://127.0.0.1:8000/palvelut/en/ >/dev/null; then
+              ready=1
+              break
+            fi
+            sleep 2
+          done
+
+          if test "$ready" != "1"; then
+            docker compose --project-name "$COMPOSE_PROJECT_NAME" ps
+            cat /tmp/palvelut-dev.log
+            exit 1
+          fi
+
+          docker compose --project-name "$COMPOSE_PROJECT_NAME" exec -T postgres \
+            psql -U palvelut -d palvelut -Atc \
+            "select count(*) from django_migrations;" | grep -E '^[1-9][0-9]*$'
+
+          trap - EXIT
+          cleanup_dev
+
+      - name: Verify isolated local reset contract
+        working-directory: repo
+        run: |
+          reset_target="$COMPOSE_PROJECT_NAME-reset"
+          reset_sentinel="$COMPOSE_PROJECT_NAME-sentinel"
+
+          cleanup_reset() {
+            docker compose --project-name "$reset_target" down -v --remove-orphans || true
+            docker compose --project-name "$reset_sentinel" down -v --remove-orphans || true
+          }
+          trap cleanup_reset EXIT
+
+          docker compose --project-name "$reset_target" up -d --wait postgres
+          docker compose --project-name "$reset_sentinel" up -d --wait postgres
+
+          if PALVELUT_ENVIRONMENT=production \
+            COMPOSE_PROJECT_NAME="$reset_target" make reset; then
+            echo "make reset must refuse PALVELUT_ENVIRONMENT=production" >&2
+            exit 1
+          fi
+          docker compose --project-name "$reset_target" ps --status running --services \
+            | grep -Fxq postgres
+
+          if DJANGO_DEBUG=0 COMPOSE_PROJECT_NAME="$reset_target" make reset; then
+            echo "make reset must refuse DJANGO_DEBUG=0" >&2
+            exit 1
+          fi
+          docker compose --project-name "$reset_target" ps --status running --services \
+            | grep -Fxq postgres
+
+          COMPOSE_PROJECT_NAME="$reset_target" make reset
+
+          target_containers="$(docker ps -aq --filter "label=com.docker.compose.project=$reset_target")"
+          target_volumes="$(docker volume ls -q --filter "label=com.docker.compose.project=$reset_target")"
+          test -z "$target_containers"
+          test -z "$target_volumes"
+
+          docker compose --project-name "$reset_sentinel" ps --status running --services \
+            | grep -Fxq postgres
+
+          trap - EXIT
+          cleanup_reset
+
+      - name: Start fresh isolated database services
+        working-directory: repo
+        run: |
+          case "$COMPOSE_PROJECT_NAME" in
+            palvelut-ci-*) ;;
+            *) echo "Unsafe CI compose project: $COMPOSE_PROJECT_NAME" >&2; exit 1 ;;
+          esac
+          docker compose --project-name "$COMPOSE_PROJECT_NAME" down -v --remove-orphans || true
+          docker compose --project-name "$COMPOSE_PROJECT_NAME" pull postgres valkey
+          docker compose --project-name "$COMPOSE_PROJECT_NAME" up -d --force-recreate --wait postgres valkey
+          docker compose --project-name "$COMPOSE_PROJECT_NAME" exec -T postgres \
+            psql -U palvelut -d palvelut -Atc "show server_version;" | grep -E '^18\.'
+          docker compose --project-name "$COMPOSE_PROJECT_NAME" exec -T valkey \
+            valkey-cli INFO server | tr -d '\r' | grep -E '^valkey_version:8\.'
+
+      - name: Check and apply migrations
+        working-directory: repo
+        run: |
+          docker compose --project-name "$COMPOSE_PROJECT_NAME" run --rm web python manage.py makemigrations --check --dry-run
+          docker compose --project-name "$COMPOSE_PROJECT_NAME" run --rm web python manage.py migrate --noinput
+
+      - name: Run geography taxonomy model tests
+        working-directory: repo
+        run: |
+          docker compose --project-name "$COMPOSE_PROJECT_NAME" run --rm web \
+            python manage.py test palvelut.apps.taxonomy --verbosity 2
+
+      - name: Run Django deploy checks
+        working-directory: repo
+        run: |
+          docker compose --project-name "$COMPOSE_PROJECT_NAME" run --rm \
+            -e PALVELUT_ENVIRONMENT=production \
+            -e DJANGO_DEBUG=0 \
+            -e DJANGO_SECRET_KEY=ci-only-not-a-real-secret \
+            -e DJANGO_ALLOWED_HOSTS=ci.example.invalid \
+            -e PUBLIC_BASE_URL=https://ci.example.invalid/palvelut \
+            web python manage.py check --deploy --fail-level ERROR
+
+      - name: Run canonical non-browser test gate
+        working-directory: repo
+        run: make test
+
+      - name: Run canonical browser gate
+        working-directory: repo
+        run: make e2e
+
+      - name: Upload Playwright evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: playwright-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            repo/playwright-report/
+            repo/test-results/
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Run canonical disposable smoke gate
+        working-directory: repo
+        run: make smoke
+
+      - name: Cleanup Compose stack
+        if: always()
+        working-directory: repo
+        run: docker compose --project-name "$COMPOSE_PROJECT_NAME" down -v --remove-orphans
