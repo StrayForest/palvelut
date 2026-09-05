@@ -3,6 +3,12 @@ server {
     listen [::]:80 default_server;
     server_name _;
 
+    # Prometheus scrapes the app directly on 127.0.0.1:8080. Never expose metrics
+    # through the public Nginx/Cloudflare path.
+    location = /palvelut/internal/metrics {
+        return 404;
+    }
+
     location / {
         proxy_pass {{ palvelut_upstream }};
         proxy_http_version 1.1;
