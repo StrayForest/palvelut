@@ -170,10 +170,7 @@ def stage_media_upload(
         declared_content_type=content_type,
     )
     revision = editable_revision(provider=provider, account=account)
-    key = (
-        f"provider-media/staging/{provider.pk}/{uuid4().hex}"
-        f"{sanitized.extension}"
-    )
+    key = f"provider-media/staging/{provider.pk}/{uuid4().hex}{sanitized.extension}"
     stored_key = default_storage.save(key, ContentFile(sanitized.data))
     payload = dict(revision.payload)
     media = list(payload.get("media", []))
