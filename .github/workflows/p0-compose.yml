@@ -20,6 +20,7 @@ on:
       - "tests/**"
       - "tasks/P0-foundation.md"
       - "tasks/P1-domain.md"
+      - "tasks/P3-provider.md"
       - "tasks/archive/**"
       - ".github/workflows/p0-compose.yml"
 
@@ -286,6 +287,16 @@ jobs:
             -e DJANGO_ALLOWED_HOSTS=ci.example.invalid \
             -e PUBLIC_BASE_URL=https://ci.example.invalid/palvelut \
             web python manage.py check --deploy --fail-level ERROR
+
+      - name: Run P3 provider security and integration gate
+        working-directory: repo
+        run: |
+          docker compose --project-name "$COMPOSE_PROJECT_NAME" run --rm web \
+            python manage.py test \
+              palvelut.apps.providers \
+              palvelut.apps.accounts \
+              palvelut.apps.publishing \
+              --verbosity 2
 
       - name: Run canonical non-browser test gate
         working-directory: repo
