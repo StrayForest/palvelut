@@ -1,10 +1,12 @@
 import difflib
 import json
 
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.core.exceptions import ValidationError
 from django.utils.html import format_html
 
 from palvelut.apps.publishing.models import ProfileRevision
+from palvelut.apps.publishing.workflow import approve_revision, request_revision_changes
 
 
 @admin.register(ProfileRevision)
@@ -22,6 +24,7 @@ class ProfileRevisionAdmin(admin.ModelAdmin):
         "provider__legal_name",
         "provider__y_tunnus",
     )
+    actions = ("approve_selected", "request_changes_selected")
 
     def get_readonly_fields(self, request, obj=None):
         if obj is None:
@@ -70,6 +73,26 @@ class ProfileRevisionAdmin(admin.ModelAdmin):
             )
         )
         return format_html("<pre>{}</pre>", diff or "No payload changes")
+
+    @admin.action(description="Approve selected revisions")
+    def approve_selected(self, request, queryset):
+        for revision in queryset:
+            try:
+                approve_revision(revision_id=revision.pk, actor=request.user)
+            except ValidationError as exc:
+                self.message_user(request, str(exc), level=messages.ERROR)
+
+    @admin.action(description="Request corrections for selected revisions")
+    def request_changes_selected(self, request, queryset):
+        for revision in queryset:
+            try:
+                request_revision_changes(
+                    revision_id=revision.pk,
+                    actor=request.user,
+                    note="Corrections requested by staff",
+                )
+            except ValidationError as exc:
+                self.message_user(request, str(exc), level=messages.ERROR)
 
     def has_add_permission(self, request) -> bool:
         return bool(request.user.is_staff and super().has_add_permission(request))
