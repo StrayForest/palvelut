@@ -11,6 +11,7 @@
   </form>
   <section aria-labelledby="media-heading">
     <h2 id="media-heading">Images</h2>
+    <p>Uploaded images stay in the moderated draft until staff approval.</p>
     <form method="post" enctype="multipart/form-data" action="{% url 'provider-workspace-media-upload' provider.id %}">
       {% csrf_token %}
       <p><label for="provider-image">Image</label> <input id="provider-image" type="file" name="image" accept="image/jpeg,image/png,image/webp" required></p>
