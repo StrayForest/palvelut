@@ -1,11 +1,14 @@
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
 from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.signing import salted_hmac
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 
-from palvelut.apps.providers.models import ProviderMembership
+from palvelut.apps.providers.models import Provider, ProviderMembership
 from palvelut.apps.publishing.models import ProviderSlug
 
 from .forms import (
@@ -23,6 +26,33 @@ from .services import (
     submit_content_report,
 )
 
+REPORT_RATE_LIMIT = 5
+REPORT_RATE_WINDOW_SECONDS = 3600
+
+
+def _report_rate_key(request: HttpRequest, provider_id: object) -> str:
+    client_address = request.META.get("HTTP_CF_CONNECTING_IP") or request.META.get(
+        "REMOTE_ADDR", "unknown"
+    )
+    client_hash = salted_hmac(
+        "palvelut.content-report-rate",
+        str(client_address),
+        secret=settings.SECRET_KEY,
+    ).hexdigest()
+    return f"moderation:content-report:{provider_id}:{client_hash}"
+
+
+def _consume_report_rate_limit(request: HttpRequest, provider_id: object) -> bool:
+    key = _report_rate_key(request, provider_id)
+    if cache.add(key, 1, timeout=REPORT_RATE_WINDOW_SECONDS):
+        return True
+    try:
+        count = cache.incr(key)
+    except ValueError:
+        cache.set(key, 1, timeout=REPORT_RATE_WINDOW_SECONDS)
+        count = 1
+    return count <= REPORT_RATE_LIMIT
+
 
 @never_cache
 @require_http_methods(["GET", "POST"])
@@ -31,8 +61,15 @@ def report_provider(request: HttpRequest, locale: str, slug: str) -> HttpRespons
         ProviderSlug.objects.select_related("provider"),
         slug=slug,
         is_current=True,
+        provider__lifecycle=Provider.Lifecycle.PUBLISHED,
     )
     provider = slug_row.provider
+    if request.method == "POST" and not _consume_report_rate_limit(
+        request, provider.pk
+    ):
+        response = HttpResponse("Too many reports", status=429)
+        response["Retry-After"] = str(REPORT_RATE_WINDOW_SECONDS)
+        return response
     form = ContentReportForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         try:
@@ -54,6 +91,7 @@ def report_provider(request: HttpRequest, locale: str, slug: str) -> HttpRespons
                     "status_token": receipt.status_token,
                     "robots_meta": "noindex,nofollow",
                 },
+                status=202,
             )
     return render(
         request,
@@ -98,7 +136,8 @@ def provider_case_list(request: HttpRequest) -> HttpResponse:
     cases = ModerationCase.objects.filter(
         provider_id__in=provider_ids,
         kind=ModerationCase.Kind.CONTENT_REPORT,
-    ).select_related("provider")
+        events__visible_to_provider=True,
+    ).select_related("provider").distinct()
     return render(
         request,
         "moderation/provider_case_list.html",
@@ -114,6 +153,8 @@ def provider_case_detail(request: HttpRequest, case_id) -> HttpResponse:
         case, events = provider_case_timeline(case_id=case_id, actor=request.user)
     except (PermissionDenied, ModerationCase.DoesNotExist) as exc:
         raise Http404 from exc
+    if not events:
+        raise Http404
     form = ProviderAppealForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         try:

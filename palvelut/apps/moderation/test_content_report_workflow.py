@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
-from django.test import TestCase
+from django.test import TestCase, override_settings
+from django.urls import reverse
 
 from palvelut.apps.moderation.models import AuditEvent, ModerationCase, ModerationEvent
 from palvelut.apps.moderation.services import (
@@ -11,6 +13,7 @@ from palvelut.apps.moderation.services import (
     submit_content_report,
 )
 from palvelut.apps.providers.models import Provider, ProviderMembership
+from palvelut.apps.publishing.models import ProviderSlug
 
 
 class ContentReportWorkflowTests(TestCase):
@@ -41,7 +44,6 @@ class ContentReportWorkflowTests(TestCase):
             category="incorrect_content",
             details="The public address is outdated.",
         )
-
         case = ModerationCase.objects.get(pk=receipt.case_id)
         self.assertEqual(case.kind, ModerationCase.Kind.CONTENT_REPORT)
         self.assertIsNone(case.opened_by)
@@ -50,14 +52,14 @@ class ContentReportWorkflowTests(TestCase):
         event = case.events.get(event_type="report.received")
         self.assertIsNone(event.actor)
         self.assertFalse(event.visible_to_provider)
+        self.assertEqual(event.metadata, {"category": "incorrect_content"})
 
-    def test_reporter_status_requires_one_time_receipt_secret(self) -> None:
+    def test_reporter_status_requires_receipt_secret(self) -> None:
         receipt = submit_content_report(
             provider_id=self.provider.pk,
             category="other",
             details="Please review this profile.",
         )
-
         case = content_report_status(
             case_id=receipt.case_id,
             status_token=receipt.status_token,
@@ -72,14 +74,12 @@ class ContentReportWorkflowTests(TestCase):
             category="incorrect_content",
             details="Incorrect profile fact.",
         )
-
         staff_update_content_case(
             case_id=receipt.case_id,
             actor=self.staff,
             action="notice",
             note="Please review and correct the reported fact.",
         )
-
         case, events = provider_case_timeline(
             case_id=receipt.case_id,
             actor=self.owner,
@@ -109,7 +109,7 @@ class ContentReportWorkflowTests(TestCase):
         appeal_content_case(
             case_id=receipt.case_id,
             actor=self.owner,
-            note="The current information is correct; source attached in our records.",
+            note="The current information is correct.",
         )
         staff_update_content_case(
             case_id=receipt.case_id,
@@ -117,7 +117,6 @@ class ContentReportWorkflowTests(TestCase):
             action="resolve",
             note="Reviewed provider appeal and resolved the case.",
         )
-
         case, events = provider_case_timeline(
             case_id=receipt.case_id,
             actor=self.owner,
@@ -135,7 +134,6 @@ class ContentReportWorkflowTests(TestCase):
             category="other",
             details="Review requested.",
         )
-
         with self.assertRaises(PermissionDenied):
             provider_case_timeline(case_id=receipt.case_id, actor=self.other)
         with self.assertRaises(PermissionDenied):
@@ -150,3 +148,58 @@ class ContentReportWorkflowTests(TestCase):
                 event_type="provider.appeal",
             ).exists()
         )
+
+
+@override_settings(
+    CACHES={
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "content-report-rate-limit-tests",
+        }
+    }
+)
+class ContentReportPublicViewTests(TestCase):
+    def setUp(self) -> None:
+        cache.clear()
+        self.provider = Provider.objects.create(
+            provider_type=Provider.Type.BUSINESS,
+            legal_name="Public Report Oy",
+            display_name="Public Report",
+            claim_status=Provider.ClaimStatus.APPROVED,
+            lifecycle=Provider.Lifecycle.PUBLISHED,
+        )
+        self.slug = ProviderSlug.objects.create(
+            provider=self.provider,
+            slug="public-report",
+        )
+
+    def test_anonymous_reports_are_acknowledged_and_rate_limited(self) -> None:
+        url = reverse(
+            "content-report-provider",
+            kwargs={"locale": "en", "slug": self.slug.slug},
+        )
+        self.assertEqual(self.client.get(url).status_code, 200)
+        for index in range(5):
+            response = self.client.post(
+                url,
+                {"category": "other", "details": f"Report {index}"},
+                REMOTE_ADDR="203.0.113.15",
+            )
+            self.assertEqual(response.status_code, 202)
+        limited = self.client.post(
+            url,
+            {"category": "other", "details": "Report 6"},
+            REMOTE_ADDR="203.0.113.15",
+        )
+        self.assertEqual(limited.status_code, 429)
+        self.assertEqual(limited["Retry-After"], "3600")
+        self.assertEqual(ModerationCase.objects.count(), 5)
+
+    def test_report_route_is_not_available_for_non_published_provider(self) -> None:
+        self.provider.lifecycle = Provider.Lifecycle.SUSPENDED
+        self.provider.save(update_fields=("lifecycle", "updated_at"))
+        url = reverse(
+            "content-report-provider",
+            kwargs={"locale": "en", "slug": self.slug.slug},
+        )
+        self.assertEqual(self.client.get(url).status_code, 404)
