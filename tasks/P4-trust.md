@@ -5,5 +5,3 @@ Depends: P3. Read: verification/staff sections of `docs/03-experience.md`; secur
 ## Accept
 
 ## Gates
-
-Keyboard and screen-reader smoke.
