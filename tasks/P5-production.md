@@ -6,7 +6,6 @@ Depends: P4. Read: `docs/06-quality.md`, `docs/07-operations.md`.
 
 ## Accept
 
-- Exact image SHA promotes staging→production without rebuild.
 - A fresh disposable rehearsal host is recreated by Ansible and restored without undocumented manual steps.
 - Authenticated content cannot enter CDN cache.
 - Backup restore meets RPO/RTO target; evidence records commands/times, not secrets/data.
