@@ -64,7 +64,9 @@ def autosave_revision(*, provider_id: object, account, payload: dict) -> Profile
     revision = editable_revision(provider=provider, account=account)
     if revision.status == ProfileRevision.Status.CHANGES_REQUESTED:
         revision.status = ProfileRevision.Status.DRAFT
-    revision.payload = {field: str(payload.get(field, "")) for field in PROFILE_FIELDS}
+    revision.payload = {
+        field: str(payload.get(field, "")) for field in PROFILE_FIELDS
+    }
     revision.save(update_fields=("payload", "status"))
     return revision
 
@@ -74,7 +76,11 @@ def submit_revision(*, provider_id: object, account) -> ProfileRevision:
     provider = provider_for_account(provider_id=provider_id, account=account)
     provider = Provider.objects.select_for_update().get(pk=provider.pk)
     revision = editable_revision(provider=provider, account=account)
-    missing = [field for field in ("provider_type", "legal_name", "display_name") if not revision.payload.get(field)]
+    missing = [
+        field
+        for field in ("provider_type", "legal_name", "display_name")
+        if not revision.payload.get(field)
+    ]
     if missing:
         raise ValidationError(f"missing required profile fields: {', '.join(missing)}")
     revision.status = ProfileRevision.Status.PENDING
