@@ -50,10 +50,7 @@ class UrlLibRegistryTransport:
             )
         request = Request(
             url,
-            headers={
-                "Accept": "application/json",
-                "User-Agent": "finrix-palvelut/1",
-            },
+            headers={"Accept": "application/json", "User-Agent": "finrix-palvelut/1"},
         )
         with self._opener.open(request, timeout=timeout_seconds) as response:
             if response.geturl() != url:
@@ -118,7 +115,9 @@ class YtjPrhAdapter:
         sleep: Callable[[float], None] = time.sleep,
     ) -> None:
         if not 1 <= max_attempts <= DEFAULT_MAX_ATTEMPTS:
-            raise ValueError(f"max_attempts must be between 1 and {DEFAULT_MAX_ATTEMPTS}")
+            raise ValueError(
+                f"max_attempts must be between 1 and {DEFAULT_MAX_ATTEMPTS}"
+            )
         if not 0 < timeout_seconds <= DEFAULT_TIMEOUT_SECONDS:
             raise ValueError(
                 f"timeout_seconds must be between 0 and {DEFAULT_TIMEOUT_SECONDS}"
