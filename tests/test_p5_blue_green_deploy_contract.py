@@ -10,7 +10,13 @@ def test_production_compose_has_two_web_and_worker_slots_and_one_scheduler():
     compose = yaml.safe_load((ROOT / "compose.production.yml").read_text())
     services = compose["services"]
 
-    assert {"web_blue", "web_green", "worker_blue", "worker_green", "scheduler"} <= set(services)
+    assert {
+        "web_blue",
+        "web_green",
+        "worker_blue",
+        "worker_green",
+        "scheduler",
+    } <= set(services)
     assert services["web_blue"]["ports"] == ["127.0.0.1:8081:8000"]
     assert services["web_green"]["ports"] == ["127.0.0.1:8082:8000"]
     assert services["worker_blue"]["stop_grace_period"] == "60s"
