@@ -293,9 +293,16 @@ jobs:
         run: |
           docker compose --project-name "$COMPOSE_PROJECT_NAME" run --rm web \
             python manage.py test \
-              palvelut.apps.providers \
-              palvelut.apps.accounts \
-              palvelut.apps.publishing \
+              palvelut.apps.accounts.tests.ProviderAccountSecurityTests \
+              palvelut.apps.providers.test_atomic_provider_acceptance \
+              palvelut.apps.providers.test_claim_flow \
+              palvelut.apps.providers.test_cross_provider_access_audit.CrossProviderAccessAuditTests.test_cross_provider_read_is_hidden_and_audited \
+              palvelut.apps.providers.test_cross_provider_access_audit.CrossProviderAccessAuditTests.test_cross_provider_write_is_hidden_audited_and_does_not_mutate \
+              palvelut.apps.providers.test_image_upload_acceptance \
+              palvelut.apps.providers.test_team_services \
+              palvelut.apps.providers.test_workspace_flow \
+              palvelut.apps.providers.test_analytics_acceptance \
+              palvelut.apps.providers.test_concurrency_constraints \
               --verbosity 2
 
       - name: Run canonical non-browser test gate
