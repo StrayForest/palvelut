@@ -1,0 +1,227 @@
+- name: Provision Palvelut production host
+  hosts: all
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Require supported Ubuntu baseline
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution == "Ubuntu"
+          - ansible_distribution_version is version("24.04", ">=")
+          - deploy_authorized_key is defined
+          - deploy_authorized_key.startswith("ssh-")
+          - palvelut_secret_env is defined
+        fail_msg: "Ubuntu 24.04+, deploy_authorized_key and external palvelut_secret_env are required"
+
+  tasks:
+    - name: Install baseline packages
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+          - nginx
+          - unattended-upgrades
+          - ufw
+        state: present
+        update_cache: true
+
+    - name: Create deploy user
+      ansible.builtin.user:
+        name: "{{ palvelut_deploy_user }}"
+        groups: sudo
+        append: true
+        shell: /bin/bash
+        create_home: true
+
+    - name: Authorize deploy SSH key
+      ansible.posix.authorized_key:
+        user: "{{ palvelut_deploy_user }}"
+        key: "{{ deploy_authorized_key }}"
+        state: present
+
+    - name: Allow passwordless service administration for deploy user
+      ansible.builtin.copy:
+        dest: "/etc/sudoers.d/{{ palvelut_deploy_user }}"
+        owner: root
+        group: root
+        mode: "0440"
+        validate: "/usr/sbin/visudo -cf %s"
+        content: "{{ palvelut_deploy_user }} ALL=(ALL) NOPASSWD:ALL\n"
+
+    - name: Harden SSH daemon policy
+      ansible.builtin.copy:
+        dest: /etc/ssh/sshd_config.d/90-palvelut.conf
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          PasswordAuthentication no
+          KbdInteractiveAuthentication no
+          PermitRootLogin prohibit-password
+          X11Forwarding no
+        validate: "/usr/sbin/sshd -t -f /etc/ssh/sshd_config"
+      notify: Restart ssh
+
+    - name: Configure automatic security upgrades
+      ansible.builtin.copy:
+        dest: /etc/apt/apt.conf.d/20auto-upgrades
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          APT::Periodic::Update-Package-Lists "1";
+          APT::Periodic::Unattended-Upgrade "1";
+
+    - name: Ensure Docker apt key directory exists
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Install Docker repository signing key
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Configure Docker stable repository
+      ansible.builtin.apt_repository:
+        repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu noble stable"
+        filename: docker
+        state: present
+        update_cache: true
+
+    - name: Install pinned Docker runtime
+      ansible.builtin.apt:
+        name:
+          - "docker-ce={{ docker_ce_version }}"
+          - "docker-ce-cli={{ docker_ce_cli_version }}"
+          - "containerd.io={{ containerd_io_version }}"
+          - "docker-buildx-plugin={{ docker_buildx_version }}"
+          - "docker-compose-plugin={{ docker_compose_version }}"
+        state: present
+        allow_downgrade: false
+
+    - name: Hold pinned Docker packages
+      ansible.builtin.dpkg_selections:
+        name: "{{ item }}"
+        selection: hold
+      loop:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+        - docker-buildx-plugin
+        - docker-compose-plugin
+
+    - name: Add deploy user to Docker group
+      ansible.builtin.user:
+        name: "{{ palvelut_deploy_user }}"
+        groups: docker
+        append: true
+
+    - name: Create application directories
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: directory
+        owner: "{{ palvelut_deploy_user }}"
+        group: "{{ palvelut_deploy_user }}"
+        mode: "{{ item.mode }}"
+      loop:
+        - { path: "{{ palvelut_root }}", mode: "0755" }
+        - { path: "{{ palvelut_root }}/releases", mode: "0755" }
+        - { path: "{{ palvelut_root }}/shared", mode: "0750" }
+        - { path: "{{ palvelut_root }}/backups", mode: "0750" }
+
+    - name: Create external secret directory
+      ansible.builtin.file:
+        path: "{{ palvelut_secret_dir }}"
+        state: directory
+        owner: root
+        group: "{{ palvelut_deploy_user }}"
+        mode: "0750"
+
+    - name: Place application secrets outside Git
+      ansible.builtin.copy:
+        dest: "{{ palvelut_secret_dir }}/production.env"
+        owner: root
+        group: "{{ palvelut_deploy_user }}"
+        mode: "0640"
+        content: "{{ palvelut_secret_env }}"
+      no_log: true
+
+    - name: Install Nginx application site
+      ansible.builtin.template:
+        src: templates/palvelut-nginx.conf.j2
+        dest: "{{ palvelut_nginx_site }}"
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Reload nginx
+
+    - name: Enable Nginx application site
+      ansible.builtin.file:
+        src: "{{ palvelut_nginx_site }}"
+        dest: /etc/nginx/sites-enabled/palvelut.conf
+        state: link
+      notify: Reload nginx
+
+    - name: Remove default Nginx site
+      ansible.builtin.file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: Reload nginx
+
+    - name: Deny inbound traffic by default
+      community.general.ufw:
+        direction: incoming
+        policy: deny
+
+    - name: Allow outbound traffic by default
+      community.general.ufw:
+        direction: outgoing
+        policy: allow
+
+    - name: Allow required inbound ports
+      community.general.ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: tcp
+      loop:
+        - "{{ palvelut_ssh_port }}"
+        - "80"
+        - "443"
+
+    - name: Enable firewall
+      community.general.ufw:
+        state: enabled
+
+    - name: Ensure core services are enabled
+      ansible.builtin.service:
+        name: "{{ item }}"
+        state: started
+        enabled: true
+      loop:
+        - docker
+        - nginx
+        - unattended-upgrades
+
+  handlers:
+    - name: Restart ssh
+      ansible.builtin.service:
+        name: ssh
+        state: restarted
+
+    - name: Reload nginx
+      ansible.builtin.command: nginx -t
+      changed_when: false
+      notify: Apply nginx reload
+
+    - name: Apply nginx reload
+      ansible.builtin.service:
+        name: nginx
+        state: reloaded
