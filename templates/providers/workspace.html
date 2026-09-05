@@ -32,7 +32,14 @@
             <div><dt class="text-sm text-slate-600">Profile views</dt><dd class="text-2xl font-semibold">{{ row.profile_views }}</dd></div>
             <div><dt class="text-sm text-slate-600">Contact clicks</dt><dd class="text-2xl font-semibold">{{ row.contact_clicks }}</dd></div>
           </dl>
-          <p class="mt-2 text-xs text-slate-500">Anonymous provider-level totals only; no visitor identity is shown.</p>
+          <div class="mt-3 text-xs text-slate-500">
+            <p>Anonymous provider-level totals only. No visitor identity, IP address, search text, or cross-site identifier is stored or shown.</p>
+            <dl class="mt-2 grid gap-1">
+              <div><dt class="inline font-medium text-slate-600">Impressions:</dt> <dd class="inline">times this provider appears in anonymous public discovery results.</dd></div>
+              <div><dt class="inline font-medium text-slate-600">Profile views:</dt> <dd class="inline">anonymous public opens of this provider profile.</dd></div>
+              <div><dt class="inline font-medium text-slate-600">Contact clicks:</dt> <dd class="inline">tracked clicks from this provider profile to a public contact channel.</dd></div>
+            </dl>
+          </div>
         </div>
       </section>
       {% endwith %}
