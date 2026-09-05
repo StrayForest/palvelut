@@ -1,0 +1,40 @@
+groups:
+  - name: palvelut-quality
+    rules:
+      - alert: PalvelutAvailabilityBurn
+        expr: rate(palvelut_http_5xx_total[5m]) / clamp_min(rate(palvelut_http_requests_total[5m]), 1) > 0.001
+        for: 10m
+        annotations:
+          runbook: docs/runbooks/observability.md#availability-and-5xx
+      - alert: PalvelutLatencyHigh
+        expr: rate(palvelut_http_request_duration_seconds_sum[5m]) / clamp_min(rate(palvelut_http_request_duration_seconds_count[5m]), 1) > 0.8
+        for: 10m
+        annotations:
+          runbook: docs/runbooks/observability.md#latency
+      - alert: PalvelutCacheHitRatioLow
+        expr: rate(palvelut_cache_hits_total[15m]) / clamp_min(rate(palvelut_cache_hits_total[15m]) + rate(palvelut_cache_misses_total[15m]), 1) < 0.5
+        for: 20m
+        annotations:
+          runbook: docs/runbooks/observability.md#cache
+      - alert: PalvelutDatabasePressure
+        expr: palvelut_db_pool_in_use > 20 or increase(palvelut_db_slow_queries_total[10m]) > 10
+        for: 10m
+        annotations:
+          runbook: docs/runbooks/observability.md#database
+      - alert: PalvelutQueueBacklog
+        expr: palvelut_queue_oldest_age_seconds > 300 or increase(palvelut_queue_failures_total[10m]) > 0
+        for: 5m
+        annotations:
+          runbook: docs/runbooks/observability.md#queue
+      - alert: PalvelutEmailFailures
+        expr: increase(palvelut_email_delivery_failures_total[15m]) > 0
+        annotations:
+          runbook: docs/runbooks/observability.md#email
+      - alert: PalvelutMediaFailures
+        expr: increase(palvelut_media_failures_total[15m]) > 0
+        annotations:
+          runbook: docs/runbooks/observability.md#media
+      - alert: PalvelutBackupStaleOrFailed
+        expr: palvelut_backup_age_seconds > 90000 or increase(palvelut_backup_failures_total[24h]) > 0
+        annotations:
+          runbook: docs/runbooks/observability.md#backups
