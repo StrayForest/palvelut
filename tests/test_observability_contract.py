@@ -51,8 +51,7 @@ class ObservabilityContractTests(SimpleTestCase):
         finally:
             logger.handlers = old_handlers
             logger.propagate = old_propagate
-            logger.setLevel(old_level
-            )
+            logger.setLevel(old_level)
 
         payload = json.loads(stream.getvalue())
         self.assertEqual(payload["level"], "INFO")
