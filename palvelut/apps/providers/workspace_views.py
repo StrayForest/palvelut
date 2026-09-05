@@ -16,6 +16,7 @@ from palvelut.apps.providers.workspace_services import (
     submit_revision,
 )
 from palvelut.apps.publishing.models import ProfileRevision
+from palvelut.observability import observe_media_failure
 
 
 def _membership_for_request(request, provider_id):
@@ -191,6 +192,9 @@ def upload_profile_media(request, provider_id):
         )
     except ValidationError as exc:
         return HttpResponseBadRequest(str(exc))
+    except Exception:
+        observe_media_failure()
+        raise
     return redirect("provider-workspace-edit", provider_id=provider_id)
 
 

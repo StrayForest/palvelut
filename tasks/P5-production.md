@@ -4,7 +4,6 @@ Depends: P4. Read: `docs/06-quality.md`, `docs/07-operations.md`.
 
 ## Build
 
-- Sentry, metrics, dashboards and alerts for every signal named in quality docs.
 - Idempotent jobs/outbox, queue failure/dead-letter handling and data-retention jobs.
 - Encrypted off-site database/media backup and isolated restore drill.
 - Blue/green web deploy/rollback plus worker drain/replace and singleton scheduler workflows using the exact tested image digest and backward-compatible migrations.

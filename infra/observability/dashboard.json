@@ -1,0 +1,21 @@
+{
+  "title": "Palvelut production",
+  "schemaVersion": 1,
+  "quality_contract": "quality-v1",
+  "panels": [
+    {"title": "Traffic", "expr": "sum(rate(palvelut_http_requests_total{route_class=\"public\"}[5m]))"},
+    {"title": "Public latency p95", "expr": "histogram_quantile(0.95, sum by (le) (rate(palvelut_http_request_duration_seconds_bucket{route_class=\"public\"}[5m])))"},
+    {"title": "5xx ratio", "expr": "sum(rate(palvelut_http_requests_total{status_class=\"5xx\"}[5m])) / clamp_min(sum(rate(palvelut_http_requests_total[5m])), 0.001)"},
+    {"title": "Cache hit ratio", "expr": "sum(rate(palvelut_cache_requests_total{result=\"hit\"}[5m])) / clamp_min(sum(rate(palvelut_cache_requests_total{result=~\"hit|miss\"}[5m])), 0.001)"},
+    {"title": "DB query p95", "expr": "histogram_quantile(0.95, sum by (le) (rate(palvelut_db_query_duration_seconds_bucket[5m])))"},
+    {"title": "DB connections", "expr": "palvelut_db_connections"},
+    {"title": "DB waiting connections", "expr": "palvelut_db_waiting_connections"},
+    {"title": "Queue depth", "expr": "palvelut_queue_depth"},
+    {"title": "Queue age", "expr": "palvelut_queue_age_seconds"},
+    {"title": "Queue failures", "expr": "increase(palvelut_queue_failures_total[1h])"},
+    {"title": "Email failures", "expr": "increase(palvelut_email_delivery_total{result=\"failure\"}[1h])"},
+    {"title": "Media failures", "expr": "increase(palvelut_media_failures_total[1h])"},
+    {"title": "Backup failures", "expr": "increase(palvelut_backup_runs_total{result=\"failure\"}[24h])"},
+    {"title": "Backup successes", "expr": "increase(palvelut_backup_runs_total{result=\"success\"}[24h])"}
+  ]
+}

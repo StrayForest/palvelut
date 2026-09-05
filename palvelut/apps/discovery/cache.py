@@ -9,6 +9,8 @@ from django.core.cache import cache
 from django.http import HttpRequest, HttpResponse
 from django.utils.cache import patch_vary_headers
 
+from palvelut.observability import metric_inc
+
 P = ParamSpec("P")
 
 CachedPayload = tuple[int, bytes, str]
@@ -51,11 +53,21 @@ def public_read_through_cache(
                 raise TypeError("cached discovery views must receive HttpRequest first")
 
             if request.method not in {"GET", "HEAD"} or request.user.is_authenticated:
+                metric_inc(
+                    "palvelut_cache_requests_total",
+                    namespace=namespace,
+                    result="bypass",
+                )
                 return _private_response(view(*args, **kwargs))
 
             key = _cache_key(request, namespace)
             payload = cache.get(key)
             if payload is None:
+                metric_inc(
+                    "palvelut_cache_requests_total",
+                    namespace=namespace,
+                    result="miss",
+                )
                 response = view(*args, **kwargs)
                 if response.status_code != 200:
                     return response
@@ -66,6 +78,11 @@ def public_read_through_cache(
                 )
                 cache.set(key, payload, timeout=application_ttl)
             else:
+                metric_inc(
+                    "palvelut_cache_requests_total",
+                    namespace=namespace,
+                    result="hit",
+                )
                 status, content, content_type = payload
                 response = HttpResponse(
                     content,

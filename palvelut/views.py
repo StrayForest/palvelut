@@ -1,9 +1,11 @@
 from django.conf import settings
 from django.core.cache import cache
 from django.db import connection
-from django.http import Http404, JsonResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils import translation
+
+from palvelut.observability import prometheus_payload
 
 SUPPORTED_LOCALES = {code for code, _name in settings.LANGUAGES}
 
@@ -57,3 +59,17 @@ def health_ready(request):
     except Exception:
         return _health_response("unavailable", http_status=503)
     return _health_response("ok")
+
+
+def internal_metrics(request):
+    token = settings.OBSERVABILITY_METRICS_TOKEN
+    if settings.ENVIRONMENT in {"staging", "production"}:
+        supplied = request.headers.get("Authorization", "")
+        if not token or supplied != f"Bearer {token}":
+            raise Http404
+    response = HttpResponse(
+        prometheus_payload(),
+        content_type="text/plain; version=0.0.4; charset=utf-8",
+    )
+    response["Cache-Control"] = "private, no-store"
+    return response
