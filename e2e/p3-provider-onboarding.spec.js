@@ -1,4 +1,5 @@
 const { test, expect } = require("@playwright/test");
+const AxeBuilder = require("@axe-core/playwright").default;
 
 const ONE_PIXEL_PNG = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
@@ -45,4 +46,32 @@ test("provider completes onboarding on mobile without staff edits", async ({ pag
   await expect(page).toHaveURL(/\/palvelut\/account\/profile\/\?submitted=1$/);
   await expect(page.getByRole("status")).toHaveText("Profile submitted for review.");
   await expect(page.getByText("Revision: Pending")).toBeVisible();
+});
+
+test("provider workspace has keyboard and accessibility smoke coverage", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/palvelut/account/login/");
+  await page.getByLabel("Email").fill("provider-e2e@example.test");
+  await page.getByLabel("Password").fill("provider-e2e-pass");
+  await page.getByRole("button", { name: "Sign in" }).click();
+
+  await page.goto("/palvelut/account/profile/");
+  await expect(page.getByRole("heading", { level: 1, name: "Provider workspace" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Edit profile" })).toBeVisible();
+
+  await page.getByRole("link", { name: "Edit profile" }).focus();
+  await expect(page.getByRole("link", { name: "Edit profile" })).toBeFocused();
+  await page.keyboard.press("Enter");
+
+  await expect(page.getByLabel("Display name")).toBeVisible();
+  await expect(page.getByLabel("Service title")).toBeVisible();
+  await expect(page.getByLabel("Service description")).toBeVisible();
+  await expect(page.getByLabel("Price text")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Save draft" })).toBeVisible();
+
+  const results = await new AxeBuilder({ page }).analyze();
+  const blocking = results.violations.filter((violation) =>
+    ["serious", "critical"].includes(violation.impact),
+  );
+  expect(blocking, blocking.map((item) => item.id).join(", ")).toEqual([]);
 });

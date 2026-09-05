@@ -20,6 +20,7 @@ on:
       - "tests/**"
       - "tasks/P0-foundation.md"
       - "tasks/P1-domain.md"
+      - "tasks/P3-provider.md"
       - "tasks/archive/**"
       - ".github/workflows/p0-compose.yml"
 
@@ -286,6 +287,23 @@ jobs:
             -e DJANGO_ALLOWED_HOSTS=ci.example.invalid \
             -e PUBLIC_BASE_URL=https://ci.example.invalid/palvelut \
             web python manage.py check --deploy --fail-level ERROR
+
+      - name: Run P3 provider security and integration gate
+        working-directory: repo
+        run: |
+          docker compose --project-name "$COMPOSE_PROJECT_NAME" run --rm web \
+            python manage.py test \
+              palvelut.apps.accounts.tests.ProviderAccountSecurityTests \
+              palvelut.apps.providers.test_atomic_provider_acceptance \
+              palvelut.apps.providers.test_claim_flow \
+              palvelut.apps.providers.test_cross_provider_access_audit.CrossProviderAccessAuditTests.test_cross_provider_read_is_hidden_and_audited \
+              palvelut.apps.providers.test_cross_provider_access_audit.CrossProviderAccessAuditTests.test_cross_provider_write_is_hidden_audited_and_does_not_mutate \
+              palvelut.apps.providers.test_image_upload_acceptance \
+              palvelut.apps.providers.test_team_services \
+              palvelut.apps.providers.test_workspace_flow \
+              palvelut.apps.providers.test_analytics_acceptance \
+              palvelut.apps.providers.test_concurrency_constraints \
+              --verbosity 2
 
       - name: Run canonical non-browser test gate
         working-directory: repo
