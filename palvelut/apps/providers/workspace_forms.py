@@ -63,14 +63,9 @@ class ProviderProfileForm(forms.Form):
         self._seed_friendly_initial(initial)
         kwargs["initial"] = initial
         super().__init__(*args, **kwargs)
-        control_style = (
-            "width:100%;max-width:100%;min-width:0;box-sizing:border-box;"
-            "margin-top:0.25rem;padding:0.625rem 0.75rem;border:1px solid #cbd5e1;"
-            "border-radius:0.5rem;background:#fff"
-        )
         for name, field in self.fields.items():
             if name not in {"contacts", "services", "service_areas", "languages"}:
-                field.widget.attrs.setdefault("style", control_style)
+                field.widget.attrs.setdefault("class", "provider-form-control")
 
     @staticmethod
     def _first(payload: dict[str, Any], field: str) -> dict[str, Any]:
