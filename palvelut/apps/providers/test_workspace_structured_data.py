@@ -92,9 +92,7 @@ class ProviderStructuredWorkspaceTests(TestCase):
                     "mode": "onsite",
                 }
             ],
-            "languages": [
-                {"language_id": str(self.language.pk), "declared": True}
-            ],
+            "languages": [{"language_id": str(self.language.pk), "declared": True}],
         }
 
     def test_form_validates_and_normalizes_structured_profile_data(self):
@@ -107,12 +105,10 @@ class ProviderStructuredWorkspaceTests(TestCase):
                     '"price_text":"60 €"}]' % self.category.pk
                 ),
                 "service_areas": (
-                    '[{"municipality_id":"%s","mode":"onsite"}]'
-                    % self.municipality.pk
+                    '[{"municipality_id":"%s","mode":"onsite"}]' % self.municipality.pk
                 ),
                 "languages": (
-                    '[{"language_id":"%s","declared":true}]'
-                    % self.language.pk
+                    '[{"language_id":"%s","declared":true}]' % self.language.pk
                 ),
             }
         )
@@ -130,9 +126,7 @@ class ProviderStructuredWorkspaceTests(TestCase):
         )
         revision = submit_revision(provider_id=self.provider.pk, account=self.owner)
 
-        self.assertFalse(
-            ContactChannel.objects.filter(provider=self.provider).exists()
-        )
+        self.assertFalse(ContactChannel.objects.filter(provider=self.provider).exists())
         self.assertFalse(
             ProviderService.objects.filter(provider=self.provider).exists()
         )
