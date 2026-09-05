@@ -16,12 +16,54 @@ for (const route of publicRoutes) {
     await expect(page.locator("html")).toHaveAttribute("lang", "en");
     await expect(page.locator("main")).toHaveCount(1);
     await expect(page.locator("h1")).toHaveCount(1);
-    await expect(page.locator('[tabindex]:not([tabindex="0"]):not([tabindex="-1"])')).toHaveCount(0);
+    await expect(
+      page.locator('[tabindex]:not([tabindex="0"]):not([tabindex="-1"])'),
+    ).toHaveCount(0);
 
     const unnamedInteractive = await page.locator(
-      'button:not([aria-label]):not(:has-text(".")), a[href]:not([aria-label]):not(:has-text(".")), input:not([aria-label]):not([aria-labelledby]):not([id]), select:not([aria-label]):not([aria-labelledby]):not([id])',
-    ).count();
-    expect(unnamedInteractive).toBe(0);
+      "a[href], button, input, select, textarea",
+    ).evaluateAll((elements) =>
+      elements
+        .filter((element) => {
+          const labelledBy = element.getAttribute("aria-labelledby");
+          const labelledByText = labelledBy
+            ? labelledBy
+                .split(/\s+/)
+                .map((id) => document.getElementById(id)?.textContent || "")
+                .join(" ")
+                .trim()
+            : "";
+          const id = element.id;
+          const labelText = id
+            ? Array.from(document.querySelectorAll(`label[for="${CSS.escape(id)}"]`))
+                .map((label) => label.textContent || "")
+                .join(" ")
+                .trim()
+            : "";
+          const wrappingLabelText = element.closest("label")?.textContent?.trim() || "";
+          const text = element.textContent?.trim() || "";
+          const ariaLabel = element.getAttribute("aria-label")?.trim() || "";
+          const title = element.getAttribute("title")?.trim() || "";
+          const alt = element.getAttribute("alt")?.trim() || "";
+          const value =
+            element instanceof HTMLInputElement &&
+            ["button", "submit", "reset"].includes(element.type)
+              ? element.value.trim()
+              : "";
+          return !(
+            labelledByText ||
+            labelText ||
+            wrappingLabelText ||
+            text ||
+            ariaLabel ||
+            title ||
+            alt ||
+            value
+          );
+        })
+        .map((element) => element.outerHTML),
+    );
+    expect(unnamedInteractive).toEqual([]);
   });
 }
 
