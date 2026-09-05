@@ -1,0 +1,43 @@
+name: P3 formatter
+
+on:
+  pull_request:
+    paths:
+      - "palvelut/**/*.py"
+      - ".github/workflows/p3-format.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    if: github.head_ref == 'codex/p3-01-provider-auth'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Fetch PR branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          git init repo
+          cd repo
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git fetch --depth=1 origin "${HEAD_REF}"
+          git checkout -B "${HEAD_REF}" FETCH_HEAD
+
+      - name: Apply pinned formatter
+        working-directory: repo
+        run: |
+          python3 -m pip install --disable-pip-version-check --no-input "ruff==0.12.12"
+          mapfile -t python_files < <(git ls-files '*.py')
+          ruff format "${python_files[@]}"
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- '*.py'
+          git commit -m "P3 apply ruff formatting"
+          git push origin "HEAD:${GITHUB_HEAD_REF}"
