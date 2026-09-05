@@ -2,10 +2,6 @@
 
 Depends: P3. Read: verification/staff sections of `docs/03-experience.md`; security/privacy/SEO sections of `docs/06-quality.md`.
 
-## Build
-
-- Privacy/terms/cookies/accessibility templates and data access/export/delete staff workflow.
-
 ## Accept
 
 - Upstream failure never changes a valid check to a false fact.

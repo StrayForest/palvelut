@@ -22,6 +22,14 @@
     <nav aria-label="{% translate 'Primary navigation' %}" class="mx-auto max-w-6xl px-4 py-4 sm:px-6 lg:px-8">{% translate "Finrix Palvelut" %}</nav>
   </header>
   <main class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8" id="main-content" tabindex="-1">{% block content %}{% endblock %}</main>
-  <footer class="mx-auto max-w-6xl px-4 py-8 text-sm text-slate-600 sm:px-6 lg:px-8">{% translate "Find specialists and contact them directly." %}</footer>
+  <footer class="mx-auto max-w-6xl px-4 py-8 text-sm text-slate-600 sm:px-6 lg:px-8">
+    <p>{% translate "Find specialists and contact them directly." %}</p>
+    <nav aria-label="{% translate 'Legal' %}">
+      <a href="{% url 'legal-document' locale=LANGUAGE_CODE document='privacy' %}">{% translate "Privacy" %}</a>
+      <a href="{% url 'legal-document' locale=LANGUAGE_CODE document='terms' %}">{% translate "Terms" %}</a>
+      <a href="{% url 'legal-document' locale=LANGUAGE_CODE document='cookies' %}">{% translate "Cookies" %}</a>
+      <a href="{% url 'legal-document' locale=LANGUAGE_CODE document='accessibility' %}">{% translate "Accessibility" %}</a>
+    </nav>
+  </footer>
 </body>
 </html>

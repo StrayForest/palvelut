@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Data requests" %} · Finrix Palvelut{% endblock %}
+
+{% block content %}
+<h1>{% translate "Data requests" %}</h1>
+<p>{% translate "Submit a request to access, export or delete data associated with your provider account. Requests are reviewed by staff and the outcome is recorded." %}</p>
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">{% translate "Submit request" %}</button>
+</form>
+
+<h2>{% translate "Your requests" %}</h2>
+<ul>
+  {% for row in requests %}
+    <li>{{ row.get_kind_display }} — {{ row.get_status_display }} — {{ row.created_at }}</li>
+  {% empty %}
+    <li>{% translate "No data requests yet." %}</li>
+  {% endfor %}
+</ul>
+{% endblock %}

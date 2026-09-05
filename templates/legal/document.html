@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ document_title }} · Finrix Palvelut{% endblock %}
+
+{% block content %}
+<article class="prose max-w-3xl">
+  <h1>{{ document_title }}</h1>
+  <p><strong>{% translate "Draft template — pending owner/legal review before public beta." %}</strong></p>
+
+  {% if document == "privacy" %}
+    <h2>{% translate "Controller and contact" %}</h2>
+    <p>{% translate "Controller identity and privacy contact details must be completed and approved before public beta." %}</p>
+    <h2>{% translate "Personal data" %}</h2>
+    <p>{% translate "The service processes provider account, profile, moderation, security and minimal first-party analytics data for operating the directory. The final notice will document purpose, legal basis, retention, processors and rights for each data category." %}</p>
+    <h2>{% translate "Your rights" %}</h2>
+    <p>{% translate "Signed-in providers can submit an access, export or deletion request. Staff reviews each request and records the outcome before any deletion is performed." %}</p>
+    <p><a href="{% url 'data-subject-requests' %}">{% translate "Manage data requests" %}</a></p>
+  {% elif document == "terms" %}
+    <h2>{% translate "Provider responsibility" %}</h2>
+    <p>{% translate "Providers are responsible for supplying accurate public identity, service, price, area and contact information and for keeping it current." %}</p>
+    <h2>{% translate "Moderation" %}</h2>
+    <p>{% translate "Profiles and revisions may be reviewed, corrected, unpublished or rejected when they do not meet directory, safety or legal requirements. Final provider terms require owner/legal approval." %}</p>
+  {% elif document == "cookies" %}
+    <h2>{% translate "Current cookie use" %}</h2>
+    <p>{% translate "The application uses essential security and session mechanisms for provider and staff accounts. Product analytics are first-party and aggregate and do not create cross-site visitor profiles." %}</p>
+    <p>{% translate "The final policy will list production cookies, purposes and retention before public beta." %}</p>
+  {% elif document == "accessibility" %}
+    <h2>{% translate "Accessibility target" %}</h2>
+    <p>{% translate "Finrix Palvelut targets WCAG 2.2 AA. Automated checks are supplemented by keyboard and screen-reader review." %}</p>
+    <h2>{% translate "Feedback" %}</h2>
+    <p>{% translate "The public accessibility contact and reviewed statement will be completed before public beta." %}</p>
+  {% endif %}
+</article>
+{% endblock %}

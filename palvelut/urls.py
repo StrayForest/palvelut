@@ -15,6 +15,7 @@ from palvelut.apps.accounts.views import (
     verify_email,
 )
 from palvelut.apps.analytics.services import track_provider_events
+from palvelut.apps.content.views import legal_document
 from palvelut.apps.discovery.cache import public_read_through_cache
 from palvelut.apps.discovery.contact import contact_redirect
 from palvelut.apps.discovery.views import (
@@ -24,6 +25,11 @@ from palvelut.apps.discovery.views import (
     robots_txt,
     search,
     sitemap_xml,
+)
+from palvelut.apps.moderation.data_rights_views import (
+    data_subject_requests,
+    staff_data_subject_request_detail,
+    staff_data_subject_request_list,
 )
 from palvelut.apps.moderation.views import (
     provider_case_detail,
@@ -127,6 +133,11 @@ urlpatterns = [
         claim_provider,
         name="account-claim-provider",
     ),
+    path(
+        "palvelut/account/data-rights/",
+        data_subject_requests,
+        name="data-subject-requests",
+    ),
     path("palvelut/account/profile/", workspace, name="provider-workspace"),
     path(
         "palvelut/account/profile/<uuid:provider_id>/",
@@ -179,11 +190,26 @@ urlpatterns = [
         staff_case_detail,
         name="staff-content-case-detail",
     ),
+    path(
+        "palvelut/staff/data-rights/",
+        staff_data_subject_request_list,
+        name="staff-data-subject-request-list",
+    ),
+    path(
+        "palvelut/staff/data-rights/<uuid:request_id>/",
+        staff_data_subject_request_detail,
+        name="staff-data-subject-request-detail",
+    ),
     path("palvelut/staff/", admin.site.urls),
     path("palvelut/", public_mount_root, name="public-mount-root"),
     path("palvelut/<str:locale>/", cached_home, name="localized-home"),
     path("palvelut/<str:locale>/search/", cached_search, name="discovery-search"),
     path("palvelut/<str:locale>/trust/", cached_trust, name="trust"),
+    path(
+        "palvelut/<str:locale>/legal/<str:document>/",
+        legal_document,
+        name="legal-document",
+    ),
     path(
         "palvelut/<str:locale>/report/<slug:slug>/",
         report_provider,

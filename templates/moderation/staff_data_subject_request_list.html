@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Data request queue" %} · Finrix Palvelut{% endblock %}
+
+{% block content %}
+<h1>{% translate "Data request queue" %}</h1>
+<ul>
+  {% for row in requests %}
+    <li>
+      <a href="{% url 'staff-data-subject-request-detail' request_id=row.pk %}">{{ row.get_kind_display }} — {{ row.account.get_username }}</a>
+      — {{ row.get_status_display }} — {{ row.created_at }}
+    </li>
+  {% empty %}
+    <li>{% translate "No data requests." %}</li>
+  {% endfor %}
+</ul>
+{% endblock %}
