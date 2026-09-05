@@ -1,5 +1,6 @@
 import json
 import logging
+import sys
 import time
 import uuid
 from contextvars import ContextVar
@@ -23,7 +24,7 @@ def current_request_id() -> str | None:
 
 @receiver(got_request_exception)
 def _capture_request_exception(sender, request=None, **kwargs):
-    exc = kwargs.get("exception")
+    exc = sys.exception()
     if isinstance(exc, BaseException):
         capture_exception(exc, request_id=current_request_id())
 
