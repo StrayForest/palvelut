@@ -1,0 +1,29 @@
+name: Temporary Ruff format diff
+
+on:
+  pull_request:
+    paths:
+      - "palvelut/apps/providers/workspace_views.py"
+      - ".github/workflows/format-debug.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  format-diff:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Fetch exact PR head
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          git init repo
+          cd repo
+          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git fetch --depth=1 origin "${HEAD_SHA}"
+          git checkout --detach FETCH_HEAD
+      - name: Show Ruff formatter diff
+        working-directory: repo
+        run: |
+          python3 -m pip install --disable-pip-version-check --no-input "ruff==0.12.12"
+          ruff format --diff palvelut/apps/providers/workspace_views.py
