@@ -28,7 +28,9 @@ class CodespacesContractTests(unittest.TestCase):
         self.assertIn("DJANGO_CSRF_TRUSTED_ORIGINS", overlay)
         self.assertIn("app.github.dev", overlay)
 
-    def test_codespaces_start_script_is_valid_and_seeds_demo_data(self) -> None:
+    def test_codespaces_start_script_waits_and_emits_localhost_forward_links(
+        self,
+    ) -> None:
         script = ROOT / ".devcontainer" / "start-codespace.sh"
         subprocess.run(["bash", "-n", str(script)], check=True)
         content = script.read_text()
@@ -36,6 +38,11 @@ class CodespacesContractTests(unittest.TestCase):
         self.assertIn("manage.py migrate --noinput", content)
         self.assertIn("manage.py seed_demo", content)
         self.assertIn("compose.codespaces.yml", content)
+        self.assertIn("http://127.0.0.1:8000/palvelut/health/live", content)
+        self.assertIn("http://127.0.0.1:8025/", content)
+        self.assertIn("http://localhost:8000/palvelut/ru/", content)
+        self.assertIn("http://localhost:8025/", content)
+        self.assertIn("PORTS tab", content)
 
 
 if __name__ == "__main__":
