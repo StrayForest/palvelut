@@ -4,8 +4,6 @@ Depends: P2. Read: provider sections of `docs/01-product.md` and `docs/03-experi
 
 ## Build
 
-- Ownership transfer/invite foundation for business teams; only owner/editor roles now.
-
 ## Accept
 
 - Provider completes onboarding on mobile without staff edits.
