@@ -48,9 +48,14 @@ def report_status(request, token):
 @login_required
 @require_http_methods(["GET", "POST"])
 def provider_case(request, case_id):
-    case = get_object_or_404(ModerationCase.objects.select_related("provider"), pk=case_id)
+    case = get_object_or_404(
+        ModerationCase.objects.select_related("provider"),
+        pk=case_id,
+    )
     if not ProviderMembership.objects.filter(
-        provider=case.provider, account=request.user, is_active=True
+        provider=case.provider,
+        account=request.user,
+        is_active=True,
     ).exists():
         raise PermissionDenied
     if request.method == "POST":
@@ -85,7 +90,10 @@ def staff_case_list(request):
 def staff_case(request, case_id):
     if not request.user.is_staff:
         raise PermissionDenied
-    case = get_object_or_404(ModerationCase.objects.select_related("provider"), pk=case_id)
+    case = get_object_or_404(
+        ModerationCase.objects.select_related("provider"),
+        pk=case_id,
+    )
     if request.method == "POST":
         operation = request.POST.get("operation", "")
         try:

@@ -107,7 +107,11 @@ class ModerationAppeal(UuidV7Model):
         related_name="moderation_appeals",
     )
     message = models.TextField(max_length=4000)
-    status = models.CharField(max_length=16, choices=Status.choices, default=Status.PENDING)
+    status = models.CharField(
+        max_length=16,
+        choices=Status.choices,
+        default=Status.PENDING,
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     reviewed_at = models.DateTimeField(null=True, blank=True)
 

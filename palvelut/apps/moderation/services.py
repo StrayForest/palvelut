@@ -46,7 +46,9 @@ def _require_provider_member(*, actor: AbstractBaseUser, provider: Provider) -> 
     if not actor.is_authenticated:
         raise PermissionDenied("Provider access is required")
     if not ProviderMembership.objects.filter(
-        provider=provider, account=actor, is_active=True
+        provider=provider,
+        account=actor,
+        is_active=True,
     ).exists():
         raise PermissionDenied("Provider access is required")
 
@@ -56,13 +58,22 @@ def _hash_public_token(token: str) -> str:
 
 
 @transaction.atomic
-def create_anonymous_report(*, provider: Provider, reason: str, details: str) -> tuple[ContentReport, str]:
+def create_anonymous_report(
+    *,
+    provider: Provider,
+    reason: str,
+    details: str,
+) -> tuple[ContentReport, str]:
     clean_reason = reason.strip()[:120]
     clean_details = details.strip()[:2000]
     if not clean_reason or not clean_details:
         raise ValidationError("Reason and details are required")
     token = secrets.token_urlsafe(32)
-    case = ModerationCase.objects.create(provider=provider, reason=clean_reason, opened_by=None)
+    case = ModerationCase.objects.create(
+        provider=provider,
+        reason=clean_reason,
+        opened_by=None,
+    )
     report = ContentReport.objects.create(
         case=case,
         public_token_hash=_hash_public_token(token),
@@ -84,13 +95,21 @@ def get_public_report_case(*, token: str) -> ModerationCase:
 
 
 @transaction.atomic
-def staff_update_case(*, case_id: object, actor: AbstractBaseUser, action: CaseAction, note: str = "") -> ModerationCase:
+def staff_update_case(
+    *,
+    case_id: object,
+    actor: AbstractBaseUser,
+    action: CaseAction,
+    note: str = "",
+) -> ModerationCase:
     _require_staff(actor)
     case = ModerationCase.objects.select_for_update().get(pk=case_id)
     if action not in ("resolve", "dismiss"):
         raise ValidationError("Unsupported case action")
     case.status = (
-        ModerationCase.Status.RESOLVED if action == "resolve" else ModerationCase.Status.DISMISSED
+        ModerationCase.Status.RESOLVED
+        if action == "resolve"
+        else ModerationCase.Status.DISMISSED
     )
     case.closed_at = timezone.now()
     case.save(update_fields=("status", "closed_at"))
@@ -110,13 +129,22 @@ def staff_update_case(*, case_id: object, actor: AbstractBaseUser, action: CaseA
 
 
 @transaction.atomic
-def create_provider_notice(*, case_id: object, actor: AbstractBaseUser, message: str) -> ProviderNotice:
+def create_provider_notice(
+    *,
+    case_id: object,
+    actor: AbstractBaseUser,
+    message: str,
+) -> ProviderNotice:
     _require_staff(actor)
     case = ModerationCase.objects.select_for_update().get(pk=case_id)
     clean_message = message.strip()[:4000]
     if not clean_message:
         raise ValidationError("Notice message is required")
-    notice = ProviderNotice.objects.create(case=case, created_by=actor, message=clean_message)
+    notice = ProviderNotice.objects.create(
+        case=case,
+        created_by=actor,
+        message=clean_message,
+    )
     ModerationEvent.objects.create(
         case=case,
         event_type="provider.notice_sent",
@@ -127,15 +155,28 @@ def create_provider_notice(*, case_id: object, actor: AbstractBaseUser, message:
 
 
 @transaction.atomic
-def submit_appeal(*, case_id: object, actor: AbstractBaseUser, message: str) -> ModerationAppeal:
-    case = ModerationCase.objects.select_for_update().select_related("provider").get(pk=case_id)
+def submit_appeal(
+    *,
+    case_id: object,
+    actor: AbstractBaseUser,
+    message: str,
+) -> ModerationAppeal:
+    case = (
+        ModerationCase.objects.select_for_update()
+        .select_related("provider")
+        .get(pk=case_id)
+    )
     _require_provider_member(actor=actor, provider=case.provider)
     clean_message = message.strip()[:4000]
     if not clean_message:
         raise ValidationError("Appeal message is required")
     if case.appeals.filter(status=ModerationAppeal.Status.PENDING).exists():
         raise ValidationError("A pending appeal already exists")
-    appeal = ModerationAppeal.objects.create(case=case, submitted_by=actor, message=clean_message)
+    appeal = ModerationAppeal.objects.create(
+        case=case,
+        submitted_by=actor,
+        message=clean_message,
+    )
     ModerationEvent.objects.create(
         case=case,
         event_type="provider.appeal_submitted",
@@ -150,7 +191,10 @@ def _latest_reviewable_revision(provider: Provider) -> ProfileRevision:
         ProfileRevision.objects.select_for_update()
         .filter(
             provider=provider,
-            status__in=(ProfileRevision.Status.DRAFT, ProfileRevision.Status.PENDING),
+            status__in=(
+                ProfileRevision.Status.DRAFT,
+                ProfileRevision.Status.PENDING,
+            ),
         )
         .order_by("-created_at", "-id")
         .first()

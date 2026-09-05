@@ -54,9 +54,15 @@ class ContentReportWorkflowTests(TestCase):
         )
 
         self.assertIsNone(report.case.opened_by)
-        event = ModerationEvent.objects.get(case=report.case, event_type="report.received")
+        event = ModerationEvent.objects.get(
+            case=report.case,
+            event_type="report.received",
+        )
         self.assertIsNone(event.actor)
-        self.assertEqual(report.public_token_hash, hashlib.sha256(token.encode()).hexdigest())
+        self.assertEqual(
+            report.public_token_hash,
+            hashlib.sha256(token.encode()).hexdigest(),
+        )
         self.assertNotEqual(report.public_token_hash, token)
         self.assertEqual(get_public_report_case(token=token), report.case)
 
@@ -122,7 +128,10 @@ class ContentReportWorkflowTests(TestCase):
     def test_public_and_scoped_surfaces_are_reachable(self):
         response = self.client.post(
             reverse("report-provider", args=("en", self.provider.pk)),
-            {"reason": "Incorrect content", "details": "Please review this profile."},
+            {
+                "reason": "Incorrect content",
+                "details": "Please review this profile.",
+            },
         )
         self.assertEqual(response.status_code, 302)
         self.assertIn("/palvelut/report/", response["Location"])
