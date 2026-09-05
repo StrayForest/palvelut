@@ -4,6 +4,7 @@ set -euo pipefail
 : "${SYNTHETIC_BASE_URL:?Set SYNTHETIC_BASE_URL, for example https://example.com/palvelut}"
 : "${SYNTHETIC_PROFILE_SLUG:?Set SYNTHETIC_PROFILE_SLUG to a published synthetic provider slug}"
 : "${SYNTHETIC_PROVIDER_ID:?Set SYNTHETIC_PROVIDER_ID to the published synthetic provider UUID}"
+: "${SYNTHETIC_MONITOR_TOKEN:?Set SYNTHETIC_MONITOR_TOKEN to the application synthetic-monitor token}"
 
 locale="${SYNTHETIC_LOCALE:-en}"
 channel="${SYNTHETIC_CONTACT_CHANNEL:-website}"
@@ -11,13 +12,18 @@ timeout="${SYNTHETIC_TIMEOUT_SECONDS:-10}"
 base="${SYNTHETIC_BASE_URL%/}"
 user_agent="Finrix-Palvelut-Synthetic/1.0"
 
+if [[ "${base}" != https://* ]]; then
+  printf 'SYNTHETIC_BASE_URL must use https\n' >&2
+  exit 2
+fi
+
 curl_common=(
   --silent
   --show-error
   --fail-with-body
   --connect-timeout "${timeout}"
   --max-time "${timeout}"
-  --header "X-Palvelut-Synthetic: 1"
+  --header "X-Palvelut-Synthetic: ${SYNTHETIC_MONITOR_TOKEN}"
   --user-agent "${user_agent}"
 )
 
