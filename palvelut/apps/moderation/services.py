@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import secrets
 from dataclasses import dataclass
 from typing import Literal
 
@@ -12,12 +14,20 @@ from palvelut.apps.discovery.services import (
     rebuild_provider_read_document,
     remove_provider_read_document,
 )
-from palvelut.apps.moderation.models import AuditEvent
-from palvelut.apps.providers.models import Provider
+from palvelut.apps.moderation.models import (
+    AuditEvent,
+    ContentReport,
+    ModerationAppeal,
+    ModerationCase,
+    ModerationEvent,
+    ProviderNotice,
+)
+from palvelut.apps.providers.models import Provider, ProviderMembership
 from palvelut.apps.publishing.models import ProfileRevision
 from palvelut.apps.publishing.services import ensure_provider_slug
 
 ModerationAction = Literal["approve", "request_changes", "suspend"]
+CaseAction = Literal["resolve", "dismiss"]
 
 
 @dataclass(frozen=True)
@@ -30,6 +40,109 @@ class ModerationResult:
 def _require_staff(actor: AbstractBaseUser) -> None:
     if not actor.is_authenticated or not actor.is_staff:
         raise PermissionDenied("Staff access is required for moderation actions")
+
+
+def _require_provider_member(*, actor: AbstractBaseUser, provider: Provider) -> None:
+    if not actor.is_authenticated:
+        raise PermissionDenied("Provider access is required")
+    if not ProviderMembership.objects.filter(
+        provider=provider, account=actor, is_active=True
+    ).exists():
+        raise PermissionDenied("Provider access is required")
+
+
+def _hash_public_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+@transaction.atomic
+def create_anonymous_report(*, provider: Provider, reason: str, details: str) -> tuple[ContentReport, str]:
+    clean_reason = reason.strip()[:120]
+    clean_details = details.strip()[:2000]
+    if not clean_reason or not clean_details:
+        raise ValidationError("Reason and details are required")
+    token = secrets.token_urlsafe(32)
+    case = ModerationCase.objects.create(provider=provider, reason=clean_reason, opened_by=None)
+    report = ContentReport.objects.create(
+        case=case,
+        public_token_hash=_hash_public_token(token),
+        details=clean_details,
+    )
+    ModerationEvent.objects.create(
+        case=case,
+        event_type="report.received",
+        actor=None,
+        metadata={"source": "anonymous"},
+    )
+    return report, token
+
+
+def get_public_report_case(*, token: str) -> ModerationCase:
+    return ContentReport.objects.select_related("case", "case__provider").get(
+        public_token_hash=_hash_public_token(token)
+    ).case
+
+
+@transaction.atomic
+def staff_update_case(*, case_id: object, actor: AbstractBaseUser, action: CaseAction, note: str = "") -> ModerationCase:
+    _require_staff(actor)
+    case = ModerationCase.objects.select_for_update().get(pk=case_id)
+    if action not in ("resolve", "dismiss"):
+        raise ValidationError("Unsupported case action")
+    case.status = (
+        ModerationCase.Status.RESOLVED if action == "resolve" else ModerationCase.Status.DISMISSED
+    )
+    case.closed_at = timezone.now()
+    case.save(update_fields=("status", "closed_at"))
+    ModerationEvent.objects.create(
+        case=case,
+        event_type=f"case.{case.status}",
+        actor=actor,
+        note=note.strip()[:4000],
+    )
+    AuditEvent.objects.create(
+        provider=case.provider,
+        actor=actor,
+        action=f"moderation_case.{case.status}",
+        metadata={"case_id": str(case.pk)},
+    )
+    return case
+
+
+@transaction.atomic
+def create_provider_notice(*, case_id: object, actor: AbstractBaseUser, message: str) -> ProviderNotice:
+    _require_staff(actor)
+    case = ModerationCase.objects.select_for_update().get(pk=case_id)
+    clean_message = message.strip()[:4000]
+    if not clean_message:
+        raise ValidationError("Notice message is required")
+    notice = ProviderNotice.objects.create(case=case, created_by=actor, message=clean_message)
+    ModerationEvent.objects.create(
+        case=case,
+        event_type="provider.notice_sent",
+        actor=actor,
+        metadata={"notice_id": str(notice.pk)},
+    )
+    return notice
+
+
+@transaction.atomic
+def submit_appeal(*, case_id: object, actor: AbstractBaseUser, message: str) -> ModerationAppeal:
+    case = ModerationCase.objects.select_for_update().select_related("provider").get(pk=case_id)
+    _require_provider_member(actor=actor, provider=case.provider)
+    clean_message = message.strip()[:4000]
+    if not clean_message:
+        raise ValidationError("Appeal message is required")
+    if case.appeals.filter(status=ModerationAppeal.Status.PENDING).exists():
+        raise ValidationError("A pending appeal already exists")
+    appeal = ModerationAppeal.objects.create(case=case, submitted_by=actor, message=clean_message)
+    ModerationEvent.objects.create(
+        case=case,
+        event_type="provider.appeal_submitted",
+        actor=actor,
+        metadata={"appeal_id": str(appeal.pk)},
+    )
+    return appeal
 
 
 def _latest_reviewable_revision(provider: Provider) -> ProfileRevision:

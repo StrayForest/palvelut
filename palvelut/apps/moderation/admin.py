@@ -2,8 +2,11 @@ from django.contrib import admin
 
 from palvelut.apps.moderation.models import (
     AuditEvent,
+    ContentReport,
+    ModerationAppeal,
     ModerationCase,
     ModerationEvent,
+    ProviderNotice,
 )
 
 
@@ -46,3 +49,22 @@ class ModerationCaseAdmin(ReadOnlyAdmin):
 class ModerationEventAdmin(ReadOnlyAdmin):
     list_display = ("case", "event_type", "actor", "created_at")
     search_fields = ("case__provider__display_name", "event_type", "actor__username")
+
+
+@admin.register(ContentReport)
+class ContentReportAdmin(ReadOnlyAdmin):
+    list_display = ("case", "created_at")
+    search_fields = ("case__provider__display_name", "case__reason")
+
+
+@admin.register(ProviderNotice)
+class ProviderNoticeAdmin(ReadOnlyAdmin):
+    list_display = ("case", "created_by", "created_at")
+    search_fields = ("case__provider__display_name", "created_by__username")
+
+
+@admin.register(ModerationAppeal)
+class ModerationAppealAdmin(ReadOnlyAdmin):
+    list_display = ("case", "submitted_by", "status", "created_at", "reviewed_at")
+    list_filter = ("status",)
+    search_fields = ("case__provider__display_name", "submitted_by__username")

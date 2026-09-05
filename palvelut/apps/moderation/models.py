@@ -26,6 +26,8 @@ class ModerationCase(UuidV7Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         related_name="opened_moderation_cases",
+        null=True,
+        blank=True,
     )
     opened_at = models.DateTimeField(auto_now_add=True)
     closed_at = models.DateTimeField(null=True, blank=True)
@@ -45,10 +47,69 @@ class ModerationEvent(UuidV7Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         related_name="moderation_events",
+        null=True,
+        blank=True,
     )
     note = models.TextField(blank=True)
     metadata = models.JSONField(default=dict)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("created_at", "id")
+
+
+class ContentReport(UuidV7Model):
+    case = models.OneToOneField(
+        ModerationCase,
+        on_delete=models.CASCADE,
+        related_name="content_report",
+    )
+    public_token_hash = models.CharField(max_length=64, unique=True)
+    details = models.TextField(max_length=2000)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-created_at", "-id")
+
+
+class ProviderNotice(UuidV7Model):
+    case = models.ForeignKey(
+        ModerationCase,
+        on_delete=models.CASCADE,
+        related_name="provider_notices",
+    )
+    message = models.TextField(max_length=4000)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="created_provider_notices",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("created_at", "id")
+
+
+class ModerationAppeal(UuidV7Model):
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        UPHELD = "upheld", "Upheld"
+        DENIED = "denied", "Denied"
+
+    case = models.ForeignKey(
+        ModerationCase,
+        on_delete=models.CASCADE,
+        related_name="appeals",
+    )
+    submitted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="moderation_appeals",
+    )
+    message = models.TextField(max_length=4000)
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ("created_at", "id")

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Moderation cases · Finrix Palvelut{% endblock %}
+{% block content %}
+<main class="mx-auto max-w-3xl">
+  <h1 class="text-2xl font-semibold">Moderation cases</h1>
+  <ul class="mt-6 grid gap-3">
+    {% for case in cases %}
+      <li class="rounded-lg border border-slate-200 p-4"><a class="font-medium underline" href="{% url 'staff-moderation-case' case.id %}">{{ case.provider.display_name }} · {{ case.reason }}</a><p class="mt-1 text-sm text-slate-600">{{ case.get_status_display }} · {{ case.opened_at }}</p></li>
+    {% empty %}<li>No moderation cases.</li>{% endfor %}
+  </ul>
+</main>
+{% endblock %}

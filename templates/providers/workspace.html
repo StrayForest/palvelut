@@ -15,6 +15,17 @@
           <a class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium" href="{% url 'provider-workspace-edit' provider.id %}">Edit profile</a>
         </div>
 
+        {% if provider.moderation_cases.all %}
+        <div class="mt-5">
+          <h3 class="font-semibold">Moderation cases</h3>
+          <ul class="mt-3 grid gap-2">
+            {% for case in provider.moderation_cases.all %}
+              <li><a class="text-sm underline" href="{% url 'provider-moderation-case' case.id %}">{{ case.reason }} · {{ case.get_status_display }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
         <div class="mt-5">
           <h3 class="font-semibold">Profile checklist</h3>
           <p class="mt-1 text-sm text-slate-600">{{ row.completed }}/{{ row.total }} complete</p>
