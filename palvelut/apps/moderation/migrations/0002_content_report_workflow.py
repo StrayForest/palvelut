@@ -57,7 +57,15 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="ContentReport",
             fields=[
-                ("id", models.UUIDField(primary_key=True, serialize=False, editable=False)),
+                (
+                    "id",
+                    models.UUIDField(
+                        db_default=models.Func(function="uuidv7"),
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
                 ("category", models.CharField(max_length=40)),
                 ("details", models.TextField(max_length=2000)),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
