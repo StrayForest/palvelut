@@ -53,7 +53,12 @@ from palvelut.apps.providers.workspace_views import (
     workspace,
 )
 from palvelut.apps.verification.views import trust
-from palvelut.views import health_live, health_ready, internal_metrics, public_mount_root
+from palvelut.views import (
+    health_live,
+    health_ready,
+    internal_metrics,
+    public_mount_root,
+)
 
 cached_home = public_read_through_cache(
     namespace="home-v1",
