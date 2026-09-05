@@ -11,6 +11,9 @@ from django.urls import reverse
 from .models import EmailVerification, StaffMFADevice
 from .services import totp_code
 
+TEST_PASSWORD = "Strong-passphrase-2026!"  # test-only
+WRONG_PASSWORD = "wrong-password"  # test-only
+
 
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 class ProviderAccountSecurityTests(TestCase):
@@ -22,8 +25,8 @@ class ProviderAccountSecurityTests(TestCase):
             reverse("account-register"),
             {
                 "email": "Provider@Example.com",
-                "password1": "Strong-passphrase-2026!",
-                "password2": "Strong-passphrase-2026!",
+                "password1": TEST_PASSWORD,
+                "password2": TEST_PASSWORD,
             },
         )
         self.assertEqual(response.status_code, 201)
@@ -54,19 +57,19 @@ class ProviderAccountSecurityTests(TestCase):
         user = get_user_model().objects.create_user(
             username="provider@example.com",
             email="provider@example.com",
-            password="Strong-passphrase-2026!",
+            password=TEST_PASSWORD,
         )
         self.client.get(reverse("account-login"))
         old_key = self.client.session.session_key
         for _ in range(5):
             response = self.client.post(
                 reverse("account-login"),
-                {"username": user.email, "password": "wrong-password"},
+                {"username": user.email, "password": WRONG_PASSWORD},
             )
             self.assertEqual(response.status_code, 200)
         blocked = self.client.post(
             reverse("account-login"),
-            {"username": user.email, "password": "Strong-passphrase-2026!"},
+            {"username": user.email, "password": TEST_PASSWORD},
         )
         self.assertContains(blocked, "Too many attempts", status_code=200)
         self.assertNotIn("_auth_user_id", self.client.session)
@@ -74,7 +77,7 @@ class ProviderAccountSecurityTests(TestCase):
         cache.clear()
         success = self.client.post(
             reverse("account-login"),
-            {"username": user.email, "password": "Strong-passphrase-2026!"},
+            {"username": user.email, "password": TEST_PASSWORD},
         )
         self.assertRedirects(
             success, reverse("localized-home", kwargs={"locale": "fi"})
@@ -85,7 +88,7 @@ class ProviderAccountSecurityTests(TestCase):
         get_user_model().objects.create_user(
             username="provider@example.com",
             email="provider@example.com",
-            password="Strong-passphrase-2026!",
+            password=TEST_PASSWORD,
         )
         existing = self.client.post(
             reverse("account-password-reset"), {"email": "provider@example.com"}
@@ -109,7 +112,7 @@ class ProviderAccountSecurityTests(TestCase):
         staff = get_user_model().objects.create_user(
             username="staff@example.com",
             email="staff@example.com",
-            password="Strong-passphrase-2026!",
+            password=TEST_PASSWORD,
             is_staff=True,
             is_superuser=True,
         )
@@ -133,7 +136,7 @@ class ProviderAccountSecurityTests(TestCase):
         provider = get_user_model().objects.create_user(
             username="provider@example.com",
             email="provider@example.com",
-            password="Strong-passphrase-2026!",
+            password=TEST_PASSWORD,
         )
         self.client.force_login(provider)
         response = self.client.get(reverse("staff-mfa"))
