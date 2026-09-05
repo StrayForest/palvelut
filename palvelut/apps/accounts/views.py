@@ -1,18 +1,35 @@
-from urllib.parse import urlencode
-
 from django.contrib import messages
-from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.views import LoginView, LogoutView, PasswordResetCompleteView, PasswordResetConfirmView, PasswordResetDoneView, PasswordResetView
+from django.contrib.auth.views import (
+    LoginView,
+    LogoutView,
+    PasswordResetCompleteView,
+    PasswordResetConfirmView,
+    PasswordResetDoneView,
+    PasswordResetView,
+)
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 
-from .forms import EmailAuthenticationForm, MFAForm, ProviderRegistrationForm, RateLimitedPasswordResetForm, SecureSetPasswordForm
-from .services import get_or_create_staff_device, issue_email_verification, rate_limited, valid_totp, verify_email_token
+from .forms import (
+    EmailAuthenticationForm,
+    MFAForm,
+    ProviderRegistrationForm,
+    RateLimitedPasswordResetForm,
+    SecureSetPasswordForm,
+)
+from .services import (
+    get_or_create_staff_device,
+    issue_email_verification,
+    rate_limited,
+    valid_totp,
+    verify_email_token,
+)
 
 
 @never_cache
@@ -42,11 +59,16 @@ class ProviderLoginView(LoginView):
     template_name = "accounts/login.html"
     authentication_form = EmailAuthenticationForm
 
+    def dispatch(self, request, *args, **kwargs):
+        if request.method == "POST":
+            identity = request.POST.get("username", "")
+            if rate_limited("login", f"{request.META.get('REMOTE_ADDR', '')}:{identity}"):
+                form = self.get_form()
+                form.add_error(None, "Too many attempts. Try again later.")
+                return self.form_invalid(form)
+        return super().dispatch(request, *args, **kwargs)
+
     def form_valid(self, form):
-        identity = form.cleaned_data.get("username", "")
-        if rate_limited("login", f"{self.request.META.get('REMOTE_ADDR', '')}:{identity}"):
-            form.add_error(None, "Too many attempts. Try again later.")
-            return self.form_invalid(form)
         response = super().form_valid(form)
         self.request.session.cycle_key()
         self.request.session.pop("staff_mfa_verified", None)
@@ -114,8 +136,9 @@ def staff_mfa(request: HttpRequest) -> HttpResponse:
             request.session.cycle_key()
             request.session["staff_mfa_verified"] = True
             destination = request.GET.get("next") or reverse("admin:index")
+            if not url_has_allowed_host_and_scheme(destination, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+                destination = reverse("admin:index")
             return redirect(destination)
         else:
             form.add_error("code", "Invalid code.")
-    query = urlencode({"secret": device.secret})
-    return render(request, "accounts/staff_mfa.html", {"form": form, "device": device, "provisioning_hint": query})
+    return render(request, "accounts/staff_mfa.html", {"form": form, "device": device})
