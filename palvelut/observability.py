@@ -79,7 +79,9 @@ def _shared_set(signal: str, value: float) -> None:
     try:
         cache.set(_SHARED_SIGNAL_KEYS[signal], value, timeout=None)
     except Exception:
-        _observability_logger.warning("shared_metric_set_failed", extra={"signal": signal})
+        _observability_logger.warning(
+            "shared_metric_set_failed", extra={"signal": signal}
+        )
 
 
 def observe_queue_age(seconds: float) -> None:
@@ -145,9 +147,7 @@ def capture_exception(exc: BaseException, *, request_id: str | None = None) -> N
     }
     envelope = "\n".join(
         (
-            json.dumps(
-                {"event_id": event_id, "sent_at": now}, separators=(",", ":")
-            ),
+            json.dumps({"event_id": event_id, "sent_at": now}, separators=(",", ":")),
             json.dumps(
                 {"type": "event", "content_type": "application/json"},
                 separators=(",", ":"),
@@ -182,7 +182,9 @@ class RequestIdFilter(logging.Filter):
 class JsonFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         payload: dict[str, Any] = {
-            "timestamp": datetime.fromtimestamp(record.created, tz=timezone.utc).isoformat(),
+            "timestamp": datetime.fromtimestamp(
+                record.created, tz=timezone.utc
+            ).isoformat(),
             "level": record.levelname,
             "logger": record.name,
             "message": record.getMessage(),
@@ -375,9 +377,7 @@ def prometheus_payload() -> str:
     lines.append(_metric_line("palvelut_queue_depth", _queue_depth()))
     lines.append(_metric_line("palvelut_queue_age_seconds", _shared_value("queue_age")))
     lines.append(
-        _metric_line(
-            "palvelut_queue_failures_total", _shared_value("queue_failure")
-        )
+        _metric_line("palvelut_queue_failures_total", _shared_value("queue_failure"))
     )
     lines.append(
         _metric_line(
@@ -394,9 +394,7 @@ def prometheus_payload() -> str:
         )
     )
     lines.append(
-        _metric_line(
-            "palvelut_media_failures_total", _shared_value("media_failure")
-        )
+        _metric_line("palvelut_media_failures_total", _shared_value("media_failure"))
     )
     lines.append(
         _metric_line(
