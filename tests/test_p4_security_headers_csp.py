@@ -10,12 +10,20 @@ class P4SecurityHeadersTests(SimpleTestCase):
 
         self.assertEqual(response.status_code, 200)
         csp = response.headers["Content-Security-Policy"]
+        directives = {
+            directive.split()[0]: directive for directive in csp.split("; ")
+        }
         self.assertIn("default-src 'self'", csp)
         self.assertIn("frame-ancestors 'none'", csp)
         self.assertIn("object-src 'none'", csp)
         self.assertIn("base-uri 'self'", csp)
-        self.assertNotIn("'unsafe-inline'", csp)
-        self.assertNotIn("'unsafe-eval'", csp)
+        self.assertNotIn("'unsafe-inline'", directives["script-src"])
+        self.assertNotIn("'unsafe-eval'", directives["script-src"])
+        self.assertEqual(directives["style-src"], "style-src 'self'")
+        self.assertEqual(directives["style-src-elem"], "style-src-elem 'self'")
+        self.assertEqual(
+            directives["style-src-attr"], "style-src-attr 'unsafe-inline'"
+        )
         self.assertEqual(response.headers["X-Content-Type-Options"], "nosniff")
         self.assertEqual(response.headers["X-Frame-Options"], "DENY")
         self.assertEqual(response.headers["Referrer-Policy"], "same-origin")
