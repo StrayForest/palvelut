@@ -13,14 +13,77 @@ class ProviderProfileForm(forms.Form):
     legal_name = forms.CharField(max_length=200)
     display_name = forms.CharField(max_length=200)
     y_tunnus = forms.CharField(max_length=16, required=False)
-    contacts = forms.JSONField(required=False, initial=list, widget=forms.Textarea)
-    services = forms.JSONField(required=False, initial=list, widget=forms.Textarea)
-    service_areas = forms.JSONField(
+
+    primary_category = forms.ModelChoiceField(
+        queryset=Category.objects.order_by("name"),
         required=False,
-        initial=list,
-        widget=forms.Textarea,
+        empty_label="Choose a service",
     )
-    languages = forms.JSONField(required=False, initial=list, widget=forms.Textarea)
+    service_title = forms.CharField(max_length=160, required=False)
+    service_description = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 4}),
+    )
+    price_text = forms.CharField(max_length=160, required=False)
+    primary_municipality = forms.ModelChoiceField(
+        queryset=Municipality.objects.filter(region__country__code="FI").order_by("name"),
+        required=False,
+        empty_label="Choose a city",
+    )
+    service_mode = forms.ChoiceField(
+        choices=(("", "Choose how you work"), *ServiceArea.Mode.choices),
+        required=False,
+    )
+    service_language = forms.ModelChoiceField(
+        queryset=Language.objects.order_by("name"),
+        required=False,
+        empty_label="Choose a language",
+    )
+    contact_kind = forms.ChoiceField(
+        choices=(("", "Choose a contact method"), *ContactChannel.Kind.choices),
+        required=False,
+    )
+    contact_value = forms.CharField(max_length=500, required=False)
+
+    # Kept for backwards-compatible service/tests and future advanced editing. The
+    # provider-facing template uses the normal fields above instead of exposing JSON.
+    contacts = forms.JSONField(required=False, initial=list, widget=forms.HiddenInput)
+    services = forms.JSONField(required=False, initial=list, widget=forms.HiddenInput)
+    service_areas = forms.JSONField(required=False, initial=list, widget=forms.HiddenInput)
+    languages = forms.JSONField(required=False, initial=list, widget=forms.HiddenInput)
+
+    def __init__(self, *args: object, **kwargs: object) -> None:
+        initial = dict(kwargs.get("initial") or {})
+        self._initial_payload = initial
+        self._seed_friendly_initial(initial)
+        kwargs["initial"] = initial
+        super().__init__(*args, **kwargs)
+
+    @staticmethod
+    def _first(payload: dict[str, Any], field: str) -> dict[str, Any]:
+        items = payload.get(field) or []
+        if isinstance(items, list) and items and isinstance(items[0], dict):
+            return items[0]
+        return {}
+
+    def _seed_friendly_initial(self, payload: dict[str, Any]) -> None:
+        service = self._first(payload, "services")
+        area = self._first(payload, "service_areas")
+        language = self._first(payload, "languages")
+        contact = self._first(payload, "contacts")
+        initial_values = {
+            "primary_category": service.get("category_id"),
+            "service_title": service.get("title", ""),
+            "service_description": service.get("description", ""),
+            "price_text": service.get("price_text", ""),
+            "primary_municipality": area.get("municipality_id"),
+            "service_mode": area.get("mode", ""),
+            "service_language": language.get("language_id"),
+            "contact_kind": contact.get("kind", ""),
+            "contact_value": contact.get("value", ""),
+        }
+        for field, value in initial_values.items():
+            payload.setdefault(field, value)
 
     def _list_of_dicts(self, field: str) -> list[dict[str, Any]]:
         value = self.cleaned_data.get(field) or []
@@ -119,6 +182,55 @@ class ProviderProfileForm(forms.Form):
             for item in items
         ]
 
+    def _friendly_structured_payload(self) -> dict[str, list[dict[str, Any]]]:
+        category = self.cleaned_data.get("primary_category")
+        municipality = self.cleaned_data.get("primary_municipality")
+        language = self.cleaned_data.get("service_language")
+        mode = str(self.cleaned_data.get("service_mode") or "")
+        contact_kind = str(self.cleaned_data.get("contact_kind") or "")
+        contact_value = str(self.cleaned_data.get("contact_value") or "").strip()
+
+        services = list(self.cleaned_data.get("services") or [])
+        if not services and category is not None:
+            services = [
+                {
+                    "category_id": str(category.pk),
+                    "title": str(self.cleaned_data.get("service_title") or "").strip(),
+                    "description": str(
+                        self.cleaned_data.get("service_description") or ""
+                    ).strip(),
+                    "price_text": str(self.cleaned_data.get("price_text") or "").strip(),
+                    "is_active": True,
+                }
+            ]
+
+        service_areas = list(self.cleaned_data.get("service_areas") or [])
+        if not service_areas and municipality is not None and mode:
+            service_areas = [{"municipality_id": str(municipality.pk), "mode": mode}]
+
+        languages = list(self.cleaned_data.get("languages") or [])
+        if not languages and language is not None:
+            languages = [{"language_id": str(language.pk), "declared": True}]
+
+        contacts = list(self.cleaned_data.get("contacts") or [])
+        if not contacts and contact_kind and contact_value:
+            contacts = [
+                {
+                    "kind": contact_kind,
+                    "value": contact_value,
+                    "label": "",
+                    "is_public": True,
+                    "sort_order": 0,
+                }
+            ]
+
+        return {
+            "contacts": contacts,
+            "services": services,
+            "service_areas": service_areas,
+            "languages": languages,
+        }
+
     def cleaned_payload(self) -> dict[str, Any]:
         if not self.is_valid():
             raise ValueError("form must be valid before reading payload")
@@ -127,8 +239,5 @@ class ProviderProfileForm(forms.Form):
             "legal_name": self.cleaned_data["legal_name"].strip(),
             "display_name": self.cleaned_data["display_name"].strip(),
             "y_tunnus": self.cleaned_data["y_tunnus"].strip(),
-            "contacts": self.cleaned_data["contacts"],
-            "services": self.cleaned_data["services"],
-            "service_areas": self.cleaned_data["service_areas"],
-            "languages": self.cleaned_data["languages"],
+            **self._friendly_structured_payload(),
         }
