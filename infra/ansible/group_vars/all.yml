@@ -1,0 +1,13 @@
+palvelut_deploy_user: palvelut
+palvelut_ssh_port: 22
+palvelut_root: /opt/palvelut
+palvelut_secret_dir: /etc/palvelut
+palvelut_nginx_site: /etc/nginx/sites-available/palvelut.conf
+palvelut_upstream: http://127.0.0.1:8080
+
+# Resolved from Docker's Ubuntu 24.04 noble stable repository on 2026-09-05.
+docker_ce_version: "5:29.8.0-1~ubuntu.24.04~noble"
+docker_ce_cli_version: "5:29.8.0-1~ubuntu.24.04~noble"
+containerd_io_version: "2.3.4-2~ubuntu.24.04~noble"
+docker_buildx_version: "0.37.0-1~ubuntu.24.04~noble"
+docker_compose_version: "5.5.1-1~ubuntu.24.04~noble"

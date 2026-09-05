@@ -4,7 +4,6 @@ Depends: P4. Read: `docs/06-quality.md`, `docs/07-operations.md`.
 
 ## Build
 
-- Idempotent Ansible for a fresh Ubuntu LTS VPS: deploy user, SSH/firewall, security updates, pinned Docker, directories/volumes, Nginx and external secret placement.
 - Production images/Compose, Cloudflare/Nginx cache contract, WAF/rate-limit rules and safe purge workflow.
 - Sentry, metrics, dashboards and alerts for every signal named in quality docs.
 - Idempotent jobs/outbox, queue failure/dead-letter handling and data-retention jobs.
