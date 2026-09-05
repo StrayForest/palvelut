@@ -53,7 +53,11 @@ def edit_profile(request, provider_id):
             return render(
                 request,
                 "providers/edit_profile.html",
-                {"provider": membership.provider, "revision": revision, "form": form},
+                {
+                    "provider": membership.provider,
+                    "revision": revision,
+                    "form": form,
+                },
                 status=400,
             )
         revision = autosave_revision(
@@ -62,7 +66,9 @@ def edit_profile(request, provider_id):
             payload=form.cleaned_payload(),
         )
         if request.headers.get("HX-Request") == "true":
-            return HttpResponse("Saved", headers={"HX-Trigger": "providerDraftSaved"})
+            return HttpResponse(
+                "Saved", headers={"HX-Trigger": "providerDraftSaved"}
+            )
         return redirect("provider-workspace-edit", provider_id=provider_id)
     return render(
         request,
@@ -79,7 +85,11 @@ def preview_profile(request, provider_id):
     return render(
         request,
         "providers/preview_profile.html",
-        {"provider": membership.provider, "payload": revision.payload, "revision": revision},
+        {
+            "provider": membership.provider,
+            "payload": revision.payload,
+            "revision": revision,
+        },
     )
 
 
