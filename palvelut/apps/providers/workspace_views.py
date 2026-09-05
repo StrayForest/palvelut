@@ -48,21 +48,25 @@ def _dashboard_payload(provider):
     )
     if revision is not None:
         return dict(revision.payload), revision
-    return {
-        "provider_type": provider.provider_type,
-        "legal_name": provider.legal_name,
-        "display_name": provider.display_name,
-        "contacts": [
-            {"value": contact.value, "is_public": contact.is_public}
-            for contact in provider.contacts.all()
-        ],
-        "services": [
-            {"is_active": service.is_active} for service in provider.services.all()
-        ],
-        "service_areas": [{} for _area in provider.service_areas.all()],
-        "languages": [{} for _language in provider.languages.all()],
-        "media": [{} for _media in provider.media_assets.all()],
-    }, None
+    return (
+        {
+            "provider_type": provider.provider_type,
+            "legal_name": provider.legal_name,
+            "display_name": provider.display_name,
+            "contacts": [
+                {"value": contact.value, "is_public": contact.is_public}
+                for contact in provider.contacts.all()
+            ],
+            "services": [
+                {"is_active": service.is_active}
+                for service in provider.services.all()
+            ],
+            "service_areas": [{} for _area in provider.service_areas.all()],
+            "languages": [{} for _language in provider.languages.all()],
+            "media": [{} for _media in provider.media_assets.all()],
+        },
+        None,
+    )
 
 
 def _completion_checklist(payload):
