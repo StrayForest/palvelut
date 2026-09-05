@@ -17,12 +17,12 @@ class ProviderWorkspaceFlowTests(TestCase):
         self.owner = user_model.objects.create_user(
             username="owner@example.test",
             email="owner@example.test",
-            password="secret-pass",
+            password="test-only-pass",
         )
         self.staff = user_model.objects.create_user(
             username="staff@example.test",
             email="staff@example.test",
-            password="secret-pass",
+            password="test-only-pass",
             is_staff=True,
         )
         self.provider = Provider.objects.create(
@@ -87,7 +87,7 @@ class ProviderWorkspaceFlowTests(TestCase):
     def test_other_account_cannot_open_workspace_provider(self):
         other = get_user_model().objects.create_user(
             username="other@example.test",
-            password="secret-pass",
+            password="test-only-pass",
         )
         self.client.force_login(other)
         response = self.client.get(
