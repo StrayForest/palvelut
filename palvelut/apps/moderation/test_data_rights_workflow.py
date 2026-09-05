@@ -38,12 +38,12 @@ class DataSubjectRequestWorkflowTests(TestCase):
         self.provider_user = user_model.objects.create_user(
             username="provider@example.test",
             email="provider@example.test",
-            password="correct horse battery staple",
+            password="test-only-password",
         )
         self.staff_user = user_model.objects.create_user(
             username="staff@example.test",
             email="staff@example.test",
-            password="correct horse battery staple",
+            password="test-only-password",
             is_staff=True,
         )
 
