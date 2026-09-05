@@ -18,7 +18,9 @@ class ProviderAnalyticsAcceptanceTests(SimpleTestCase):
         )
 
     def test_workspace_exposes_metric_definitions_and_privacy_boundary(self):
-        template = Path("templates/providers/workspace.html").read_text(encoding="utf-8")
+        template = Path("templates/providers/workspace.html").read_text(
+            encoding="utf-8"
+        )
 
         self.assertIn(
             "No visitor identity, IP address, search text, or cross-site identifier is stored or shown.",
