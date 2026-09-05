@@ -191,10 +191,7 @@ def _latest_reviewable_revision(provider: Provider) -> ProfileRevision:
         ProfileRevision.objects.select_for_update()
         .filter(
             provider=provider,
-            status__in=(
-                ProfileRevision.Status.DRAFT,
-                ProfileRevision.Status.PENDING,
-            ),
+            status__in=(ProfileRevision.Status.DRAFT, ProfileRevision.Status.PENDING),
         )
         .order_by("-created_at", "-id")
         .first()
