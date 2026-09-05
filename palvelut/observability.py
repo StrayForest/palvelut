@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from django.db import connection
 from django.http import HttpRequest, HttpResponse
 
-from palvelut.metrics import record_db_query, record_request
+from palvelut.metrics import adjust_gauge, record_db_query, record_request
 from palvelut.sentry_transport import capture_exception
 
 _request_id: ContextVar[str | None] = ContextVar("request_id", default=None)
@@ -48,9 +48,11 @@ class JsonFormatter(logging.Formatter):
 class _DatabaseMetricsWrapper:
     def __call__(self, execute, sql, params, many, context):
         started = time.monotonic()
+        adjust_gauge("palvelut_db_connections_in_use", 1)
         try:
             return execute(sql, params, many, context)
         finally:
+            adjust_gauge("palvelut_db_connections_in_use", -1)
             record_db_query(time.monotonic() - started)
 
 
