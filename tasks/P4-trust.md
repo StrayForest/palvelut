@@ -6,4 +6,4 @@ Depends: P3. Read: verification/staff sections of `docs/03-experience.md`; secur
 
 ## Gates
 
-Adapter contract/failure tests, label snapshots, abuse tests, keyboard and screen-reader smoke.
+Label snapshots, abuse tests, keyboard and screen-reader smoke.
