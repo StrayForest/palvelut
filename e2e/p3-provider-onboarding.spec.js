@@ -46,3 +46,37 @@ test("provider completes onboarding on mobile without staff edits", async ({ pag
   await expect(page.getByRole("status")).toHaveText("Profile submitted for review.");
   await expect(page.getByText("Revision: Pending")).toBeVisible();
 });
+
+test("provider workspace has a keyboard and semantic accessibility smoke", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/palvelut/account/login/");
+  await page.getByLabel("Email").fill("provider-e2e@example.test");
+  await page.getByLabel("Password").fill("provider-e2e-pass");
+  await page.getByRole("button", { name: "Sign in" }).click();
+
+  await page.goto("/palvelut/account/profile/");
+  await expect(page.getByRole("heading", { level: 1, name: "Provider workspace" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Edit profile" })).toBeVisible();
+
+  await page.getByRole("link", { name: "Edit profile" }).focus();
+  await expect(page.getByRole("link", { name: "Edit profile" })).toBeFocused();
+  await page.keyboard.press("Enter");
+
+  await expect(page.getByLabel("Display name")).toBeVisible();
+  await expect(page.getByLabel("Service title")).toBeVisible();
+  await expect(page.getByLabel("Service description")).toBeVisible();
+  await expect(page.getByLabel("Price text")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Save draft" })).toBeVisible();
+
+  const unlabeledControls = await page.locator("input, textarea, select, button").evaluateAll((nodes) =>
+    nodes.filter((node) => {
+      if (node.tagName === "BUTTON") {
+        return !(node.textContent || "").trim() && !node.getAttribute("aria-label");
+      }
+      const id = node.getAttribute("id");
+      const hasForLabel = id && document.querySelector(`label[for="${CSS.escape(id)}"]`);
+      return !hasForLabel && !node.getAttribute("aria-label") && !node.getAttribute("aria-labelledby");
+    }).length,
+  );
+  expect(unlabeledControls).toBe(0);
+});
