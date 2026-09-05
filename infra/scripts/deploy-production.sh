@@ -61,20 +61,23 @@ wait_ready() {
 
 switch_nginx() {
   local port=$1
-  local tmp
-  tmp=$(mktemp)
-  trap 'rm -f "$tmp"' RETURN
+  local candidate backup
+  candidate=$(mktemp)
+  backup=$(mktemp)
+  trap 'rm -f "$candidate" "$backup"' RETURN
 
   grep -Eq 'proxy_pass http://127\.0\.0\.1:808[12];' "$NGINX_SITE" || {
     echo "nginx site does not contain a managed blue/green upstream" >&2
     return 1
   }
+  cat "$NGINX_SITE" >"$backup"
   sed -E "s#proxy_pass http://127\.0\.0\.1:808[12];#proxy_pass http://127.0.0.1:${port};#" \
-    "$NGINX_SITE" >"$tmp"
-  sudo nginx -t -c /etc/nginx/nginx.conf >/dev/null
-  sudo install -m 0644 "$tmp" "$NGINX_SITE"
+    "$NGINX_SITE" >"$candidate"
+
+  sudo install -m 0644 "$candidate" "$NGINX_SITE"
   if ! sudo nginx -t -c /etc/nginx/nginx.conf >/dev/null; then
-    echo "new nginx configuration is invalid; refusing switch" >&2
+    sudo install -m 0644 "$backup" "$NGINX_SITE"
+    echo "new nginx configuration is invalid; restored previous upstream" >&2
     return 1
   fi
   sudo systemctl reload nginx
