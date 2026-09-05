@@ -4,7 +4,7 @@ all:
       ansible_host: 203.0.113.10
       ansible_user: root
       deploy_authorized_key: "ssh-ed25519 REPLACE_WITH_DEPLOY_PUBLIC_KEY"
-      palvelut_secret_env: |
+      palvelut_environment_file: |
         PALVELUT_ENVIRONMENT=production
         DJANGO_DEBUG=0
         DJANGO_SECRET_KEY=REPLACE_OUTSIDE_GIT
