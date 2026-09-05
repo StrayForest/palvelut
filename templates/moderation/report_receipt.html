@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Report received · Finrix Palvelut{% endblock %}
+{% block content %}
+<section class="mx-auto max-w-2xl px-4 py-10">
+  <h1 class="text-3xl font-bold">Report received</h1>
+  <p class="mt-3">Your case reference is <code>{{ case_id }}</code>.</p>
+  <p class="mt-3">Save this private status code. It is shown only on this receipt:</p>
+  <p class="mt-2 break-all rounded bg-slate-100 p-3 font-mono">{{ status_token }}</p>
+  <p class="mt-4 text-slate-600">The report is anonymous; the status code is the only proof needed to check its status.</p>
+  <a class="mt-6 inline-block underline" href="{% url 'content-report-status' case_id=case_id %}">Check report status</a>
+</section>
+{% endblock %}
