@@ -10,17 +10,20 @@ from palvelut.apps.providers.workspace_forms import ProviderProfileForm
 from palvelut.apps.providers.workspace_services import (
     autosave_revision,
     editable_revision,
-    provider_for_account,
     submit_revision,
 )
 
 
 def _membership_for_request(request, provider_id):
-    membership = ProviderMembership.objects.filter(
-        provider_id=provider_id,
-        account=request.user,
-        is_active=True,
-    ).select_related("provider").first()
+    membership = (
+        ProviderMembership.objects.filter(
+            provider_id=provider_id,
+            account=request.user,
+            is_active=True,
+        )
+        .select_related("provider")
+        .first()
+    )
     if membership is None:
         raise Http404
     return membership
