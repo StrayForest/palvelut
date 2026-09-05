@@ -11,12 +11,13 @@ Repository secrets:
 - `SYNTHETIC_PROVIDER_ID` — UUID of that same provider.
 - `SYNTHETIC_MONITOR_TOKEN` — random secret shared with the production application environment.
 
-Optional repository variables:
+Repository variables:
 
-- `SYNTHETIC_LOCALE` — defaults to `en`.
-- `SYNTHETIC_CONTACT_CHANNEL` — defaults to `website`; the synthetic provider must expose that public channel.
+- `SYNTHETIC_MONITOR_ENABLED` — set to `true` only after the production secrets/provider are ready; scheduled/manual jobs stay skipped otherwise.
+- `SYNTHETIC_LOCALE` — optional, defaults to `en`.
+- `SYNTHETIC_CONTACT_CHANNEL` — optional, defaults to `website`; the synthetic provider must expose that public channel.
 
-The application production env must contain the same `SYNTHETIC_MONITOR_TOKEN`. Rotate it like any operational secret and update the application plus GitHub secret together.
+The application production env must contain the same `SYNTHETIC_MONITOR_TOKEN`. Rotate it like any operational secret and update the application plus GitHub secret together. Enable the monitor only after a manual invocation with the configured provider has passed.
 
 ## Probes
 
