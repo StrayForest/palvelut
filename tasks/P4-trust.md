@@ -4,8 +4,6 @@ Depends: P3. Read: verification/staff sections of `docs/03-experience.md`; secur
 
 ## Accept
 
-- Public legal/controller/contact surfaces are complete after owner/legal review.
-
 ## Gates
 
 Adapter contract/failure tests, label snapshots, abuse tests, retention jobs, security headers/CSP, keyboard and screen-reader smoke.

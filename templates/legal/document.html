@@ -6,30 +6,40 @@
 {% block content %}
 <article class="prose max-w-3xl">
   <h1>{{ document_title }}</h1>
-  <p><strong>{% translate "Draft template — pending owner/legal review before public beta." %}</strong></p>
+  <p>{% translate "Finrix Palvelut is a free beta directory operated by Aleksei Lisitcin as a private individual. Contact: aleksei.lisitsin1@gmail.com." %}</p>
 
   {% if document == "privacy" %}
     <h2>{% translate "Controller and contact" %}</h2>
-    <p>{% translate "Controller identity and privacy contact details must be completed and approved before public beta." %}</p>
-    <h2>{% translate "Personal data" %}</h2>
-    <p>{% translate "The service processes provider account, profile, moderation, security and minimal first-party analytics data for operating the directory. The final notice will document purpose, legal basis, retention, processors and rights for each data category." %}</p>
+    <p>{% translate "Data controller: Aleksei Lisitcin. Service: Finrix Palvelut (finrix.fi). Privacy contact: aleksei.lisitsin1@gmail.com." %}</p>
+    <h2>{% translate "Personal data and purposes" %}</h2>
+    <p>{% translate "The service processes provider account and profile data, moderation and verification records, security records, and minimal first-party aggregate analytics needed to operate, secure and improve the directory." %}</p>
+    <h2>{% translate "Legal basis and retention" %}</h2>
+    <p>{% translate "Account and provider-workspace data is processed to provide the service requested by the provider. Security, moderation and abuse-prevention records are processed for the controller's legitimate interests in operating a safe and reliable directory. Records are retained only for as long as needed for those purposes and applicable legal obligations." %}</p>
+    <h2>{% translate "Recipients and processors" %}</h2>
+    <p>{% translate "Data may be processed by infrastructure, email and other technical service providers used to run Finrix Palvelut. Personal data is not sold to advertisers." %}</p>
     <h2>{% translate "Your rights" %}</h2>
-    <p>{% translate "Signed-in providers can submit an access, export or deletion request. Staff reviews each request and records the outcome before any deletion is performed." %}</p>
+    <p>{% translate "Depending on the processing, you may request access, correction, deletion, restriction or portability, or object to processing. You may also lodge a complaint with the competent data-protection authority. Signed-in providers can submit an access, export or deletion request through the service." %}</p>
     <p><a href="{% url 'data-subject-requests' %}">{% translate "Manage data requests" %}</a></p>
   {% elif document == "terms" %}
+    <h2>{% translate "Beta service" %}</h2>
+    <p>{% translate "Finrix Palvelut is currently provided free of charge as a beta directory. Listing in the directory does not create an employment, agency or endorsement relationship with the operator." %}</p>
     <h2>{% translate "Provider responsibility" %}</h2>
-    <p>{% translate "Providers are responsible for supplying accurate public identity, service, price, area and contact information and for keeping it current." %}</p>
-    <h2>{% translate "Moderation" %}</h2>
-    <p>{% translate "Profiles and revisions may be reviewed, corrected, unpublished or rejected when they do not meet directory, safety or legal requirements. Final provider terms require owner/legal approval." %}</p>
+    <p>{% translate "Providers are responsible for supplying accurate public identity, service, price, area and contact information and for keeping it current. Providers must have the right to publish all submitted content." %}</p>
+    <h2>{% translate "Verification and moderation" %}</h2>
+    <p>{% translate "A verification label confirms only the specific fact, source and check date shown. It does not guarantee service quality or any licence that was not explicitly checked. Profiles and revisions may be corrected, unpublished, suspended or rejected when necessary for directory integrity, safety or legal compliance." %}</p>
+    <h2>{% translate "Availability" %}</h2>
+    <p>{% translate "The beta service may change, be interrupted or be discontinued. The operator does not guarantee uninterrupted availability or that every provider or service in Finland is represented." %}</p>
   {% elif document == "cookies" %}
     <h2>{% translate "Current cookie use" %}</h2>
-    <p>{% translate "The application uses essential security and session mechanisms for provider and staff accounts. Product analytics are first-party and aggregate and do not create cross-site visitor profiles." %}</p>
-    <p>{% translate "The final policy will list production cookies, purposes and retention before public beta." %}</p>
+    <p>{% translate "Finrix Palvelut uses only cookies and equivalent storage needed for security, sessions and signed-in account functionality. Product analytics are first-party and aggregate and do not create cross-site visitor profiles." %}</p>
+    <h2>{% translate "Advertising and tracking" %}</h2>
+    <p>{% translate "The free beta does not use advertising cookies or cross-site behavioural tracking. If optional analytics, advertising or other non-essential storage is introduced later, this policy and the consent mechanism will be updated before that use begins." %}</p>
   {% elif document == "accessibility" %}
-    <h2>{% translate "Accessibility target" %}</h2>
-    <p>{% translate "Finrix Palvelut targets WCAG 2.2 AA. Automated checks are supplemented by keyboard and screen-reader review." %}</p>
+    <h2>{% translate "Accessibility" %}</h2>
+    <p>{% translate "Finrix Palvelut targets WCAG 2.2 AA as a product quality standard. Automated accessibility checks are supplemented by keyboard and screen-reader testing." %}</p>
+    <p>{% translate "This statement does not claim that Finrix Palvelut is legally within the scope of every accessibility obligation that applies to public bodies or covered consumer services." %}</p>
     <h2>{% translate "Feedback" %}</h2>
-    <p>{% translate "The public accessibility contact and reviewed statement will be completed before public beta." %}</p>
+    <p>{% translate "If you encounter an accessibility problem or need content in another accessible form, contact Aleksei Lisitcin at aleksei.lisitsin1@gmail.com. Accessibility feedback will be reviewed as part of the beta quality process." %}</p>
   {% endif %}
 </article>
 {% endblock %}
