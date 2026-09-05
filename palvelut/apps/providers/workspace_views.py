@@ -58,8 +58,7 @@ def _dashboard_payload(provider):
                 for contact in provider.contacts.all()
             ],
             "services": [
-                {"is_active": service.is_active}
-                for service in provider.services.all()
+                {"is_active": service.is_active} for service in provider.services.all()
             ],
             "service_areas": [{} for _area in provider.service_areas.all()],
             "languages": [{} for _language in provider.languages.all()],
@@ -85,10 +84,7 @@ def _completion_checklist(payload):
         ("Language", bool(payload.get("languages"))),
         (
             "Public contact",
-            any(
-                item.get("is_public", True) and item.get("value")
-                for item in contacts
-            ),
+            any(item.get("is_public", True) and item.get("value") for item in contacts),
         ),
         ("Image", bool(payload.get("media"))),
     )
