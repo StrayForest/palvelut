@@ -48,17 +48,21 @@ class ProviderWorkspaceFlowTests(TestCase):
             },
         )
         self.assertEqual(revision.status, ProfileRevision.Status.DRAFT)
-        submitted = submit_revision(provider_id=self.provider.pk, account=self.owner)
+        submitted = submit_revision(
+            provider_id=self.provider.pk, account=self.owner
+        )
         self.assertEqual(submitted.status, ProfileRevision.Status.PENDING)
         approve_revision(revision_id=submitted.pk, actor=self.staff)
         self.provider.refresh_from_db()
         self.assertEqual(self.provider.display_name, "New Display")
         self.assertEqual(self.provider.lifecycle, Provider.Lifecycle.PUBLISHED)
 
-    def test_live_profile_remains_visible_while_revision_is_pending_or_corrected(self):
+    def test_live_profile_remains_visible_while_revision_is_pending_or_corrected(
+        self,
+    ):
         self.provider.lifecycle = Provider.Lifecycle.PUBLISHED
         self.provider.save(update_fields=("lifecycle",))
-        revision = autosave_revision(
+        autosave_revision(
             provider_id=self.provider.pk,
             account=self.owner,
             payload={
@@ -68,11 +72,17 @@ class ProviderWorkspaceFlowTests(TestCase):
                 "y_tunnus": "1234567-8",
             },
         )
-        revision = submit_revision(provider_id=self.provider.pk, account=self.owner)
+        revision = submit_revision(
+            provider_id=self.provider.pk, account=self.owner
+        )
         self.provider.refresh_from_db()
         self.assertEqual(self.provider.lifecycle, Provider.Lifecycle.PUBLISHED)
         self.assertEqual(self.provider.display_name, "Old Display")
-        request_revision_changes(revision_id=revision.pk, actor=self.staff, note="Fix name")
+        request_revision_changes(
+            revision_id=revision.pk,
+            actor=self.staff,
+            note="Fix name",
+        )
         self.provider.refresh_from_db()
         self.assertEqual(self.provider.lifecycle, Provider.Lifecycle.PUBLISHED)
         self.assertEqual(self.provider.display_name, "Old Display")
