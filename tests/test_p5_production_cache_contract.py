@@ -13,8 +13,10 @@ class ProductionCacheContractTests(unittest.TestCase):
 
         self.assertIn("PALVELUT_ENVIRONMENT: production", compose)
         self.assertIn("image: ${PALVELUT_IMAGE:?", compose)
-        self.assertEqual(compose.count("image: ${PALVELUT_IMAGE:?"), 2)
-        self.assertIn('"127.0.0.1:8080:8000"', compose)
+        self.assertEqual(compose.count("image: ${PALVELUT_IMAGE:?"), 3)
+        self.assertIn('"127.0.0.1:8081:8000"', compose)
+        self.assertIn('"127.0.0.1:8082:8000"', compose)
+        self.assertIn("scheduler:", compose)
         self.assertIn("internal: true", compose)
         self.assertNotIn("5432:5432", compose)
         self.assertNotIn("6379:6379", compose)
