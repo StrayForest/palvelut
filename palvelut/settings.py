@@ -37,6 +37,11 @@ def _public_base_url() -> str:
 
 PUBLIC_BASE_URL = _public_base_url()
 PUBLIC_MOUNT_PATH = "/palvelut/"
+SENTRY_DSN = os.getenv("SENTRY_DSN", "").strip()
+SENTRY_ENVIRONMENT = os.getenv("SENTRY_ENVIRONMENT", ENVIRONMENT).strip()
+SENTRY_RELEASE = os.getenv("SENTRY_RELEASE", "").strip()
+OBSERVABILITY_METRICS_TOKEN = os.getenv("OBSERVABILITY_METRICS_TOKEN", "").strip()
+OBSERVABILITY_SLOW_QUERY_MS = int(os.getenv("OBSERVABILITY_SLOW_QUERY_MS", "300"))
 
 
 def _validate_environment() -> None:
@@ -143,7 +148,7 @@ CELERY_BEAT_SCHEDULE = {
     }
 }
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_BACKEND = "palvelut.observability.MetricsSMTPEmailBackend"
 EMAIL_HOST = os.getenv("EMAIL_HOST", "mailpit")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", "1025"))
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "palvelut@local.invalid")
