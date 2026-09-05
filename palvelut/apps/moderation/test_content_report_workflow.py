@@ -86,13 +86,12 @@ class ContentReportWorkflowTests(TestCase):
         )
         self.assertEqual(case.status, ModerationCase.Status.OPEN)
         self.assertEqual([event.event_type for event in events], ["provider.notice"])
-        self.assertTrue(
-            AuditEvent.objects.filter(
-                provider=self.provider,
-                actor=self.staff,
-                action="content_report.notice",
-            ).exists()
+        audit_event = AuditEvent.objects.get(
+            provider=self.provider,
+            actor=self.staff,
+            action="content_report.notice",
         )
+        self.assertEqual(audit_event.metadata, {"case_id": str(receipt.case_id)})
 
     def test_provider_can_appeal_and_staff_can_resolve_with_status_trail(self) -> None:
         receipt = submit_content_report(
