@@ -6,7 +6,6 @@ Depends: P2. Read: provider sections of `docs/01-product.md` and `docs/03-experi
 
 ## Accept
 
-- Cross-provider read/write attempts fail and are audited.
 - Claim, reject, transfer and membership changes are atomic, staff-audited and cannot expose an unapproved profile.
 - Live approved state remains visible while edits await moderation.
 - Untrusted/bomb/spoofed images fail; accepted images are re-encoded and metadata-free.
