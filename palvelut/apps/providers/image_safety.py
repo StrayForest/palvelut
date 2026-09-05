@@ -124,15 +124,15 @@ def sanitize_png(payload: bytes) -> SanitizedImage:
     decoder = zlib.decompressobj()
     try:
         raw = decoder.decompress(compressed, expected_inflated + 1)
+    except zlib.error as exc:
+        raise ValidationError("invalid PNG compressed image data") from exc
+    if len(raw) > expected_inflated or decoder.unconsumed_tail:
+        raise ValidationError("PNG decoded size does not match its dimensions")
+    try:
         raw += decoder.flush()
     except zlib.error as exc:
         raise ValidationError("invalid PNG compressed image data") from exc
-    if (
-        len(raw) != expected_inflated
-        or decoder.unused_data
-        or decoder.unconsumed_tail
-        or not decoder.eof
-    ):
+    if len(raw) != expected_inflated or decoder.unused_data or not decoder.eof:
         raise ValidationError("PNG decoded size does not match its dimensions")
     for row in range(height):
         if raw[row * (row_bytes + 1)] > 4:
