@@ -139,7 +139,7 @@ CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://valkey:6379/1")
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://valkey:6379/2")
 CELERY_TIMEZONE = "Europe/Helsinki"
 CELERY_BEAT_SCHEDULE = {
-    "enqueue-daily-maintenance": {
+    "purge-expired-analytics": {
         "task": "palvelut.jobs.enqueue_daily_maintenance",
         "schedule": crontab(hour=3, minute=20),
     },
