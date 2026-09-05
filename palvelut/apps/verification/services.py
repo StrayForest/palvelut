@@ -8,6 +8,7 @@ from palvelut.apps.providers.models import Provider
 
 from .adapters import RegistryOutcome, YtjPrhAdapter
 from .models import VerificationCheck, VerificationEvent
+from .registry import get_registry_check_type
 
 
 def _require_staff(actor: AbstractBaseUser) -> None:
@@ -40,20 +41,38 @@ def change_verification_status(
 
 
 @transaction.atomic
-def run_ytj_business_identity_check(
+def run_registry_check(
     *,
     provider_id: object,
     actor: AbstractBaseUser,
-    adapter: YtjPrhAdapter | None = None,
+    kind: str,
+    adapter: object | None = None,
 ) -> VerificationCheck:
-    """Record one immutable-source PRH/YTJ lookup without overwriting prior facts."""
+    """Run one enabled official-source check without mutating older facts."""
 
     _require_staff(actor)
+    definition = get_registry_check_type(kind)
     provider = Provider.objects.select_for_update().get(pk=provider_id)
-    if not provider.y_tunnus:
-        raise ValidationError("Provider must have a Y-tunnus before a YTJ check")
+    subject = getattr(provider, definition.subject_field, None)
+    if not subject:
+        raise ValidationError(
+            f"Provider must have {definition.subject_field} before a {kind} check"
+        )
 
-    result = (adapter or YtjPrhAdapter()).lookup_business_id(provider.y_tunnus)
+    adapter_instance = adapter
+    if adapter_instance is None:
+        if definition.adapter_factory is None:  # guarded by registry validation
+            raise RuntimeError(f"Verification kind {kind!r} has no adapter factory")
+        adapter_instance = definition.adapter_factory()
+
+    lookup = getattr(adapter_instance, definition.lookup_method, None)
+    if not callable(lookup):
+        raise ValidationError(
+            f"Adapter for verification kind {kind!r} does not implement "
+            f"{definition.lookup_method}"
+        )
+    result = lookup(subject)
+
     if result.outcome == RegistryOutcome.FOUND:
         status = VerificationCheck.Status.VERIFIED
     elif result.outcome == RegistryOutcome.NOT_FOUND:
@@ -62,9 +81,11 @@ def run_ytj_business_identity_check(
         status = VerificationCheck.Status.PENDING
 
     metadata = result.evidence_metadata()
+    metadata["verification_kind"] = definition.kind
+    metadata["registry_source"] = definition.source_name
     check = VerificationCheck.objects.create(
         provider=provider,
-        kind="business_identity",
+        kind=definition.kind,
         status=status,
         source_url=result.source_url,
         evidence_metadata=metadata,
@@ -78,6 +99,24 @@ def run_ytj_business_identity_check(
             "adapter_outcome": result.outcome.value,
             "manual_fallback_required": result.outcome == RegistryOutcome.MANUAL_REVIEW,
             "attempts": result.attempts,
+            "verification_kind": definition.kind,
+            "registry_source": definition.source_name,
         },
     )
     return check
+
+
+def run_ytj_business_identity_check(
+    *,
+    provider_id: object,
+    actor: AbstractBaseUser,
+    adapter: YtjPrhAdapter | None = None,
+) -> VerificationCheck:
+    """Backward-compatible entry point for the enabled PRH/YTJ check."""
+
+    return run_registry_check(
+        provider_id=provider_id,
+        actor=actor,
+        kind="business_identity",
+        adapter=adapter,
+    )
