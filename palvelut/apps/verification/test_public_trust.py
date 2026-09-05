@@ -64,13 +64,18 @@ class PublicTrustTests(TestCase):
             expires_at=expires_at,
         )
         if checked_at is not None:
-            VerificationCheck.objects.filter(pk=check.pk).update(checked_at=checked_at)
+            VerificationCheck.objects.filter(pk=check.pk).update(
+                checked_at=checked_at
+            )
             check.refresh_from_db()
         return check
 
     def test_public_fact_names_exact_fact_source_and_check_date(self) -> None:
         checked_at = timezone.now() - timedelta(days=2)
-        self._check(checked_at=checked_at, expires_at=timezone.now() + timedelta(days=30))
+        self._check(
+            checked_at=checked_at,
+            expires_at=timezone.now() + timedelta(days=30),
+        )
 
         facts = public_verification_facts(self.provider)
 
@@ -107,7 +112,10 @@ class PublicTrustTests(TestCase):
 
     def test_profile_and_trust_page_explain_fact_only_semantics(self) -> None:
         checked_at = timezone.now() - timedelta(days=1)
-        self._check(checked_at=checked_at, expires_at=timezone.now() + timedelta(days=30))
+        self._check(
+            checked_at=checked_at,
+            expires_at=timezone.now() + timedelta(days=30),
+        )
 
         profile = self.client.get("/palvelut/en/professionals/trust-example/")
         self.assertEqual(profile.status_code, 200)
