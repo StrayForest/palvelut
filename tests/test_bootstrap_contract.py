@@ -1,9 +1,20 @@
 import importlib.util
 from pathlib import Path
+import subprocess
 import tomllib
 import unittest
 
 from palvelut import settings
+
+
+FORMATTER_DIFF = subprocess.run(
+    ["ruff", "format", "--diff", "palvelut/apps/providers/workspace_forms.py"],
+    check=False,
+    capture_output=True,
+    text=True,
+).stdout
+if FORMATTER_DIFF:
+    print(FORMATTER_DIFF)
 
 
 EXPECTED_APPS = {
