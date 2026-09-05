@@ -3,7 +3,8 @@ palvelut_ssh_port: 22
 palvelut_root: /opt/palvelut
 palvelut_secret_dir: /etc/palvelut
 palvelut_nginx_site: /etc/nginx/sites-available/palvelut.conf
-palvelut_upstream: http://127.0.0.1:8080
+# Blue is the bootstrap slot; deploy-production.sh switches atomically between 8081/8082.
+palvelut_upstream: http://127.0.0.1:8081
 
 # Resolved from Docker's Ubuntu 24.04 noble stable repository on 2026-09-05.
 docker_ce_version: "5:29.8.0-1~ubuntu.24.04~noble"
