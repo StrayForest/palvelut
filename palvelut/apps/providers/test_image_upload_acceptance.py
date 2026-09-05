@@ -119,4 +119,6 @@ class ImageUploadAcceptanceTests(TestCase):
                 account=self.owner,
                 uploaded_file=upload,
             )
-        self.assertFalse(ProfileRevision.objects.filter(provider=self.provider).exists())
+        self.assertFalse(
+            ProfileRevision.objects.filter(provider=self.provider).exists()
+        )
