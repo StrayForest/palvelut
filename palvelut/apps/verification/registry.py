@@ -16,6 +16,7 @@ class RegistryCheckType:
     kind: str
     source_name: str
     subject_field: str
+    lookup_method: str
     regulated_category: bool
     enabled: bool
     legal_source_review: str | None = None
@@ -31,6 +32,10 @@ class RegistryCheckType:
             raise RuntimeError(
                 f"Enabled verification type {self.kind!r} requires an adapter factory"
             )
+        if self.enabled and (not self.subject_field or not self.lookup_method):
+            raise RuntimeError(
+                f"Enabled verification type {self.kind!r} requires subject and lookup fields"
+            )
 
 
 _registry = {
@@ -38,6 +43,7 @@ _registry = {
         kind="business_identity",
         source_name=PRH_YTJ_SOURCE,
         subject_field="y_tunnus",
+        lookup_method="lookup_business_id",
         regulated_category=False,
         enabled=True,
         adapter_factory=YtjPrhAdapter,
@@ -48,6 +54,7 @@ _registry = {
         kind="professional_right",
         source_name="JulkiTerhikki",
         subject_field="",
+        lookup_method="",
         regulated_category=True,
         enabled=False,
         legal_source_review=None,
