@@ -4,7 +4,11 @@ FROM mcr.microsoft.com/playwright:v1.62.1-noble@sha256:dcc5531e97840b9b5e794f281
 WORKDIR /tests
 
 RUN npm init -y >/dev/null \
-    && npm install --omit=optional --save-exact "@playwright/test@1.62.1"
+    && npm install --omit=optional --save-exact \
+      "@playwright/test@1.62.1" \
+      "@axe-core/playwright@4.10.2" \
+      "chrome-launcher@1.0.0" \
+      "lighthouse@12.8.2"
 
 COPY playwright.config.js ./
 COPY e2e ./e2e
