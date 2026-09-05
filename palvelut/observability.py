@@ -79,9 +79,7 @@ def _shared_set(signal: str, value: float) -> None:
     try:
         cache.set(_SHARED_SIGNAL_KEYS[signal], value, timeout=None)
     except Exception:
-        _observability_logger.warning(
-            "shared_metric_set_failed", extra={"signal": signal}
-        )
+        _observability_logger.warning("shared_metric_set_failed", extra={"signal": signal})
 
 
 def observe_queue_age(seconds: float) -> None:
@@ -132,9 +130,7 @@ def capture_exception(exc: BaseException, *, request_id: str | None = None) -> N
         "timestamp": now,
         "platform": "python",
         "level": "error",
-        "environment": getattr(
-            settings, "SENTRY_ENVIRONMENT", settings.ENVIRONMENT
-        ),
+        "environment": getattr(settings, "SENTRY_ENVIRONMENT", settings.ENVIRONMENT),
         "release": getattr(settings, "SENTRY_RELEASE", "") or None,
         "tags": {"request_id": request_id or "none"},
         "exception": {
@@ -186,9 +182,7 @@ class RequestIdFilter(logging.Filter):
 class JsonFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         payload: dict[str, Any] = {
-            "timestamp": datetime.fromtimestamp(
-                record.created, tz=timezone.utc
-            ).isoformat(),
+            "timestamp": datetime.fromtimestamp(record.created, tz=timezone.utc).isoformat(),
             "level": record.levelname,
             "logger": record.name,
             "message": record.getMessage(),
@@ -210,9 +204,7 @@ def _db_execute_observer(execute, sql, params, many, context):
     finally:
         duration = time.monotonic() - started
         metric_observe("palvelut_db_query_duration_seconds", duration)
-        slow_threshold = (
-            getattr(settings, "OBSERVABILITY_SLOW_QUERY_MS", 300) / 1000
-        )
+        slow_threshold = getattr(settings, "OBSERVABILITY_SLOW_QUERY_MS", 300) / 1000
         if duration >= slow_threshold:
             metric_inc("palvelut_db_slow_query_total")
 
@@ -317,9 +309,7 @@ def _histogram_lines(
             )
         )
     lines.append(
-        _metric_line(
-            f"{name}_bucket", len(values), labels + (("le", "+Inf"),)
-        )
+        _metric_line(f"{name}_bucket", len(values), labels + (("le", "+Inf"),))
     )
     lines.append(_metric_line(f"{name}_count", len(values), labels))
     lines.append(_metric_line(f"{name}_sum", sum(values), labels))
@@ -363,9 +353,7 @@ def _queue_depth() -> float:
 def prometheus_payload() -> str:
     with _metrics_lock:
         counters = list(_counters.items())
-        histograms = [
-            (key, list(values)) for key, values in _histograms.items()
-        ]
+        histograms = [(key, list(values)) for key, values in _histograms.items()]
     lines = [
         "# HELP palvelut_build_info Static build metadata.",
         "# TYPE palvelut_build_info gauge",
@@ -379,19 +367,13 @@ def prometheus_payload() -> str:
     for (name, labels), value in sorted(counters):
         lines.append(_metric_line(name, value, labels))
     for (name, labels), values in sorted(histograms):
-        buckets = (
-            DB_BUCKETS if name.startswith("palvelut_db_") else REQUEST_BUCKETS
-        )
+        buckets = DB_BUCKETS if name.startswith("palvelut_db_") else REQUEST_BUCKETS
         lines.extend(_histogram_lines(name, values, labels, buckets))
     total_connections, waiting_connections = _db_connection_gauges()
     lines.append(_metric_line("palvelut_db_connections", total_connections))
-    lines.append(
-        _metric_line("palvelut_db_waiting_connections", waiting_connections)
-    )
+    lines.append(_metric_line("palvelut_db_waiting_connections", waiting_connections))
     lines.append(_metric_line("palvelut_queue_depth", _queue_depth()))
-    lines.append(
-        _metric_line("palvelut_queue_age_seconds", _shared_value("queue_age"))
-    )
+    lines.append(_metric_line("palvelut_queue_age_seconds", _shared_value("queue_age")))
     lines.append(
         _metric_line(
             "palvelut_queue_failures_total", _shared_value("queue_failure")
