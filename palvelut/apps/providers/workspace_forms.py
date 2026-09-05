@@ -26,7 +26,9 @@ class ProviderProfileForm(forms.Form):
     )
     price_text = forms.CharField(max_length=160, required=False)
     primary_municipality = forms.ModelChoiceField(
-        queryset=Municipality.objects.filter(region__country__code="FI").order_by("name"),
+        queryset=Municipality.objects.filter(
+            region__country__code="FI"
+        ).order_by("name"),
         required=False,
         empty_label="Choose a city",
     )
@@ -49,12 +51,15 @@ class ProviderProfileForm(forms.Form):
     # provider-facing template uses the normal fields above instead of exposing JSON.
     contacts = forms.JSONField(required=False, initial=list, widget=forms.HiddenInput)
     services = forms.JSONField(required=False, initial=list, widget=forms.HiddenInput)
-    service_areas = forms.JSONField(required=False, initial=list, widget=forms.HiddenInput)
+    service_areas = forms.JSONField(
+        required=False,
+        initial=list,
+        widget=forms.HiddenInput,
+    )
     languages = forms.JSONField(required=False, initial=list, widget=forms.HiddenInput)
 
-    def __init__(self, *args: object, **kwargs: object) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         initial = dict(kwargs.get("initial") or {})
-        self._initial_payload = initial
         self._seed_friendly_initial(initial)
         kwargs["initial"] = initial
         super().__init__(*args, **kwargs)
@@ -195,11 +200,15 @@ class ProviderProfileForm(forms.Form):
             services = [
                 {
                     "category_id": str(category.pk),
-                    "title": str(self.cleaned_data.get("service_title") or "").strip(),
+                    "title": str(
+                        self.cleaned_data.get("service_title") or ""
+                    ).strip(),
                     "description": str(
                         self.cleaned_data.get("service_description") or ""
                     ).strip(),
-                    "price_text": str(self.cleaned_data.get("price_text") or "").strip(),
+                    "price_text": str(
+                        self.cleaned_data.get("price_text") or ""
+                    ).strip(),
                     "is_active": True,
                 }
             ]
