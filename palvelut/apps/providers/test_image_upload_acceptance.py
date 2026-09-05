@@ -21,9 +21,7 @@ def _chunk(kind: bytes, data: bytes) -> bytes:
 
 def _png(*, width: int = 1, height: int = 1, metadata: bool = False) -> bytes:
     ihdr = struct.pack(">IIBBBBB", width, height, 8, 6, 0, 0, 0)
-    raw = b"".join(
-        b"\x00" + (b"\x11\x22\x33\xff" * width) for _ in range(height)
-    )
+    raw = b"".join(b"\x00" + (b"\x11\x22\x33\xff" * width) for _ in range(height))
     parts = [b"\x89PNG\r\n\x1a\n", _chunk(b"IHDR", ihdr)]
     if metadata:
         parts.append(_chunk(b"tEXt", b"Comment\x00secret-metadata"))
