@@ -8,9 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class CodespacesContractTests(unittest.TestCase):
     def test_devcontainer_forwards_preview_and_mailpit(self) -> None:
-        config = json.loads(
-            (ROOT / ".devcontainer" / "devcontainer.json").read_text()
-        )
+        config = json.loads((ROOT / ".devcontainer" / "devcontainer.json").read_text())
 
         self.assertEqual(config["forwardPorts"], [8000, 8025])
         self.assertEqual(
