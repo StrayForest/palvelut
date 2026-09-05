@@ -9,6 +9,7 @@ from palvelut.metrics import (
     record_email,
     record_media_failure,
     record_queue,
+    record_request,
     render_prometheus,
 )
 
@@ -17,9 +18,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class P5ObservabilityRuntimeTests(SimpleTestCase):
     def test_metrics_endpoint_is_no_store_and_exposes_request_metrics(self):
-        client = Client()
-        client.get("/palvelut/en/")
-        response = client.get("/palvelut/internal/metrics")
+        record_request("GET", 200, 0.1)
+        response = Client().get("/palvelut/internal/metrics")
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers["Cache-Control"], "no-store")
