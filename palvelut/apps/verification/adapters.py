@@ -45,8 +45,16 @@ class UrlLibRegistryTransport:
 
     def get_json(self, url: str, *, timeout_seconds: float) -> TransportResponse:
         if not url.startswith(f"{PRH_YTJ_API_URL}?"):
-            raise ValueError("Registry transport only permits the configured PRH YTJ endpoint")
-        request = Request(url, headers={"Accept": "application/json", "User-Agent": "finrix-palvelut/1"})
+            raise ValueError(
+                "Registry transport only permits the configured PRH YTJ endpoint"
+            )
+        request = Request(
+            url,
+            headers={
+                "Accept": "application/json",
+                "User-Agent": "finrix-palvelut/1",
+            },
+        )
         with self._opener.open(request, timeout=timeout_seconds) as response:
             if response.geturl() != url:
                 raise ValueError("Registry redirects are not permitted")
@@ -156,7 +164,9 @@ class YtjPrhAdapter:
                     )
 
                 if response.status_code not in {429, 500, 502, 503, 504}:
-                    last_error = f"Unexpected upstream HTTP status {response.status_code}"
+                    last_error = (
+                        f"Unexpected upstream HTTP status {response.status_code}"
+                    )
                     break
                 last_error = f"Transient upstream HTTP status {response.status_code}"
             except HTTPError as exc:
@@ -164,7 +174,13 @@ class YtjPrhAdapter:
                 last_error = f"Upstream HTTP error {exc.code}"
                 if exc.code not in {429, 500, 502, 503, 504}:
                     break
-            except (TimeoutError, URLError, OSError, ValueError, json.JSONDecodeError) as exc:
+            except (
+                TimeoutError,
+                URLError,
+                OSError,
+                ValueError,
+                json.JSONDecodeError,
+            ) as exc:
                 last_error = f"Upstream request failed: {exc.__class__.__name__}"
 
             if attempt < self.max_attempts:
