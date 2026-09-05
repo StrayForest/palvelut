@@ -53,7 +53,9 @@ def increment_metric(name: str, value: int = 1) -> None:
     except ValueError:
         cache.add(key, value, timeout=None)
     except Exception:
-        _observability_logger.warning("metric_counter_write_failed", extra={"metric": name})
+        _observability_logger.warning(
+            "metric_counter_write_failed", extra={"metric": name}
+        )
 
 
 def set_metric(name: str, value: float) -> None:
@@ -62,7 +64,9 @@ def set_metric(name: str, value: float) -> None:
     try:
         cache.set(_metric_key(name), float(value), timeout=None)
     except Exception:
-        _observability_logger.warning("metric_gauge_write_failed", extra={"metric": name})
+        _observability_logger.warning(
+            "metric_gauge_write_failed", extra={"metric": name}
+        )
 
 
 def observe_metric(name: str, value: float) -> None:
@@ -81,7 +85,9 @@ def observe_metric(name: str, value: float) -> None:
         except ValueError:
             cache.add(sum_key, microseconds, timeout=None)
     except Exception:
-        _observability_logger.warning("metric_observation_write_failed", extra={"metric": name})
+        _observability_logger.warning(
+            "metric_observation_write_failed", extra={"metric": name}
+        )
 
 
 def _metric_value(name: str, suffix: str = "value") -> float:
