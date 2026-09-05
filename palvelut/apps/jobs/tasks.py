@@ -50,9 +50,7 @@ def _record_queue_age() -> None:
         .values_list("created_at", flat=True)
         .first()
     )
-    age = 0.0 if oldest is None else max(
-        0.0, (timezone.now() - oldest).total_seconds()
-    )
+    age = 0.0 if oldest is None else max(0.0, (timezone.now() - oldest).total_seconds())
     set_metric("palvelut_queue_oldest_age_seconds", age)
 
 
