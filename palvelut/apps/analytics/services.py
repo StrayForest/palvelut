@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import os
 import re
 from collections.abc import Callable, Iterable
 from functools import wraps
+from secrets import compare_digest
 
 from django.db.models import Count
 from django.http import HttpRequest, HttpResponse
@@ -10,6 +12,12 @@ from django.http import HttpRequest, HttpResponse
 from palvelut.apps.analytics.models import AnalyticsEvent
 
 _PROVIDER_MARKER_RE = re.compile(rb'data-analytics-provider="([0-9a-f-]{36})"')
+
+
+def is_synthetic_request(request: HttpRequest) -> bool:
+    expected = os.getenv("SYNTHETIC_MONITOR_TOKEN", "")
+    supplied = request.headers.get("X-Palvelut-Synthetic", "")
+    return bool(expected and supplied and compare_digest(supplied, expected))
 
 
 def _provider_ids_from_response(response: HttpResponse) -> tuple[str, ...]:
@@ -33,6 +41,7 @@ def track_provider_events(kind: str) -> Callable:
             if (
                 request.method == "GET"
                 and not request.user.is_authenticated
+                and not is_synthetic_request(request)
                 and response.status_code == 200
             ):
                 provider_ids = _provider_ids_from_response(response)

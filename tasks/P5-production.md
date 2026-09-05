@@ -4,8 +4,6 @@ Depends: P4. Read: `docs/06-quality.md`, `docs/07-operations.md`.
 
 ## Build
 
-- Synthetic monitoring for home, search, profile and contact redirect.
-
 ## Accept
 
 - Exact image SHA promotes staging→production without rebuild.

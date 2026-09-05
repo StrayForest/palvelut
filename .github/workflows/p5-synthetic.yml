@@ -1,0 +1,30 @@
+name: P5 synthetic monitoring
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p5-synthetic-production
+  cancel-in-progress: false
+
+jobs:
+  production:
+    if: vars.SYNTHETIC_MONITOR_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    env:
+      SYNTHETIC_BASE_URL: ${{ secrets.SYNTHETIC_BASE_URL }}
+      SYNTHETIC_PROFILE_SLUG: ${{ secrets.SYNTHETIC_PROFILE_SLUG }}
+      SYNTHETIC_PROVIDER_ID: ${{ secrets.SYNTHETIC_PROVIDER_ID }}
+      SYNTHETIC_CONTACT_CHANNEL: ${{ vars.SYNTHETIC_CONTACT_CHANNEL || 'website' }}
+      SYNTHETIC_LOCALE: ${{ vars.SYNTHETIC_LOCALE || 'en' }}
+      SYNTHETIC_MONITOR_TOKEN: ${{ secrets.SYNTHETIC_MONITOR_TOKEN }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Probe public journey
+        run: bash infra/scripts/synthetic-monitor.sh
