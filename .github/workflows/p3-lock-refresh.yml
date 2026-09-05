@@ -1,0 +1,44 @@
+name: P3 lock refresh
+
+on:
+  pull_request:
+    paths:
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/p3-lock-refresh.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  refresh-lock:
+    if: github.head_ref == 'codex/p3-01-provider-auth'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Fetch PR branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          git init repo
+          cd repo
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git fetch --depth=1 origin "${HEAD_REF}"
+          git checkout -B "${HEAD_REF}" FETCH_HEAD
+
+      - name: Refresh uv lock
+        working-directory: repo
+        run: |
+          python3 -m pip install --disable-pip-version-check --no-input "uv==0.10.0"
+          uv lock
+          if git diff --quiet -- uv.lock; then
+            echo "uv.lock already current"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add uv.lock
+          git commit -m "P3 refresh dependency lock"
+          git push origin "HEAD:${GITHUB_HEAD_REF}"
