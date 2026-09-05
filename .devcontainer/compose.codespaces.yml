@@ -1,0 +1,12 @@
+services:
+  web:
+    environment:
+      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1,[::1],nginx,.${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN:-app.github.dev}"
+      DJANGO_CSRF_TRUSTED_ORIGINS: "https://*.${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN:-app.github.dev}"
+      PUBLIC_BASE_URL: "https://${CODESPACE_NAME}-8000.${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN:-app.github.dev}/palvelut"
+
+  worker:
+    environment:
+      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1,[::1],nginx,.${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN:-app.github.dev}"
+      DJANGO_CSRF_TRUSTED_ORIGINS: "https://*.${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN:-app.github.dev}"
+      PUBLIC_BASE_URL: "https://${CODESPACE_NAME}-8000.${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN:-app.github.dev}/palvelut"
