@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import Client, TestCase
 from django.urls import reverse
 
 from palvelut.apps.providers.models import Provider, ProviderMembership
@@ -94,6 +94,21 @@ class ProviderWorkspaceFlowTests(TestCase):
             reverse("provider-workspace-edit", args=[self.provider.pk])
         )
         self.assertEqual(response.status_code, 404)
+
+    def test_provider_write_rejects_missing_csrf_token(self):
+        csrf_client = Client(enforce_csrf_checks=True)
+        csrf_client.force_login(self.owner)
+        response = csrf_client.post(
+            reverse("provider-workspace-edit", args=[self.provider.pk]),
+            {
+                "provider_type": "business",
+                "legal_name": "CSRF Legal Oy",
+                "display_name": "CSRF Display",
+                "y_tunnus": "1234567-8",
+            },
+        )
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(ProfileRevision.objects.filter(provider=self.provider).exists())
 
     def test_owner_can_preview_and_submit_through_http(self):
         self.client.force_login(self.owner)
