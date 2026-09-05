@@ -52,7 +52,9 @@ class P2QueryPlanGateTests(TestCase):
         self.assertEqual(len(plan), 1)
         self.assertIn("Plan", plan[0])
         self.assertGreaterEqual(plan[0]["Plan"]["Plan Rows"], 0)
-        self.assertEqual(list(queryset.values_list("provider_id", flat=True)), [self.provider_id])
+        self.assertEqual(
+            list(queryset.values_list("provider_id", flat=True)), [self.provider_id]
+        )
 
     @property
     def provider_id(self):
