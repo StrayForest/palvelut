@@ -24,6 +24,6 @@ jobs:
       SYNTHETIC_LOCALE: ${{ vars.SYNTHETIC_LOCALE || 'en' }}
       SYNTHETIC_MONITOR_TOKEN: ${{ secrets.SYNTHETIC_MONITOR_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - name: Probe public journey
         run: bash infra/scripts/synthetic-monitor.sh
