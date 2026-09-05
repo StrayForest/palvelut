@@ -49,16 +49,15 @@ def public_verification_facts(
     """Return latest currently valid verified facts, one per check kind."""
 
     now = at or timezone.now()
-    checks = (
-        provider.verification_checks.filter(status=VerificationCheck.Status.VERIFIED)
-        .filter(expires_at__isnull=True)
-        .union(
-            provider.verification_checks.filter(
-                status=VerificationCheck.Status.VERIFIED,
-                expires_at__gt=now,
-            )
-        )
-        .order_by("kind", "-checked_at", "-id")
+    checks = sorted(
+        (
+            check
+            for check in provider.verification_checks.all()
+            if check.status == VerificationCheck.Status.VERIFIED
+            and (check.expires_at is None or check.expires_at > now)
+        ),
+        key=lambda check: (check.kind, check.checked_at, check.id),
+        reverse=True,
     )
 
     facts: list[PublicVerificationFact] = []
