@@ -40,7 +40,9 @@ class RegistryCheckTypeTests(TestCase):
         self.assertEqual(definition.lookup_method, "lookup_business_id")
         self.assertIsNotNone(definition.adapter_factory)
 
-    def test_regulated_professional_right_check_is_registered_but_disabled(self) -> None:
+    def test_regulated_professional_right_check_is_registered_but_disabled(
+        self,
+    ) -> None:
         definition = REGISTRY_CHECK_TYPES["professional_right"]
         self.assertTrue(definition.regulated_category)
         self.assertFalse(definition.enabled)
