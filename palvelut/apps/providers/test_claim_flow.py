@@ -44,7 +44,9 @@ class ProviderClaimFlowTests(TestCase):
             evidence_reference="PRH signatory record 2026-09-05",
         )
 
-    def test_claim_submission_requires_independent_business_control_evidence(self) -> None:
+    def test_claim_submission_requires_independent_business_control_evidence(
+        self,
+    ) -> None:
         self.client.force_login(self.claimant)
         response = self.client.post(
             reverse("account-claim-provider", kwargs={"provider_id": self.provider.pk}),
@@ -53,7 +55,9 @@ class ProviderClaimFlowTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.provider.refresh_from_db()
         self.assertEqual(self.provider.claim_status, Provider.ClaimStatus.UNCLAIMED)
-        self.assertFalse(ProviderMembership.objects.filter(provider=self.provider).exists())
+        self.assertFalse(
+            ProviderMembership.objects.filter(provider=self.provider).exists()
+        )
 
         response = self.client.post(
             reverse("account-claim-provider", kwargs={"provider_id": self.provider.pk}),
@@ -69,7 +73,9 @@ class ProviderClaimFlowTests(TestCase):
         self.assertEqual(
             self.provider.claim_evidence["claimant_user_id"], str(self.claimant.pk)
         )
-        self.assertFalse(ProviderMembership.objects.filter(provider=self.provider).exists())
+        self.assertFalse(
+            ProviderMembership.objects.filter(provider=self.provider).exists()
+        )
         self.assertTrue(
             AuditEvent.objects.filter(
                 provider=self.provider,
@@ -92,7 +98,9 @@ class ProviderClaimFlowTests(TestCase):
             self.provider.claim_evidence["claimant_user_id"], str(self.claimant.pk)
         )
 
-    def test_staff_approval_atomically_grants_owner_but_keeps_profile_unpublished(self) -> None:
+    def test_staff_approval_atomically_grants_owner_but_keeps_profile_unpublished(
+        self,
+    ) -> None:
         self._submit()
         resolve_provider_claim(
             provider_id=self.provider.pk,
@@ -126,7 +134,9 @@ class ProviderClaimFlowTests(TestCase):
         self.provider.refresh_from_db()
         self.assertEqual(self.provider.claim_status, Provider.ClaimStatus.REJECTED)
         self.assertEqual(self.provider.lifecycle, Provider.Lifecycle.UNCLAIMED)
-        self.assertFalse(ProviderMembership.objects.filter(provider=self.provider).exists())
+        self.assertFalse(
+            ProviderMembership.objects.filter(provider=self.provider).exists()
+        )
         self.assertEqual(self.provider.claim_evidence["decision"], "reject")
 
     def test_non_staff_cannot_open_staff_claim_review(self) -> None:
@@ -137,7 +147,9 @@ class ProviderClaimFlowTests(TestCase):
         )
         self.assertEqual(response.status_code, 403)
 
-    def test_staff_claim_review_route_requires_mfa_session_and_can_approve(self) -> None:
+    def test_staff_claim_review_route_requires_mfa_session_and_can_approve(
+        self,
+    ) -> None:
         self._submit()
         self.client.force_login(self.staff)
         response = self.client.get(reverse("staff-claim-list"))

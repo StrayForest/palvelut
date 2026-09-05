@@ -16,7 +16,10 @@ from .models import Provider
 def claim_candidates(request: HttpRequest) -> HttpResponse:
     providers = Provider.objects.filter(
         lifecycle=Provider.Lifecycle.UNCLAIMED,
-        claim_status__in=(Provider.ClaimStatus.UNCLAIMED, Provider.ClaimStatus.REJECTED),
+        claim_status__in=(
+            Provider.ClaimStatus.UNCLAIMED,
+            Provider.ClaimStatus.REJECTED,
+        ),
     ).order_by("display_name", "id")
     return render(request, "providers/claim_candidates.html", {"providers": providers})
 
@@ -52,9 +55,9 @@ def claim_provider(request: HttpRequest, provider_id) -> HttpResponse:
 def staff_claim_list(request: HttpRequest) -> HttpResponse:
     if not request.user.is_staff:
         raise PermissionDenied
-    claims = Provider.objects.filter(claim_status=Provider.ClaimStatus.PENDING).order_by(
-        "created_at", "id"
-    )
+    claims = Provider.objects.filter(
+        claim_status=Provider.ClaimStatus.PENDING
+    ).order_by("created_at", "id")
     return render(request, "providers/staff_claim_list.html", {"claims": claims})
 
 

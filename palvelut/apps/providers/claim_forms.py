@@ -16,7 +16,9 @@ class ProviderClaimForm(forms.Form):
     def clean_evidence_kind(self):
         value = self.cleaned_data["evidence_kind"]
         if value not in ALLOWED_CLAIM_EVIDENCE:
-            raise forms.ValidationError("Independent business-control evidence is required.")
+            raise forms.ValidationError(
+                "Independent business-control evidence is required."
+            )
         return value
 
 
