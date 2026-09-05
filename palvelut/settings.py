@@ -76,6 +76,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "palvelut.apps.accounts.middleware.StaffMFAMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -131,6 +132,21 @@ OBJECT_STORAGE_ACCESS_KEY_ID = os.getenv("S3_ACCESS_KEY_ID", "palvelut-local")
 OBJECT_STORAGE_SECRET_ACCESS_KEY = os.getenv("S3_SECRET_ACCESS_KEY", "palvelut-local-only")
 OBJECT_STORAGE_BUCKET_NAME = os.getenv("S3_BUCKET_NAME", "palvelut-local")
 
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.Argon2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+]
+PASSWORD_RESET_TIMEOUT = 3600
+LOGIN_URL = "/palvelut/account/login/"
+SESSION_COOKIE_PATH = PUBLIC_MOUNT_PATH
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_AGE = 8 * 60 * 60
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+CSRF_COOKIE_PATH = PUBLIC_MOUNT_PATH
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = "Lax"
+
 LANGUAGE_CODE = "en"
 LANGUAGES = [
     ("ru", "Russian"),
@@ -139,8 +155,6 @@ LANGUAGES = [
 ]
 LOCALE_PATHS = [BASE_DIR / "locale"]
 LANGUAGE_COOKIE_PATH = PUBLIC_MOUNT_PATH
-SESSION_COOKIE_PATH = PUBLIC_MOUNT_PATH
-CSRF_COOKIE_PATH = PUBLIC_MOUNT_PATH
 TIME_ZONE = "Europe/Helsinki"
 USE_I18N = True
 USE_TZ = True
