@@ -86,6 +86,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "palvelut.observability.RequestIdMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "palvelut.security.SecurityHeadersMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
