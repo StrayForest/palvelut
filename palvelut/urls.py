@@ -30,6 +30,12 @@ from palvelut.apps.providers.claim_views import (
     staff_claim_list,
     staff_claim_review,
 )
+from palvelut.apps.providers.workspace_views import (
+    edit_profile,
+    preview_profile,
+    submit_profile,
+    workspace,
+)
 from palvelut.views import health_live, health_ready, public_mount_root
 
 cached_home = public_read_through_cache(
@@ -97,6 +103,22 @@ urlpatterns = [
         "palvelut/account/claims/<uuid:provider_id>/",
         claim_provider,
         name="account-claim-provider",
+    ),
+    path("palvelut/account/profile/", workspace, name="provider-workspace"),
+    path(
+        "palvelut/account/profile/<uuid:provider_id>/",
+        edit_profile,
+        name="provider-workspace-edit",
+    ),
+    path(
+        "palvelut/account/profile/<uuid:provider_id>/preview/",
+        preview_profile,
+        name="provider-workspace-preview",
+    ),
+    path(
+        "palvelut/account/profile/<uuid:provider_id>/submit/",
+        submit_profile,
+        name="provider-workspace-submit",
     ),
     path("palvelut/staff/claims/", staff_claim_list, name="staff-claim-list"),
     path(

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<main>
+  <h1>Provider workspace</h1>
+  {% if request.GET.submitted %}<p role="status">Profile submitted for review.</p>{% endif %}
+  <ul>
+    {% for membership in memberships %}
+      <li>
+        <strong>{{ membership.provider.display_name }}</strong>
+        <span>{{ membership.provider.get_lifecycle_display }}</span>
+        <a href="{% url 'provider-workspace-edit' membership.provider.id %}">Edit profile</a>
+      </li>
+    {% empty %}
+      <li>No provider workspace yet.</li>
+    {% endfor %}
+  </ul>
+</main>
+{% endblock %}
