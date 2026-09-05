@@ -24,6 +24,6 @@ def legal_document(request: HttpRequest, locale: str, document: str) -> HttpResp
             "document": document,
             "document_title": title,
             "locale": locale,
-            "robots_meta": "noindex,follow",
+            "robots_meta": "index,follow",
         },
     )
