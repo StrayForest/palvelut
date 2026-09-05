@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n verification_tags %}
 {% block title %}{{ document.document.display_name|default:document.provider.display_name }} · Finrix Palvelut{% endblock %}
 {% block content %}
 {% with provider=document.provider %}
@@ -11,7 +11,24 @@
     <p class="mt-3 text-slate-600">{% for area in provider.service_areas.all %}{{ area.municipality.name }}{% if not forloop.last %}, {% endif %}{% endfor %} · {% for language in provider.languages.all %}{{ language.language.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
   </header>
 
+  {% verification_facts provider as facts %}
+  {% if facts %}
   <section class="py-6">
+    <h2 class="text-xl font-semibold">{% translate "Verification facts" %}</h2>
+    <ul class="mt-4 grid gap-3">
+      {% for fact in facts %}
+      <li class="rounded-xl border border-slate-200 p-4">
+        <p class="font-medium">{{ fact.label }}</p>
+        {% if fact.source_url %}<a class="mt-2 inline-block text-sm text-slate-600 underline" href="{{ fact.source_url }}" rel="nofollow noopener">{% translate "Official source" %}</a>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% trust_explanation as trust_copy %}
+    <p class="mt-4 text-sm text-slate-600">{{ trust_copy }} <a class="underline" href="{% url 'trust' locale=locale %}">{% translate "How verification works" %}</a></p>
+  </section>
+  {% endif %}
+
+  <section class="border-t border-slate-200 py-6">
     <h2 class="text-xl font-semibold">{% translate "Services and prices" %}</h2>
     <div class="mt-4 grid gap-3">
       {% for service in provider.services.all %}{% if service.is_active %}
