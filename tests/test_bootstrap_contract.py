@@ -16,6 +16,7 @@ EXPECTED_APPS = {
     "discovery",
     "analytics",
     "content",
+    "jobs",
 }
 
 
