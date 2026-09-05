@@ -17,9 +17,15 @@ def _require_staff(actor) -> None:
 
 
 @transaction.atomic
-def request_revision_changes(*, revision_id: object, actor, note: str) -> ProfileRevision:
+def request_revision_changes(
+    *, revision_id: object, actor, note: str
+) -> ProfileRevision:
     _require_staff(actor)
-    revision = ProfileRevision.objects.select_for_update().select_related("provider").get(pk=revision_id)
+    revision = (
+        ProfileRevision.objects.select_for_update()
+        .select_related("provider")
+        .get(pk=revision_id)
+    )
     if revision.status != ProfileRevision.Status.PENDING:
         raise ValidationError("only pending revisions can request changes")
     revision.status = ProfileRevision.Status.CHANGES_REQUESTED
@@ -40,7 +46,11 @@ def request_revision_changes(*, revision_id: object, actor, note: str) -> Profil
 @transaction.atomic
 def approve_revision(*, revision_id: object, actor) -> ProfileRevision:
     _require_staff(actor)
-    revision = ProfileRevision.objects.select_for_update().select_related("provider").get(pk=revision_id)
+    revision = (
+        ProfileRevision.objects.select_for_update()
+        .select_related("provider")
+        .get(pk=revision_id)
+    )
     if revision.status != ProfileRevision.Status.PENDING:
         raise ValidationError("only pending revisions can be approved")
     provider = Provider.objects.select_for_update().get(pk=revision.provider_id)
@@ -51,10 +61,14 @@ def approve_revision(*, revision_id: object, actor) -> ProfileRevision:
             setattr(provider, field, revision.payload[field])
     provider.lifecycle = Provider.Lifecycle.PUBLISHED
     provider.save(update_fields=(*PROFILE_FIELDS, "lifecycle", "updated_at"))
-    ProfileRevision.objects.filter(
-        provider=provider,
-        status=ProfileRevision.Status.APPROVED,
-    ).exclude(pk=revision.pk).update(status=ProfileRevision.Status.SUPERSEDED)
+    (
+        ProfileRevision.objects.filter(
+            provider=provider,
+            status=ProfileRevision.Status.APPROVED,
+        )
+        .exclude(pk=revision.pk)
+        .update(status=ProfileRevision.Status.SUPERSEDED)
+    )
     revision.status = ProfileRevision.Status.APPROVED
     revision.reviewed_at = timezone.now()
     revision.save(update_fields=("status", "reviewed_at"))
