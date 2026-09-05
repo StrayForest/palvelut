@@ -50,7 +50,9 @@ def _record_queue_age() -> None:
         .values_list("created_at", flat=True)
         .first()
     )
-    age = 0.0 if oldest is None else max(0.0, (timezone.now() - oldest).total_seconds())
+    age = 0.0 if oldest is None else max(
+        0.0, (timezone.now() - oldest).total_seconds()
+    )
     set_metric("palvelut_queue_oldest_age_seconds", age)
 
 
@@ -151,14 +153,8 @@ def dispatch_outbox(batch_size: int = 50) -> dict[str, int]:
 @shared_task(name="palvelut.jobs.enqueue_daily_maintenance")
 def enqueue_daily_maintenance() -> int:
     day = timezone.localdate().isoformat()
-    created = 0
-    for kind, prefix in (
-        ("analytics.purge_expired", "analytics-retention"),
-        ("jobs.purge_history", "outbox-retention"),
-    ):
-        _job, was_created = enqueue_job(
-            kind=kind,
-            dedupe_key=f"{prefix}:{day}",
-        )
-        created += int(was_created)
-    return created
+    _job, was_created = enqueue_job(
+        kind="jobs.purge_history",
+        dedupe_key=f"outbox-retention:{day}",
+    )
+    return int(was_created)
