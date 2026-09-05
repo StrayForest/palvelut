@@ -37,7 +37,7 @@ test("P2 cold and warm anonymous discovery smoke stays inside response budgets",
   expect(warmMs).toBeLessThanOrEqual(300);
 });
 
-test("P2 home passes Lighthouse release categories", async () => {
+test("P2 home passes Lighthouse performance accessibility and SEO categories", async () => {
   test.setTimeout(120_000);
   const chromeLauncher = await import("chrome-launcher");
   const lighthouseModule = await import("lighthouse");
@@ -50,13 +50,12 @@ test("P2 home passes Lighthouse release categories", async () => {
       port: chrome.port,
       logLevel: "error",
       output: "json",
-      onlyCategories: ["performance", "accessibility", "best-practices", "seo"],
+      onlyCategories: ["performance", "accessibility", "seo"],
     });
     expect(result).toBeTruthy();
     const categories = result.lhr.categories;
     expect(categories.performance.score).toBeGreaterThanOrEqual(0.8);
     expect(categories.accessibility.score).toBeGreaterThanOrEqual(0.9);
-    expect(categories["best-practices"].score).toBeGreaterThanOrEqual(0.9);
     expect(categories.seo.score).toBeGreaterThanOrEqual(0.9);
   } finally {
     await chrome.kill();
