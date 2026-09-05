@@ -55,9 +55,9 @@ def aggregate_provider_metrics(
     ids = [str(provider_id) for provider_id in provider_ids]
     metrics = {
         provider_id: {
-            AnalyticsEvent.Kind.IMPRESSION: 0,
-            AnalyticsEvent.Kind.PROFILE_VIEW: 0,
-            AnalyticsEvent.Kind.CONTACT_CLICK: 0,
+            "impression": 0,
+            "profile_view": 0,
+            "contact_click": 0,
         }
         for provider_id in ids
     }

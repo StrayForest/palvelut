@@ -5,7 +5,6 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods, require_POST
 
-from palvelut.apps.analytics.models import AnalyticsEvent
 from palvelut.apps.analytics.services import aggregate_provider_metrics
 from palvelut.apps.providers.models import ProviderMembership
 from palvelut.apps.providers.workspace_forms import ProviderProfileForm
@@ -123,9 +122,9 @@ def workspace(request):
                 "checklist": checklist,
                 "completed": completed,
                 "total": len(checklist),
-                "impressions": provider_metrics[AnalyticsEvent.Kind.IMPRESSION],
-                "profile_views": provider_metrics[AnalyticsEvent.Kind.PROFILE_VIEW],
-                "contact_clicks": provider_metrics[AnalyticsEvent.Kind.CONTACT_CLICK],
+                "impressions": provider_metrics["impression"],
+                "profile_views": provider_metrics["profile_view"],
+                "contact_clicks": provider_metrics["contact_click"],
             }
         )
     response = render(
