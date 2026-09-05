@@ -140,8 +140,12 @@ CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://valkey:6379/
 CELERY_TIMEZONE = "Europe/Helsinki"
 CELERY_BEAT_SCHEDULE = {
     "purge-expired-analytics": {
-        "task": "palvelut.jobs.enqueue_daily_maintenance",
+        "task": "palvelut.analytics.purge_expired",
         "schedule": crontab(hour=3, minute=20),
+    },
+    "enqueue-daily-maintenance": {
+        "task": "palvelut.jobs.enqueue_daily_maintenance",
+        "schedule": crontab(hour=3, minute=25),
     },
     "dispatch-outbox": {
         "task": "palvelut.jobs.dispatch_outbox",
