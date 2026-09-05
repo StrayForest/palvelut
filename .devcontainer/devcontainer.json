@@ -1,0 +1,21 @@
+{
+  "name": "Finrix Palvelut",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  "forwardPorts": [8000, 8025],
+  "portsAttributes": {
+    "8000": {
+      "label": "Palvelut preview",
+      "onAutoForward": "openBrowser"
+    },
+    "8025": {
+      "label": "Mailpit",
+      "onAutoForward": "notify"
+    }
+  },
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y make && make bootstrap",
+  "postStartCommand": "bash .devcontainer/start-codespace.sh",
+  "remoteUser": "vscode"
+}
