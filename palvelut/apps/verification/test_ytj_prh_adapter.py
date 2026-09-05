@@ -41,9 +41,9 @@ class YtjPrhAdapterTests(TestCase):
             ]
         }
         transport = FakeTransport([TransportResponse(200, payload)])
-        result = YtjPrhAdapter(transport=transport, sleep=lambda _: None).lookup_business_id(
-            "0112038-9"
-        )
+        result = YtjPrhAdapter(
+            transport=transport, sleep=lambda _: None
+        ).lookup_business_id("0112038-9")
 
         self.assertEqual(result.outcome, RegistryOutcome.FOUND)
         self.assertEqual(result.attempts, 1)
@@ -55,7 +55,9 @@ class YtjPrhAdapterTests(TestCase):
         self.assertFalse(metadata["manual_fallback_required"])
         self.assertIn("businessId=0112038-9", result.source_url)
 
-    def test_transient_failure_retries_only_to_bound_then_requires_manual_review(self) -> None:
+    def test_transient_failure_retries_only_to_bound_then_requires_manual_review(
+        self,
+    ) -> None:
         transport = FakeTransport(
             [
                 TransportResponse(503, {"error": "one"}),
@@ -63,9 +65,9 @@ class YtjPrhAdapterTests(TestCase):
                 TransportResponse(503, {"error": "three"}),
             ]
         )
-        result = YtjPrhAdapter(transport=transport, sleep=lambda _: None).lookup_business_id(
-            "0112038-9"
-        )
+        result = YtjPrhAdapter(
+            transport=transport, sleep=lambda _: None
+        ).lookup_business_id("0112038-9")
 
         self.assertEqual(len(transport.calls), 3)
         self.assertEqual(result.attempts, 3)
@@ -73,7 +75,9 @@ class YtjPrhAdapterTests(TestCase):
         self.assertTrue(result.evidence_metadata()["manual_fallback_required"])
         self.assertEqual(result.status_code, 503)
 
-    def test_successful_response_without_business_id_is_a_factual_not_found(self) -> None:
+    def test_successful_response_without_business_id_is_a_factual_not_found(
+        self,
+    ) -> None:
         transport = FakeTransport([TransportResponse(200, {"companies": []})])
         result = YtjPrhAdapter(transport=transport).lookup_business_id("0112038-9")
         self.assertEqual(result.outcome, RegistryOutcome.NOT_FOUND)
@@ -116,13 +120,17 @@ class YtjPrhVerificationServiceTests(TestCase):
         self.assertFalse(check.evidence_metadata["manual_fallback_required"])
         self.assertEqual(check.events.count(), 1)
 
-    def test_upstream_failure_records_pending_manual_fallback_without_mutating_valid_fact(self) -> None:
+    def test_upstream_failure_records_pending_manual_fallback_without_mutating_valid_fact(
+        self,
+    ) -> None:
         valid = VerificationCheck.objects.create(
             provider=self.provider,
             kind="business_identity",
             status=VerificationCheck.Status.VERIFIED,
             source_url="https://example.invalid/prior-snapshot",
-            evidence_metadata={"source_snapshot": {"businessId": self.provider.y_tunnus}},
+            evidence_metadata={
+                "source_snapshot": {"businessId": self.provider.y_tunnus}
+            },
             checked_by=self.staff,
         )
         adapter = YtjPrhAdapter(
