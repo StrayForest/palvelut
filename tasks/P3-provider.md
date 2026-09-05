@@ -4,7 +4,6 @@ Depends: P2. Read: provider sections of `docs/01-product.md` and `docs/03-experi
 
 ## Build
 
-- Structured contacts, services/prices, areas/modes, languages and image upload pipeline.
 - Status/checklist dashboard and aggregate impressions/views/contact-clicks.
 - Ownership transfer/invite foundation for business teams; only owner/editor roles now.
 
