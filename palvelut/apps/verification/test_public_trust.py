@@ -64,9 +64,7 @@ class PublicTrustTests(TestCase):
             expires_at=expires_at,
         )
         if checked_at is not None:
-            VerificationCheck.objects.filter(pk=check.pk).update(
-                checked_at=checked_at
-            )
+            VerificationCheck.objects.filter(pk=check.pk).update(checked_at=checked_at)
             check.refresh_from_db()
         return check
 
