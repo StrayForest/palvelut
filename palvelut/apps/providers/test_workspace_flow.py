@@ -3,7 +3,10 @@ from django.test import TestCase
 from django.urls import reverse
 
 from palvelut.apps.providers.models import Provider, ProviderMembership
-from palvelut.apps.providers.workspace_services import autosave_revision, submit_revision
+from palvelut.apps.providers.workspace_services import (
+    autosave_revision,
+    submit_revision,
+)
 from palvelut.apps.publishing.models import ProfileRevision
 from palvelut.apps.publishing.workflow import approve_revision, request_revision_changes
 
