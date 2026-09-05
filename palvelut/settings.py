@@ -21,6 +21,8 @@ ALLOWED_HOSTS = [
     )
     if host
 ]
+SENTRY_DSN = os.getenv("SENTRY_DSN", "").strip()
+SENTRY_RELEASE = os.getenv("SENTRY_RELEASE", "").strip()
 
 
 def _public_base_url() -> str:
@@ -143,7 +145,7 @@ CELERY_BEAT_SCHEDULE = {
     }
 }
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_BACKEND = "palvelut.email_backend.MetricsSMTPEmailBackend"
 EMAIL_HOST = os.getenv("EMAIL_HOST", "mailpit")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", "1025"))
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "palvelut@local.invalid")
