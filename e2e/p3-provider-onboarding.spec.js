@@ -13,7 +13,7 @@ test("provider completes onboarding on mobile without staff edits", async ({ pag
   await page.getByLabel("Password").fill("provider-e2e-pass");
   await page.getByRole("button", { name: "Sign in" }).click();
 
-  await page.goto("/palvelut/account/provider/");
+  await page.goto("/palvelut/account/profile/");
   await expect(page.getByRole("heading", { name: "Provider workspace" })).toBeVisible();
   await page.getByRole("link", { name: "Edit profile" }).click();
 
@@ -42,7 +42,7 @@ test("provider completes onboarding on mobile without staff edits", async ({ pag
   await expect(page.getByRole("heading", { name: "Synthetic Mobile Legal Specialist" })).toBeVisible();
   await page.getByRole("button", { name: "Submit for review" }).click();
 
-  await expect(page).toHaveURL(/\/palvelut\/account\/provider\/\?submitted=1$/);
+  await expect(page).toHaveURL(/\/palvelut\/account\/profile\/\?submitted=1$/);
   await expect(page.getByRole("status")).toHaveText("Profile submitted for review.");
   await expect(page.getByText("Revision: Pending")).toBeVisible();
 });
