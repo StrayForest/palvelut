@@ -76,7 +76,9 @@ class Migration(migrations.Migration):
                         name="providers_invitation_role_valid",
                     ),
                     models.CheckConstraint(
-                        condition=models.Q(("status__in", ("pending", "accepted", "revoked"))),
+                        condition=models.Q(
+                            ("status__in", ("pending", "accepted", "revoked"))
+                        ),
                         name="providers_invitation_status_valid",
                     ),
                     models.UniqueConstraint(
@@ -86,5 +88,5 @@ class Migration(migrations.Migration):
                     ),
                 ]
             },
-        )
+        ),
     ]
