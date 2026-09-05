@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods, require_POST
 
 from palvelut.apps.analytics.services import aggregate_provider_metrics
+from palvelut.apps.providers.access_audit import audit_cross_provider_denial
 from palvelut.apps.providers.models import ProviderMembership
 from palvelut.apps.providers.workspace_forms import ProviderProfileForm
 from palvelut.apps.providers.workspace_services import (
@@ -28,6 +29,12 @@ def _membership_for_request(request, provider_id):
         .first()
     )
     if membership is None:
+        audit_cross_provider_denial(
+            actor=request.user,
+            provider_id=provider_id,
+            method=request.method,
+            path=request.path,
+        )
         raise Http404
     return membership
 

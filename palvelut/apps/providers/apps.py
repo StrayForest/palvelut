@@ -6,4 +6,4 @@ class ProvidersConfig(AppConfig):
     name = "palvelut.apps.providers"
 
     def ready(self) -> None:
-        from . import team_models  # noqa: F401
+        from . import access_audit, team_models  # noqa: F401
