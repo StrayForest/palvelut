@@ -1,29 +1,63 @@
 {% extends "base.html" %}
 {% block content %}
-<main>
-  <h1>Edit {{ provider.display_name }}</h1>
-  {% if revision.status == "changes_requested" %}<p role="status">Corrections requested. Update the draft and submit again.</p>{% endif %}
-  <p>Contacts, services/prices, service areas/modes and languages are stored as structured JSON in the moderated draft.</p>
-  <form method="post" hx-post="." hx-trigger="change delay:500ms" hx-swap="none">
+<main class="mx-auto max-w-3xl px-4 py-8">
+  <h1 class="text-2xl font-semibold">Edit {{ provider.display_name }}</h1>
+  {% if revision.status == "changes_requested" %}<p role="status" class="mt-3">Corrections requested. Update the draft and submit again.</p>{% endif %}
+  <p class="mt-3 text-sm text-slate-600">Complete the profile yourself, preview the exact public page, then submit it for staff review.</p>
+
+  <form method="post" class="mt-6 grid gap-6" hx-post="." hx-trigger="change delay:500ms" hx-swap="none">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Save draft</button>
+    {{ form.contacts }}{{ form.services }}{{ form.service_areas }}{{ form.languages }}
+    {% if form.non_field_errors %}<div role="alert">{{ form.non_field_errors }}</div>{% endif %}
+
+    <fieldset class="grid gap-4 rounded-2xl border border-slate-200 p-4">
+      <legend class="px-1 font-semibold">Business identity</legend>
+      <p>{{ form.provider_type.label_tag }} {{ form.provider_type }} {{ form.provider_type.errors }}</p>
+      <p>{{ form.legal_name.label_tag }} {{ form.legal_name }} {{ form.legal_name.errors }}</p>
+      <p>{{ form.display_name.label_tag }} {{ form.display_name }} {{ form.display_name.errors }}</p>
+      <p>{{ form.y_tunnus.label_tag }} {{ form.y_tunnus }} {{ form.y_tunnus.errors }}</p>
+    </fieldset>
+
+    <fieldset class="grid gap-4 rounded-2xl border border-slate-200 p-4">
+      <legend class="px-1 font-semibold">Service and price</legend>
+      <p>{{ form.primary_category.label_tag }} {{ form.primary_category }} {{ form.primary_category.errors }}</p>
+      <p>{{ form.service_title.label_tag }} {{ form.service_title }} {{ form.service_title.errors }}</p>
+      <p>{{ form.service_description.label_tag }} {{ form.service_description }} {{ form.service_description.errors }}</p>
+      <p>{{ form.price_text.label_tag }} {{ form.price_text }} {{ form.price_text.errors }}</p>
+    </fieldset>
+
+    <fieldset class="grid gap-4 rounded-2xl border border-slate-200 p-4">
+      <legend class="px-1 font-semibold">Where and how you work</legend>
+      <p>{{ form.primary_municipality.label_tag }} {{ form.primary_municipality }} {{ form.primary_municipality.errors }}</p>
+      <p>{{ form.service_mode.label_tag }} {{ form.service_mode }} {{ form.service_mode.errors }}</p>
+      <p>{{ form.service_language.label_tag }} {{ form.service_language }} {{ form.service_language.errors }}</p>
+    </fieldset>
+
+    <fieldset class="grid gap-4 rounded-2xl border border-slate-200 p-4">
+      <legend class="px-1 font-semibold">Public contact</legend>
+      <p>{{ form.contact_kind.label_tag }} {{ form.contact_kind }} {{ form.contact_kind.errors }}</p>
+      <p>{{ form.contact_value.label_tag }} {{ form.contact_value }} {{ form.contact_value.errors }}</p>
+    </fieldset>
+
+    <button type="submit" class="w-full rounded-lg border border-slate-300 px-4 py-3 font-medium sm:w-auto">Save draft</button>
   </form>
-  <section aria-labelledby="media-heading">
-    <h2 id="media-heading">Images</h2>
-    <p>Uploaded images stay in the moderated draft until staff approval.</p>
-    <form method="post" enctype="multipart/form-data" action="{% url 'provider-workspace-media-upload' provider.id %}">
+
+  <section aria-labelledby="media-heading" class="mt-8 rounded-2xl border border-slate-200 p-4">
+    <h2 id="media-heading" class="font-semibold">Images</h2>
+    <p class="mt-2 text-sm text-slate-600">Uploaded images stay in the moderated draft until staff approval.</p>
+    <form method="post" enctype="multipart/form-data" action="{% url 'provider-workspace-media-upload' provider.id %}" class="mt-4 grid gap-4">
       {% csrf_token %}
       <p><label for="provider-image">Image</label> <input id="provider-image" type="file" name="image" accept="image/jpeg,image/png,image/webp" required></p>
       <p><label for="provider-image-alt">Alt text</label> <input id="provider-image-alt" type="text" name="alt_text" maxlength="240"></p>
-      <button type="submit">Upload image</button>
+      <button type="submit" class="w-full rounded-lg border border-slate-300 px-4 py-3 font-medium sm:w-auto">Upload image</button>
     </form>
     {% if revision.payload.media %}
-      <ul>
+      <ul class="mt-4">
         {% for image in revision.payload.media %}<li>{{ image.alt_text|default:image.storage_key }}</li>{% endfor %}
       </ul>
     {% endif %}
   </section>
-  <p><a href="{% url 'provider-workspace-preview' provider.id %}">Preview</a></p>
+
+  <p class="mt-8"><a class="font-medium underline" href="{% url 'provider-workspace-preview' provider.id %}">Preview profile</a></p>
 </main>
 {% endblock %}
