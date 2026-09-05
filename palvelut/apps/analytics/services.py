@@ -1,11 +1,11 @@
 from __future__ import annotations
 
+import os
 import re
 from collections.abc import Callable, Iterable
 from functools import wraps
 from secrets import compare_digest
 
-from django.conf import settings
 from django.db.models import Count
 from django.http import HttpRequest, HttpResponse
 
@@ -15,7 +15,7 @@ _PROVIDER_MARKER_RE = re.compile(rb'data-analytics-provider="([0-9a-f-]{36})"')
 
 
 def is_synthetic_request(request: HttpRequest) -> bool:
-    expected = settings.SYNTHETIC_MONITOR_TOKEN
+    expected = os.getenv("SYNTHETIC_MONITOR_TOKEN", "")
     supplied = request.headers.get("X-Palvelut-Synthetic", "")
     return bool(expected and supplied and compare_digest(supplied, expected))
 
