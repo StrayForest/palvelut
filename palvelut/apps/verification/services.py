@@ -20,9 +20,7 @@ def _require_staff(actor: AbstractBaseUser) -> None:
         raise PermissionDenied("Staff access is required for verification changes")
 
 
-def recheck_expiry_queue(
-    *, at: datetime | None = None
-) -> QuerySet[VerificationCheck]:
+def recheck_expiry_queue(*, at: datetime | None = None) -> QuerySet[VerificationCheck]:
     """Return expired latest verified facts that require a fresh registry check."""
 
     now = at or timezone.now()
