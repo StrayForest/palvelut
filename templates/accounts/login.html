@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="mx-auto max-w-lg px-4 py-10">
+  <h1 class="text-2xl font-semibold">Sign in</h1>
+  <form method="post" class="mt-6 space-y-4">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Sign in</button>
+  </form>
+  <p class="mt-4"><a href="{% url 'account-password-reset' %}">Forgot password?</a></p>
+</main>
+{% endblock %}
