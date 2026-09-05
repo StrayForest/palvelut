@@ -29,7 +29,9 @@ def invite_editor(*, provider: Provider, actor, invited_account) -> ProviderInvi
     provider = Provider.objects.select_for_update().get(pk=provider.pk)
     _lock_owner(provider, actor)
     if provider.provider_type != Provider.Type.BUSINESS:
-        raise ValidationError("Team invitations are available only for business providers.")
+        raise ValidationError(
+            "Team invitations are available only for business providers."
+        )
     if invited_account.pk == actor.pk:
         raise ValidationError("The owner cannot invite themselves.")
     if ProviderMembership.objects.filter(
@@ -102,7 +104,9 @@ def transfer_ownership(*, provider: Provider, actor, target_account) -> None:
     provider = Provider.objects.select_for_update().get(pk=provider.pk)
     current_owner = _lock_owner(provider, actor)
     if provider.provider_type != Provider.Type.BUSINESS:
-        raise ValidationError("Ownership transfer is available only for business providers.")
+        raise ValidationError(
+            "Ownership transfer is available only for business providers."
+        )
     if target_account.pk == actor.pk:
         raise ValidationError("The target account already owns this provider.")
 
