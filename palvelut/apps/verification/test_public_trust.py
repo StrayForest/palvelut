@@ -51,7 +51,7 @@ class PublicTrustTests(TestCase):
     def _check(
         self,
         *,
-        status: str = VerificationCheck.Status.VERIFIED,
+        status: str = "verified",
         checked_at=None,
         expires_at=None,
     ) -> VerificationCheck:
@@ -102,7 +102,7 @@ class PublicTrustTests(TestCase):
             expires_at=now - timedelta(days=1),
         )
         self._check(
-            status=VerificationCheck.Status.PENDING,
+            status="pending",
             checked_at=now - timedelta(hours=1),
         )
 
