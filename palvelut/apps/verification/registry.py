@@ -34,7 +34,8 @@ class RegistryCheckType:
             )
         if self.enabled and (not self.subject_field or not self.lookup_method):
             raise RuntimeError(
-                f"Enabled verification type {self.kind!r} requires subject and lookup fields"
+                f"Enabled verification type {self.kind!r} requires subject and lookup "
+                "fields"
             )
 
 
@@ -68,7 +69,9 @@ for _definition in _registry.values():
 REGISTRY_CHECK_TYPES = MappingProxyType(_registry)
 
 
-def get_registry_check_type(kind: str, *, require_enabled: bool = True) -> RegistryCheckType:
+def get_registry_check_type(
+    kind: str, *, require_enabled: bool = True
+) -> RegistryCheckType:
     try:
         definition = REGISTRY_CHECK_TYPES[kind]
     except KeyError as exc:
