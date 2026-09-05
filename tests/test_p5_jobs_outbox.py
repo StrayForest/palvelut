@@ -70,7 +70,14 @@ class OutboxJobTests(TestCase):
             job.status = OutboxJob.Status.PROCESSING
             job.locked_at = timezone.now()
             job.available_at = timezone.now()
-            job.save(update_fields=("status", "locked_at", "available_at", "updated_at"))
+            job.save(
+                update_fields=(
+                    "status",
+                    "locked_at",
+                    "available_at",
+                    "updated_at",
+                )
+            )
             self.assertFalse(_execute_job(job.pk))
             job.refresh_from_db()
             self.assertEqual(job.attempts, attempt + 1)
