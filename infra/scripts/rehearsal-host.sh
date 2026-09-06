@@ -13,6 +13,7 @@ key_path="$work/rehearsal_ed25519"
 password_file="$work/restic-password"
 inventory="$work/inventory.yml"
 second_run="$work/ansible-second.log"
+bootstrap_user="rehearsal"
 
 cleanup() {
   docker rm -f "$host_name" >/dev/null 2>&1 || true
@@ -32,7 +33,7 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends systemd systemd-sysv openssh-server python3 sudo \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* \
- && mkdir -p /run/sshd /root/.ssh
+ && mkdir -p /run/sshd
 STOPSIGNAL SIGRTMIN+3
 CMD ["/sbin/init"]
 EOF
@@ -43,9 +44,16 @@ docker run -d --privileged --cgroupns=host \
   -p 127.0.0.1::22 \
   --name "$host_name" "$image_name" >/dev/null
 
-docker cp "${key_path}.pub" "$host_name:/root/.ssh/authorized_keys"
-docker exec "$host_name" chmod 0700 /root/.ssh
-docker exec "$host_name" chmod 0600 /root/.ssh/authorized_keys
+# The bootstrap account exists only on the disposable rehearsal host. The
+# production playbook still creates and hardens the real deploy account.
+docker exec "$host_name" useradd --create-home --shell /bin/bash "$bootstrap_user"
+docker exec "$host_name" mkdir -p "/home/$bootstrap_user/.ssh"
+docker cp "${key_path}.pub" "$host_name:/home/$bootstrap_user/.ssh/authorized_keys"
+docker exec "$host_name" chown -R "$bootstrap_user:$bootstrap_user" "/home/$bootstrap_user/.ssh"
+docker exec "$host_name" chmod 0700 "/home/$bootstrap_user/.ssh"
+docker exec "$host_name" chmod 0600 "/home/$bootstrap_user/.ssh/authorized_keys"
+docker exec "$host_name" bash -c "printf '%s ALL=(ALL) NOPASSWD:ALL\\n' '$bootstrap_user' > /etc/sudoers.d/rehearsal"
+docker exec "$host_name" chmod 0440 /etc/sudoers.d/rehearsal
 docker exec "$host_name" systemctl enable --now ssh >/dev/null
 
 host_port="$(docker port "$host_name" 22/tcp | awk -F: 'NR == 1 {print $NF}')"
@@ -60,12 +68,12 @@ ssh_opts=(
   -o ConnectTimeout=5
 )
 for _ in $(seq 1 60); do
-  if ssh "${ssh_opts[@]}" root@127.0.0.1 true >/dev/null 2>&1; then
+  if ssh "${ssh_opts[@]}" "$bootstrap_user"@127.0.0.1 true >/dev/null 2>&1; then
     break
   fi
   sleep 1
 done
-ssh "${ssh_opts[@]}" root@127.0.0.1 true >/dev/null
+ssh "${ssh_opts[@]}" "$bootstrap_user"@127.0.0.1 true >/dev/null
 
 cat > "$inventory" <<EOF
 all:
@@ -73,7 +81,7 @@ all:
     rehearsal:
       ansible_host: 127.0.0.1
       ansible_port: ${host_port}
-      ansible_user: root
+      ansible_user: ${bootstrap_user}
       ansible_ssh_private_key_file: ${key_path}
       ansible_ssh_common_args: >-
         -o StrictHostKeyChecking=no
@@ -93,8 +101,8 @@ grep -Eq 'changed=0[[:space:]]' "$second_run" || {
   exit 1
 }
 
-ssh "${ssh_opts[@]}" root@127.0.0.1 \
-  'command -v docker >/dev/null && command -v restic >/dev/null && command -v rclone >/dev/null && test -f /etc/palvelut/production.env && test -d /opt/palvelut/backups'
+ssh "${ssh_opts[@]}" "$bootstrap_user"@127.0.0.1 \
+  'sudo sh -c "command -v docker >/dev/null && command -v restic >/dev/null && command -v rclone >/dev/null && test -f /etc/palvelut/production.env && test -d /opt/palvelut/backups"'
 
 # Build a non-sensitive backup fixture on the disposable host. This proves the
 # production restore script from encrypted restic storage without touching a
