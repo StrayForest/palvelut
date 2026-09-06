@@ -69,7 +69,9 @@ def run_phase(
 def summarize(samples: list[Sample]) -> dict[str, float | int]:
     elapsed = [sample.elapsed_ms for sample in samples]
     server_errors = sum(1 for sample in samples if sample.status >= 500)
-    failures = sum(1 for sample in samples if sample.status < 200 or sample.status >= 400)
+    failures = sum(
+        1 for sample in samples if sample.status < 200 or sample.status >= 400
+    )
     return {
         "requests": len(samples),
         "p50_ms": round(statistics.median(elapsed), 2),
