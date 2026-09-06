@@ -62,8 +62,11 @@ jobs:
         run: |
           task="$(grep '^TASK \[' "$RUNNER_TEMP/palvelut-provision.log" | tail -n1 | sed -E 's/^TASK \[([^]]+)\].*/\1/' || true)"
           test -n "$task" || task="unknown-task"
-          slug="$(printf '%s' "$task" | tr '[:upper:] ' '[:lower:]-' | tr -cd 'a-z0-9._-')"
-          echo "artifact=ansible-failure-${slug}" >> "$GITHUB_OUTPUT"
+          reason="$(grep -E 'fatal:|FAILED!' "$RUNNER_TEMP/palvelut-provision.log" | tail -n1 || true)"
+          task_slug="$(printf '%s' "$task" | tr '[:upper:] ' '[:lower:]-' | tr -cd 'a-z0-9._-')"
+          reason_slug="$(printf '%s' "$reason" | tr '[:upper:] ' '[:lower:]-' | tr -cd 'a-z0-9._-' | cut -c1-120)"
+          test -n "$reason_slug" || reason_slug="no-reason"
+          echo "artifact=ansible-failure-${task_slug}-${reason_slug}" >> "$GITHUB_OUTPUT"
 
       - name: Upload failed Ansible evidence
         if: failure()
