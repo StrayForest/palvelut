@@ -52,7 +52,27 @@ jobs:
         working-directory: repo
         env:
           ANSIBLE_CONFIG: infra/ansible/ansible.cfg
-        run: bash infra/scripts/rehearsal-host-ci.sh provision
+        run: |
+          set -o pipefail
+          bash infra/scripts/rehearsal-host-ci.sh provision | tee "$RUNNER_TEMP/palvelut-provision.log"
+
+      - name: Identify failed Ansible task
+        if: failure()
+        id: failed-task
+        run: |
+          task="$(grep '^TASK \[' "$RUNNER_TEMP/palvelut-provision.log" | tail -n1 | sed -E 's/^TASK \[([^]]+)\].*/\1/' || true)"
+          test -n "$task" || task="unknown-task"
+          slug="$(printf '%s' "$task" | tr '[:upper:] ' '[:lower:]-' | tr -cd 'a-z0-9._-')"
+          echo "artifact=ansible-failure-${slug}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload failed Ansible evidence
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ steps.failed-task.outputs.artifact }}
+          path: ${{ runner.temp }}/palvelut-provision.log
+          if-no-files-found: error
+          retention-days: 1
 
       - name: Verify Ansible convergence and host services
         working-directory: repo
