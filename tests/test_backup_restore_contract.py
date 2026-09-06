@@ -38,7 +38,11 @@ class BackupRestoreContractTests(unittest.TestCase):
 
     def test_restore_proves_rpo_and_rto_with_safe_evidence(self) -> None:
         content = RESTORE.read_text()
-        self.assertIn("restic snapshots --latest 1 --tag production --host palvelut-production --json", content)
+        self.assertIn(
+            "restic snapshots --latest 1 --tag production --host "
+            "palvelut-production --json",
+            content,
+        )
         self.assertIn("snapshot_age_seconds <= 86400", content)
         self.assertIn("rpo_target_seconds=86400", content)
         self.assertIn("duration <= 14400", content)
