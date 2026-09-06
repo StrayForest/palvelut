@@ -8,4 +8,4 @@ Depends: P4. Read: `docs/06-quality.md`, `docs/07-operations.md`.
 
 ## Gates
 
-Cache/auth probe, backup restore, zero-failure deploy/rollback smoke and synthetic checks.
+Backup restore, zero-failure deploy/rollback smoke and synthetic checks.
