@@ -28,21 +28,27 @@ jobs:
           git fetch --depth=1 origin "${SHA}"
           git checkout --detach FETCH_HEAD
 
-      - name: Build immutable application image
-        working-directory: repo
+      - name: Resolve canonical image reference
+        id: image
         env:
           OWNER: ${{ github.repository_owner }}
           SHA: ${{ github.sha }}
         run: |
           owner="$(printf '%s' "$OWNER" | tr '[:upper:]' '[:lower:]')"
-          image="ghcr.io/${owner}/palvelut"
-          docker build --pull=false --tag "${image}:${SHA}" .
-          docker image inspect "${image}:${SHA}" >/dev/null
+          printf 'ref=ghcr.io/%s/palvelut:%s\n' "$owner" "$SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Build immutable application image
+        working-directory: repo
+        env:
+          IMAGE: ${{ steps.image.outputs.ref }}
+        run: |
+          docker build --pull=false --tag "$IMAGE" .
+          docker image inspect "$IMAGE" >/dev/null
 
       - name: Generate SPDX SBOM for built image
         uses: anchore/sbom-action@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26 # v0.24.2
         with:
-          image: ghcr.io/${{ github.repository_owner }}/palvelut:${{ github.sha }}
+          image: ${{ steps.image.outputs.ref }}
           format: spdx-json
           output-file: repo/palvelut-${{ github.sha }}.spdx.json
           artifact-name: palvelut-${{ github.sha }}.spdx.json
@@ -52,7 +58,7 @@ jobs:
       - name: Scan built image for fixed critical vulnerabilities
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
         with:
-          image: ghcr.io/${{ github.repository_owner }}/palvelut:${{ github.sha }}
+          image: ${{ steps.image.outputs.ref }}
           fail-build: true
           severity-cutoff: critical
           only-fixed: true
@@ -64,13 +70,10 @@ jobs:
         env:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ACTOR: ${{ github.actor }}
-          OWNER: ${{ github.repository_owner }}
-          SHA: ${{ github.sha }}
+          IMAGE: ${{ steps.image.outputs.ref }}
         run: |
-          owner="$(printf '%s' "$OWNER" | tr '[:upper:]' '[:lower:]')"
-          image="ghcr.io/${owner}/palvelut"
           printf '%s' "$GHCR_TOKEN" | docker login ghcr.io --username "$ACTOR" --password-stdin
-          docker push "${image}:${SHA}"
-          digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "${image}:${SHA}")"
+          docker push "$IMAGE"
+          digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "$IMAGE")"
           test -n "$digest"
           printf 'Immutable production image: %s\n' "$digest"
