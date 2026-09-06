@@ -4,6 +4,9 @@ on:
   pull_request:
     paths:
       - "infra/ansible/**"
+      - "infra/scripts/rehearsal-host-ci.sh"
+      - "infra/scripts/restore-drill.sh"
+      - "tests/test_p5_rehearsal_host_contract.py"
       - "tasks/P5-production.md"
       - "tasks/archive/P5-*.md"
       - ".github/workflows/p5-ansible.yml"
@@ -40,3 +43,9 @@ jobs:
         run: |
           ansible-playbook --syntax-check -i infra/ansible/inventory.example.yml infra/ansible/site.yml
           ansible-lint infra/ansible/site.yml
+
+      - name: Recreate disposable host and restore fixture
+        working-directory: repo
+        env:
+          ANSIBLE_CONFIG: infra/ansible/ansible.cfg
+        run: bash infra/scripts/rehearsal-host-ci.sh
