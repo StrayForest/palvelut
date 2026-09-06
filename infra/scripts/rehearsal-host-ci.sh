@@ -24,20 +24,19 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends systemd systemd-sysv python3 openssh-server sudo \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/* \
- && mkdir -p /run/sshd /root/.ssh \
- && chmod 0700 /root/.ssh
+ && mkdir -p /run/sshd
 STOPSIGNAL SIGRTMIN+3
 CMD ["/sbin/init"]
 EOF
 
 docker build --quiet -t "${host}:fixture" "$work" >/dev/null
 docker run --privileged --cgroupns=host -d --name "$host" \
-  -p 127.0.0.1::22 \
   -v /sys/fs/cgroup:/sys/fs/cgroup:rw \
   "${host}:fixture" >/dev/null
 
 for _ in $(seq 1 60); do
-  if docker exec "$host" systemctl is-system-running --wait >/dev/null 2>&1; then
+  state="$(docker exec "$host" systemctl is-system-running 2>/dev/null || true)"
+  if [[ "$state" == "running" || "$state" == "degraded" ]]; then
     break
   fi
   sleep 1
@@ -50,21 +49,13 @@ docker exec "$host" sh -c 'mkdir -p /etc/docker && printf "%s\n" "{\"storage-dri
 
 ssh-keygen -q -t ed25519 -N '' -f "$work/id_ed25519"
 pubkey="$(cat "$work/id_ed25519.pub")"
-docker exec "$host" sh -c 'cat > /root/.ssh/authorized_keys && chmod 0600 /root/.ssh/authorized_keys' <<<"$pubkey"
-docker exec "$host" systemctl enable --now ssh >/dev/null
-
-ssh_port="$(docker port "$host" 22/tcp | awk -F: 'NR == 1 {print $NF}')"
-[[ "$ssh_port" =~ ^[0-9]+$ ]] || { echo "failed to resolve rehearsal SSH port" >&2; exit 1; }
 
 cat >"$work/inventory.yml" <<EOF
 all:
   hosts:
     rehearsal:
-      ansible_host: 127.0.0.1
-      ansible_port: ${ssh_port}
-      ansible_user: root
-      ansible_ssh_private_key_file: ${work}/id_ed25519
-      ansible_ssh_common_args: -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+      ansible_host: ${host}
+      ansible_connection: community.docker.docker
 EOF
 
 cat >"$work/vars.yml" <<EOF
