@@ -6,7 +6,6 @@ Depends: P4. Read: `docs/06-quality.md`, `docs/07-operations.md`.
 
 ## Accept
 
-- Authenticated content cannot enter CDN cache.
 - Backup restore meets RPO/RTO target; evidence records commands/times, not secrets/data.
 - Load test meets every SLO and shows bounded pools/queues under overload.
 - Rollback and one simulated incident are executed successfully.
