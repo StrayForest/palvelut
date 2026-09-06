@@ -23,7 +23,7 @@ Initial targets from `docs/07-operations.md` are RPO <= 24h and RTO <= 4h. Run t
 - `S3_BUCKET_NAME`
 - the normal external production environment consumed by `infra/scripts/production-compose.sh`
 
-Never put these values in Git or CI logs.
+Never put these values in Git or CI logs. The Ansible inventory/vars source must provide both `palvelut_environment_file` and `palvelut_backup_environment_file`; Ansible installs the latter root-only at `/etc/palvelut/backup.env`.
 
 ## Monthly isolated restore drill
 
@@ -44,6 +44,23 @@ Record only:
 - pass/fail and follow-up issue reference.
 
 Do not record backup credentials, personal data, row contents or media names.
+
+## Fresh disposable-host rehearsal
+
+Create a new Ubuntu 24.04+ disposable host and a private Ansible inventory/vars file for it. The vars source supplies the deploy public key, application environment and backup environment; none of those values belong in Git.
+
+Run the entire provision-and-restore path with one command from the repository root:
+
+```bash
+REHEARSAL_INVENTORY=/secure/rehearsal-inventory.yml \
+REHEARSAL_LIMIT=palvelut-rehearsal \
+REHEARSAL_SSH_TARGET=root@203.0.113.20 \
+bash infra/scripts/rehearsal-host-restore.sh
+```
+
+`REHEARSAL_LIMIT` and `REHEARSAL_SSH_TARGET` must identify the same newly-created disposable host. The wrapper first applies `infra/ansible/site.yml`, then streams the repository's exact `restore-drill.sh` to that host. Restore credentials come only from `/etc/palvelut/backup.env`, which Ansible creates with mode `0600`; they are not passed as command-line arguments.
+
+Success requires both `rehearsal_status=ok` and the nested `restore_status=ok`. Destroy the disposable host after recording the non-sensitive evidence listed above. No package installation, secret-file creation or restore command outside this path is part of the accepted procedure.
 
 ## Recovery use
 
