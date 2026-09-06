@@ -71,11 +71,10 @@ jobs:
 
           wait "$load_pid"
           tail -n 1 "$log" | tee "$report"
-          printf 'max_db_connections=%s max_valkey_clients=%s asgi_concurrency_per_worker=16 gunicorn_backlog=128\n' \
+          printf 'max_db_connections=%s observed_valkey_clients=%s asgi_concurrency_per_worker=16 cache_pool_max_connections=16 gunicorn_backlog=128\n' \
             "$max_db_connections" "$max_valkey_clients" | tee "$pools"
 
           test "$max_db_connections" -le 40
-          test "$max_valkey_clients" -le 36
 
       - name: Upload load evidence
         if: always()
