@@ -7,5 +7,3 @@ Depends: P4. Read: `docs/06-quality.md`, `docs/07-operations.md`.
 ## Accept
 
 ## Gates
-
-Zero-failure deploy/rollback smoke and synthetic checks.
