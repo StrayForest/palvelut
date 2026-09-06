@@ -47,6 +47,7 @@ jobs:
       - name: Run warm/cold load and overload probe
         run: |
           report="$RUNNER_TEMP/p5-load-report.json"
+          pools="$RUNNER_TEMP/p5-load-pools.txt"
           log="$RUNNER_TEMP/p5-load-output.log"
           python3 infra/scripts/load-acceptance.py >"$log" 2>&1 &
           load_pid=$!
@@ -70,7 +71,7 @@ jobs:
           test "$max_db_connections" -le 8
           test "$max_valkey_clients" -le 16
           printf 'max_db_connections=%s max_valkey_clients=%s gunicorn_backlog=128\n' \
-            "$max_db_connections" "$max_valkey_clients" | tee -a "$report"
+            "$max_db_connections" "$max_valkey_clients" | tee "$pools"
 
       - name: Upload load evidence
         if: always()
@@ -79,6 +80,7 @@ jobs:
           name: p5-load-evidence-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             ${{ runner.temp }}/p5-load-report.json
+            ${{ runner.temp }}/p5-load-pools.txt
             ${{ runner.temp }}/p5-load-output.log
           if-no-files-found: error
           retention-days: 14
