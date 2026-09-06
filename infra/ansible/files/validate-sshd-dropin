@@ -1,0 +1,22 @@
+#!/bin/sh
+set -eu
+
+candidate="$1"
+tmp="$(mktemp)"
+trap 'rm -f "$tmp"' EXIT HUP INT TERM
+
+awk -v candidate="$candidate" '
+  BEGIN { inserted = 0 }
+  /^Include[[:space:]]+\/etc\/ssh\/sshd_config\.d\/\*\.conf([[:space:]]*)$/ && !inserted {
+    print "Include " candidate
+    inserted = 1
+  }
+  { print }
+  END {
+    if (!inserted) {
+      print "Include " candidate
+    }
+  }
+' /etc/ssh/sshd_config > "$tmp"
+
+exec /usr/sbin/sshd -t -f "$tmp"
