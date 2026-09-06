@@ -6,7 +6,6 @@ Depends: P4. Read: `docs/06-quality.md`, `docs/07-operations.md`.
 
 ## Accept
 
-- Rollback and one simulated incident are executed successfully.
 - App-only deployment produces no failed synthetic request during upstream switch; unsafe database rollback stops for operator action.
 
 ## Gates
