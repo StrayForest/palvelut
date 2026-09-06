@@ -18,8 +18,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
  && apt-get install -y --no-install-recommends systemd systemd-sysv python3 openssh-server sudo \
  && apt-get clean \
- && rm -rf /var/lib/apt/lists/* \
- && mkdir -p /run/sshd
+ && rm -rf /var/lib/apt/lists/*
 STOPSIGNAL SIGRTMIN+3
 CMD ["/sbin/init"]
 EOF
@@ -37,9 +36,10 @@ EOF
     sleep 1
   done
 
-  # Cloud images initialize these during first boot. The minimal CI image must
-  # do the same before the production SSH policy is syntax-validated.
+  # Match the first-boot state of a normal Ubuntu VPS before production
+  # hardening validates and reloads the SSH daemon.
   docker exec "$host" ssh-keygen -A >/dev/null
+  docker exec "$host" systemctl enable --now ssh >/dev/null
 
   # Nested Docker is a CI-only property of this disposable host. vfs avoids
   # depending on the outer runner's overlay filesystem while leaving the
