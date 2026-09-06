@@ -28,4 +28,4 @@ def test_rehearsal_runs_existing_isolated_restore_without_production_data():
 def test_ansible_workflow_executes_fresh_host_rehearsal():
     assert "fresh-host-rehearsal:" in WORKFLOW
     assert "bash infra/scripts/rehearsal-host.sh" in WORKFLOW
-    assert 'runs-on: ubuntu-24.04' in WORKFLOW
+    assert "runs-on: ubuntu-24.04" in WORKFLOW
