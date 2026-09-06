@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - "infra/ansible/**"
+      - "infra/scripts/rehearsal-host.sh"
+      - "tests/test_p5_fresh_host_rehearsal_contract.py"
       - "tasks/P5-production.md"
       - "tasks/archive/P5-*.md"
       - ".github/workflows/p5-ansible.yml"
@@ -40,3 +42,26 @@ jobs:
         run: |
           ansible-playbook --syntax-check -i infra/ansible/inventory.example.yml infra/ansible/site.yml
           ansible-lint infra/ansible/site.yml
+
+  fresh-host-rehearsal:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Fetch exact PR head
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          git init repo
+          cd repo
+          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git fetch --depth=1 origin "${HEAD_SHA}"
+          git checkout --detach FETCH_HEAD
+
+      - name: Install pinned Ansible tools
+        working-directory: repo
+        run: |
+          python3 -m pip install --disable-pip-version-check --no-input "ansible-core==2.21.3"
+          ansible-galaxy collection install -r infra/ansible/requirements.yml
+
+      - name: Recreate disposable host and run isolated restore
+        working-directory: repo
+        run: bash infra/scripts/rehearsal-host.sh
