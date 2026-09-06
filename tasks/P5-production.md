@@ -8,4 +8,4 @@ Depends: P4. Read: `docs/06-quality.md`, `docs/07-operations.md`.
 
 ## Gates
 
-Full CI, Ansible lint/idempotence, fresh-host restore, production-config check, image/SBOM scan, cache/auth probe, backup restore, zero-failure deploy/rollback smoke and synthetic checks.
+Ansible lint/idempotence, fresh-host restore, production-config check, image/SBOM scan, cache/auth probe, backup restore, zero-failure deploy/rollback smoke and synthetic checks.
