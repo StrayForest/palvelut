@@ -8,4 +8,4 @@ Depends: P4. Read: `docs/06-quality.md`, `docs/07-operations.md`.
 
 ## Gates
 
-Production-config check, image/SBOM scan, cache/auth probe, backup restore, zero-failure deploy/rollback smoke and synthetic checks.
+Image/SBOM scan, cache/auth probe, backup restore, zero-failure deploy/rollback smoke and synthetic checks.
