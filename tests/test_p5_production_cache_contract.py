@@ -113,13 +113,23 @@ class ProductionCacheContractTests(unittest.TestCase):
         self.assertNotIn("proxy_cache ", nginx)
         self.assertNotIn("proxy_ignore_headers", nginx)
 
-    def test_main_builds_a_commit_tagged_ghcr_image(self) -> None:
+    def test_main_builds_scans_and_publishes_a_commit_tagged_ghcr_image(self) -> None:
         workflow = (ROOT / ".github" / "workflows" / "p5-image.yml").read_text()
 
         self.assertIn("branches: [main]", workflow)
+        self.assertIn("pull_request:", workflow)
         self.assertIn("contents: read", workflow)
         self.assertIn("packages: write", workflow)
-        self.assertIn('"${image}:${SHA}"', workflow)
+        self.assertIn("id: image", workflow)
+        self.assertIn("ref=ghcr.io/%s/palvelut:%s", workflow)
+        self.assertIn('docker build --pull=false --tag "$IMAGE" .', workflow)
+        self.assertIn("anchore/sbom-action@", workflow)
+        self.assertIn("format: spdx-json", workflow)
+        self.assertIn("anchore/scan-action@", workflow)
+        self.assertIn("severity-cutoff: critical", workflow)
+        self.assertIn("only-fixed: true", workflow)
+        self.assertIn("if: github.event_name != 'pull_request'", workflow)
+        self.assertIn('docker push "$IMAGE"', workflow)
         self.assertIn("RepoDigests", workflow)
         self.assertNotIn(":latest", workflow)
 
