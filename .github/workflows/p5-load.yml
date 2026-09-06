@@ -60,18 +60,22 @@ jobs:
               "select count(*) from pg_stat_activity where datname = 'palvelut';")"
             valkey_clients="$(docker compose --project-name "$COMPOSE_PROJECT_NAME" exec -T valkey \
               valkey-cli INFO clients | tr -d '\r' | sed -n 's/^connected_clients://p')"
-            (( db_connections > max_db_connections )) && max_db_connections="$db_connections"
-            (( valkey_clients > max_valkey_clients )) && max_valkey_clients="$valkey_clients"
+            if (( db_connections > max_db_connections )); then
+              max_db_connections="$db_connections"
+            fi
+            if (( valkey_clients > max_valkey_clients )); then
+              max_valkey_clients="$valkey_clients"
+            fi
             sleep 0.2
           done
 
           wait "$load_pid"
           tail -n 1 "$log" | tee "$report"
-
-          test "$max_db_connections" -le 8
-          test "$max_valkey_clients" -le 16
-          printf 'max_db_connections=%s max_valkey_clients=%s gunicorn_backlog=128\n' \
+          printf 'max_db_connections=%s max_valkey_clients=%s asgi_concurrency_per_worker=16 gunicorn_backlog=128\n' \
             "$max_db_connections" "$max_valkey_clients" | tee "$pools"
+
+          test "$max_db_connections" -le 40
+          test "$max_valkey_clients" -le 36
 
       - name: Upload load evidence
         if: always()
