@@ -47,6 +47,7 @@ current_slot() {
 
 wait_ready() {
   local port=$1
+  local operation=${2:-deploy}
   local attempt
   for ((attempt=1; attempt<=READINESS_ATTEMPTS; attempt++)); do
     if curl --fail --silent --show-error --max-time 3 \
@@ -56,6 +57,9 @@ wait_ready() {
     sleep "$READINESS_DELAY"
   done
   echo "inactive web slot failed readiness on port ${port}" >&2
+  if [[ "$operation" == rollback ]]; then
+    echo "rollback candidate is not safe against the current database schema; operator action required via the database restore/migration incident plan" >&2
+  fi
   return 1
 }
 
@@ -97,6 +101,7 @@ write_release_state() {
 
 deploy_release() {
   local skip_migrations=${1:-0}
+  local operation=${2:-deploy}
   local active inactive port
   active=$(current_slot)
   inactive=$(inactive_slot "$active")
@@ -114,7 +119,7 @@ deploy_release() {
   fi
 
   docker compose -f "$COMPOSE_FILE" up -d --no-deps "web_${inactive}"
-  wait_ready "$port"
+  wait_ready "$port" "$operation"
 
   # The upstream change is the only request-path switch; nginx reload is graceful.
   switch_nginx "$port"
@@ -137,7 +142,7 @@ deploy_release() {
 
 case "$ACTION" in
   deploy)
-    deploy_release 0
+    deploy_release 0 deploy
     ;;
   rollback)
     [[ -f "$STATE_DIR/previous-release.env" && -f "$STATE_DIR/previous-slot" ]] || {
@@ -148,7 +153,7 @@ case "$ACTION" in
     source "$STATE_DIR/previous-release.env"
     export PALVELUT_IMAGE PALVELUT_RELEASE
     echo "App-only rollback to ${PALVELUT_RELEASE}; database migrations will not be reversed."
-    deploy_release 1
+    deploy_release 1 rollback
     ;;
   *)
     echo "usage: $0 [deploy|rollback]" >&2
