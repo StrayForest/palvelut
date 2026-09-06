@@ -12,7 +12,8 @@
           - deploy_authorized_key is defined
           - deploy_authorized_key.startswith("ssh-")
           - palvelut_environment_file is defined
-        fail_msg: "Ubuntu 24.04+, deploy_authorized_key and external environment content are required"
+          - palvelut_backup_environment_file is defined
+        fail_msg: "Ubuntu 24.04+, deploy_authorized_key, application environment and backup environment are required"
 
   tasks:
     - name: Install baseline packages
@@ -143,6 +144,15 @@
         group: "{{ palvelut_deploy_user }}"
         mode: "0640"
         content: "{{ palvelut_environment_file }}"
+      no_log: true
+
+    - name: Place backup environment outside Git
+      ansible.builtin.copy:
+        dest: "{{ palvelut_secret_dir }}/backup.env"
+        owner: root
+        group: root
+        mode: "0600"
+        content: "{{ palvelut_backup_environment_file }}"
       no_log: true
 
     - name: Install Nginx application site
