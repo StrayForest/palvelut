@@ -37,6 +37,10 @@ EOF
     sleep 1
   done
 
+  # Cloud images initialize these during first boot. The minimal CI image must
+  # do the same before the production SSH policy is syntax-validated.
+  docker exec "$host" ssh-keygen -A >/dev/null
+
   # Nested Docker is a CI-only property of this disposable host. vfs avoids
   # depending on the outer runner's overlay filesystem while leaving the
   # production Ansible playbook unchanged.
