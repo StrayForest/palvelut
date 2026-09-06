@@ -41,6 +41,8 @@ def request(base_url: str, path: str, timeout: float) -> Sample:
     except urllib.error.HTTPError as exc:
         exc.read()
         status = exc.code
+    except (urllib.error.URLError, TimeoutError, OSError):
+        status = 599
     elapsed_ms = (time.perf_counter() - started) * 1000
     return Sample(path=path, elapsed_ms=elapsed_ms, status=status)
 
@@ -89,23 +91,24 @@ def main() -> int:
     parser.add_argument("--timeout", type=float, default=10.0)
     args = parser.parse_args()
 
+    random.seed(0)
     base = args.base_url.rstrip("/")
     warm_path = "/en/"
     search_path = "/en/search/?q=Performance"
 
     for _ in range(10):
-        warm = request(base, warm_path, args.timeout)
-        if warm.status != 200:
-            raise SystemExit(f"warmup failed with HTTP {warm.status}")
+        warmup = request(base, warm_path, args.timeout)
+        if warmup.status != 200:
+            raise SystemExit(f"warmup failed with HTTP {warmup.status}")
 
-    cached = run_phase(
+    warm = run_phase(
         base_url=base,
         paths=[warm_path],
         requests=args.normal_requests,
         concurrency=args.normal_concurrency,
         timeout=args.timeout,
     )
-    uncached = run_phase(
+    cold = run_phase(
         base_url=base,
         paths=[f"{search_path}&load={index}" for index in range(40)],
         requests=args.normal_requests,
@@ -121,12 +124,12 @@ def main() -> int:
     )
 
     report = {
-        "cached": summarize(cached),
-        "uncached": summarize(uncached),
+        "warm": summarize(warm),
+        "cold": summarize(cold),
         "overload": summarize(overload),
         "limits": {
-            "cached_p95_ms": 300,
-            "uncached_p95_ms": 800,
+            "warm_p95_ms": 300,
+            "cold_p95_ms": 800,
             "normal_server_error_rate": 0.001,
             "overload_concurrency": args.overload_concurrency,
         },
@@ -134,11 +137,11 @@ def main() -> int:
     print(json.dumps(report, sort_keys=True))
 
     failures: list[str] = []
-    if float(report["cached"]["p95_ms"]) > 300:
-        failures.append("cached public p95 exceeds 300 ms")
-    if float(report["uncached"]["p95_ms"]) > 800:
-        failures.append("uncached public p95 exceeds 800 ms")
-    for phase in ("cached", "uncached"):
+    if float(report["warm"]["p95_ms"]) > 300:
+        failures.append("warm public p95 exceeds 300 ms")
+    if float(report["cold"]["p95_ms"]) > 800:
+        failures.append("cold public p95 exceeds 800 ms")
+    for phase in ("warm", "cold"):
         if float(report[phase]["server_error_rate"]) >= 0.001:
             failures.append(f"{phase} 5xx rate is not below 0.1%")
         if int(report[phase]["failures"]) != 0:
