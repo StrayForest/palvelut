@@ -3,14 +3,25 @@ from pathlib import Path
 
 DOCKERFILE = Path("Dockerfile")
 LOAD_SCRIPT = Path("infra/scripts/load-acceptance.py")
+SETTINGS = Path("palvelut/settings.py")
+WORKER = Path("palvelut/worker.py")
 WORKFLOW = Path(".github/workflows/p5-load.yml")
 
 
-def test_web_queue_is_explicitly_bounded() -> None:
+def test_web_queue_and_request_concurrency_are_explicitly_bounded() -> None:
     dockerfile = DOCKERFILE.read_text()
+    worker = WORKER.read_text()
 
     assert '"--workers", "2"' in dockerfile
     assert '"--backlog", "128"' in dockerfile
+    assert "palvelut.worker.BoundedUvicornWorker" in dockerfile
+    assert '"limit_concurrency": 16' in worker
+
+
+def test_valkey_cache_pool_is_explicitly_bounded() -> None:
+    settings = SETTINGS.read_text()
+
+    assert '"OPTIONS": {"max_connections": 16}' in settings
 
 
 def test_load_probe_enforces_server_side_slos_and_overload() -> None:
@@ -31,7 +42,8 @@ def test_workflow_records_bounded_database_and_cache_clients() -> None:
     assert "infra/scripts/load-acceptance.py" in workflow
     assert "pg_stat_activity" in workflow
     assert "connected_clients" in workflow
-    assert 'test "$max_db_connections" -le 8' in workflow
-    assert 'test "$max_valkey_clients" -le 16' in workflow
+    assert 'test "$max_db_connections" -le 40' in workflow
+    assert 'test "$max_valkey_clients" -le 36' in workflow
+    assert "asgi_concurrency_per_worker=16" in workflow
     assert "p5-load-report.json" in workflow
     assert "p5-load-pools.txt" in workflow
