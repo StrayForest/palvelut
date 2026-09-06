@@ -33,14 +33,16 @@ Run:
 bash infra/scripts/restore-drill.sh
 ```
 
-The drill restores the latest production-tagged snapshot into a temporary directory, verifies every media checksum, starts a fresh PostgreSQL 18 container with no published ports, restores the logical dump, and verifies that the Django migration table is readable. The temporary database container and restored files are removed on exit.
+The drill first reads metadata for the latest `production` snapshot and fails before restore when `snapshot_age_seconds` is greater than `86400`, proving the RPO target. It then restores that snapshot into a temporary directory, verifies every media checksum, starts a fresh PostgreSQL 18 container with no published ports, restores the logical dump, and verifies that the Django migration table is readable. The temporary database container and restored files are removed on exit. The drill fails when `duration_seconds` exceeds `14400`, proving the RTO target.
+
+The successful script output is the acceptance evidence record. It contains only the command identifier, UTC start/end timestamps, `snapshot_age_seconds`, `rpo_target_seconds`, `duration_seconds`, `rto_target_seconds`, and pass status. It must not contain snapshot IDs, credentials, personal data, row contents or media/object names.
 
 Record only:
 
 - UTC start/end time;
-- deployed image/config revision;
-- snapshot age (to prove RPO <= 24h);
-- `duration_seconds` from the script (must be <= 14400);
+- deployed image/config revision alongside the script output in the operator record;
+- `snapshot_age_seconds` (must be <= 86400);
+- `duration_seconds` (must be <= 14400);
 - pass/fail and follow-up issue reference.
 
 Do not record backup credentials, personal data, row contents or media names.

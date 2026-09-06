@@ -6,7 +6,6 @@ Depends: P4. Read: `docs/06-quality.md`, `docs/07-operations.md`.
 
 ## Accept
 
-- Backup restore meets RPO/RTO target; evidence records commands/times, not secrets/data.
 - Load test meets every SLO and shows bounded pools/queues under overload.
 - Rollback and one simulated incident are executed successfully.
 - App-only deployment produces no failed synthetic request during upstream switch; unsafe database rollback stops for operator action.

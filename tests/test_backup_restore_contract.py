@@ -35,7 +35,20 @@ class BackupRestoreContractTests(unittest.TestCase):
         self.assertIn("django_migrations", content)
         self.assertNotIn("-p 5432", content)
         self.assertNotIn("--network host", content)
+
+    def test_restore_proves_rpo_and_rto_with_safe_evidence(self) -> None:
+        content = RESTORE.read_text()
+        self.assertIn(
+            "restic snapshots --latest 1 --tag production --host "
+            "palvelut-production --json",
+            content,
+        )
+        self.assertIn("snapshot_age_seconds <= 86400", content)
+        self.assertIn("rpo_target_seconds=86400", content)
+        self.assertIn("duration <= 14400", content)
         self.assertIn("rto_target_seconds=14400", content)
+        self.assertIn("command=infra/scripts/restore-drill.sh", content)
+        self.assertNotIn("set -x", content)
 
     def test_runbook_pins_rpo_rto_and_no_sensitive_evidence(self) -> None:
         content = RUNBOOK.read_text()
@@ -43,6 +56,8 @@ class BackupRestoreContractTests(unittest.TestCase):
         self.assertIn("RTO <= 4h", content)
         self.assertIn("Do not record backup credentials", content)
         self.assertIn("monthly isolated restore drill", content.casefold())
+        self.assertIn("snapshot_age_seconds", content)
+        self.assertIn("duration_seconds", content)
 
 
 if __name__ == "__main__":
