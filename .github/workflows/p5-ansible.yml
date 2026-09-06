@@ -4,6 +4,9 @@ on:
   pull_request:
     paths:
       - "infra/ansible/**"
+      - "infra/scripts/rehearsal-host-ci.sh"
+      - "infra/scripts/restore-drill.sh"
+      - "tests/test_p5_rehearsal_host_contract.py"
       - "tasks/P5-production.md"
       - "tasks/archive/P5-*.md"
       - ".github/workflows/p5-ansible.yml"
@@ -40,3 +43,51 @@ jobs:
         run: |
           ansible-playbook --syntax-check -i infra/ansible/inventory.example.yml infra/ansible/site.yml
           ansible-lint infra/ansible/site.yml
+
+      - name: Bootstrap disposable Ubuntu host
+        working-directory: repo
+        run: bash infra/scripts/rehearsal-host-ci.sh bootstrap
+
+      - name: Provision disposable host with production Ansible
+        working-directory: repo
+        env:
+          ANSIBLE_CONFIG: infra/ansible/ansible.cfg
+        run: |
+          set -o pipefail
+          bash infra/scripts/rehearsal-host-ci.sh provision | tee "$RUNNER_TEMP/palvelut-provision.log"
+
+      - name: Identify failed Ansible task
+        if: failure()
+        id: failed-task
+        run: |
+          task="$(grep '^TASK \[' "$RUNNER_TEMP/palvelut-provision.log" | tail -n1 | sed -E 's/^TASK \[([^]]+)\].*/\1/' || true)"
+          test -n "$task" || task="unknown-task"
+          reason="$(grep -E 'fatal:|FAILED!' "$RUNNER_TEMP/palvelut-provision.log" | tail -n1 || true)"
+          task_slug="$(printf '%s' "$task" | tr '[:upper:] ' '[:lower:]-' | tr -cd 'a-z0-9._-')"
+          reason_slug="$(printf '%s' "$reason" | tr '[:upper:] ' '[:lower:]-' | tr -cd 'a-z0-9._-' | cut -c1-120)"
+          test -n "$reason_slug" || reason_slug="no-reason"
+          echo "artifact=ansible-failure-${task_slug}-${reason_slug}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload failed Ansible evidence
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ steps.failed-task.outputs.artifact }}
+          path: ${{ runner.temp }}/palvelut-provision.log
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Verify Ansible convergence and host services
+        working-directory: repo
+        env:
+          ANSIBLE_CONFIG: infra/ansible/ansible.cfg
+        run: bash infra/scripts/rehearsal-host-ci.sh converge
+
+      - name: Run isolated encrypted restore fixture
+        working-directory: repo
+        run: bash infra/scripts/rehearsal-host-ci.sh restore
+
+      - name: Cleanup disposable host
+        if: always()
+        working-directory: repo
+        run: bash infra/scripts/rehearsal-host-ci.sh cleanup
