@@ -44,8 +44,27 @@ jobs:
           ansible-playbook --syntax-check -i infra/ansible/inventory.example.yml infra/ansible/site.yml
           ansible-lint infra/ansible/site.yml
 
-      - name: Recreate disposable host and restore fixture
+      - name: Bootstrap disposable Ubuntu host
+        working-directory: repo
+        run: bash infra/scripts/rehearsal-host-ci.sh bootstrap
+
+      - name: Provision disposable host with production Ansible
         working-directory: repo
         env:
           ANSIBLE_CONFIG: infra/ansible/ansible.cfg
-        run: bash infra/scripts/rehearsal-host-ci.sh
+        run: bash infra/scripts/rehearsal-host-ci.sh provision
+
+      - name: Verify Ansible convergence and host services
+        working-directory: repo
+        env:
+          ANSIBLE_CONFIG: infra/ansible/ansible.cfg
+        run: bash infra/scripts/rehearsal-host-ci.sh converge
+
+      - name: Run isolated encrypted restore fixture
+        working-directory: repo
+        run: bash infra/scripts/rehearsal-host-ci.sh restore
+
+      - name: Cleanup disposable host
+        if: always()
+        working-directory: repo
+        run: bash infra/scripts/rehearsal-host-ci.sh cleanup
