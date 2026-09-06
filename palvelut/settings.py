@@ -132,6 +132,7 @@ CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
         "LOCATION": VALKEY_URL,
+        "OPTIONS": {"max_connections": 16},
     }
 }
 

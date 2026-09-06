@@ -33,4 +33,4 @@ COPY --from=frontend /frontend-dist ./static
 
 EXPOSE 8000
 
-CMD ["gunicorn", "-k", "uvicorn_worker.UvicornWorker", "--bind", "0.0.0.0:8000", "--workers", "2", "palvelut.asgi:application"]
+CMD ["gunicorn", "-k", "palvelut.worker.BoundedUvicornWorker", "--bind", "0.0.0.0:8000", "--workers", "2", "--backlog", "128", "palvelut.asgi:application"]

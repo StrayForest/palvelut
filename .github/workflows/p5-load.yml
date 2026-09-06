@@ -1,0 +1,93 @@
+name: P5 load acceptance
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/p5-load.yml"
+      - "Dockerfile"
+      - "compose.yml"
+      - "infra/scripts/load-acceptance.py"
+      - "palvelut/**"
+      - "tests/test_p5_load_acceptance_contract.py"
+      - "tasks/P5-production.md"
+      - "tasks/archive/P5-12-load-acceptance.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  load-acceptance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      COMPOSE_PROJECT_NAME: palvelut-load-${{ github.run_id }}-${{ github.run_attempt }}
+
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Start production-like local stack
+        run: |
+          docker compose --project-name "$COMPOSE_PROJECT_NAME" up -d --build --wait postgres valkey
+          docker compose --project-name "$COMPOSE_PROJECT_NAME" run --rm web python manage.py migrate --noinput
+          docker compose --project-name "$COMPOSE_PROJECT_NAME" run --rm web python manage.py seed_demo
+          docker compose --project-name "$COMPOSE_PROJECT_NAME" up -d --build --wait web nginx
+          curl --fail --silent --show-error --retry 20 --retry-delay 1 \
+            http://127.0.0.1:8000/palvelut/en/ >/dev/null
+
+      - name: Verify search-query SLO
+        run: |
+          docker compose --project-name "$COMPOSE_PROJECT_NAME" run --rm web \
+            python manage.py test \
+              palvelut.apps.discovery.test_performance_acceptance.DiscoveryPerformanceAcceptanceTests.test_beta_sized_discovery_stays_within_latency_budgets \
+              --verbosity 2
+
+      - name: Run warm/cold load and overload probe
+        run: |
+          report="$RUNNER_TEMP/p5-load-report.json"
+          pools="$RUNNER_TEMP/p5-load-pools.txt"
+          log="$RUNNER_TEMP/p5-load-output.log"
+          python3 infra/scripts/load-acceptance.py >"$log" 2>&1 &
+          load_pid=$!
+
+          max_db_connections=0
+          max_valkey_clients=0
+          while kill -0 "$load_pid" 2>/dev/null; do
+            db_connections="$(docker compose --project-name "$COMPOSE_PROJECT_NAME" exec -T postgres \
+              psql -U palvelut -d palvelut -Atc \
+              "select count(*) from pg_stat_activity where datname = 'palvelut';")"
+            valkey_clients="$(docker compose --project-name "$COMPOSE_PROJECT_NAME" exec -T valkey \
+              valkey-cli INFO clients | tr -d '\r' | sed -n 's/^connected_clients://p')"
+            if (( db_connections > max_db_connections )); then
+              max_db_connections="$db_connections"
+            fi
+            if (( valkey_clients > max_valkey_clients )); then
+              max_valkey_clients="$valkey_clients"
+            fi
+            sleep 0.2
+          done
+
+          wait "$load_pid"
+          tail -n 1 "$log" | tee "$report"
+          printf 'max_db_connections=%s observed_valkey_clients=%s asgi_concurrency_per_worker=16 cache_pool_max_connections=16 gunicorn_backlog=128\n' \
+            "$max_db_connections" "$max_valkey_clients" | tee "$pools"
+
+          test "$max_db_connections" -le 40
+
+      - name: Upload load evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: p5-load-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/p5-load-report.json
+            ${{ runner.temp }}/p5-load-pools.txt
+            ${{ runner.temp }}/p5-load-output.log
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Cleanup
+        if: always()
+        run: docker compose --project-name "$COMPOSE_PROJECT_NAME" down -v --remove-orphans
