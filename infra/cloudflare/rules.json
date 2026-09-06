@@ -7,7 +7,7 @@
       "name": "palvelut-bypass-sensitive-or-stateful",
       "priority": 10,
       "action": "bypass_cache",
-      "expression": "starts_with(http.request.uri.path, \"/palvelut/\") and (http.request.method not in {\"GET\" \"HEAD\"} or len(http.request.headers[\"cookie\"][0]) gt 0 or starts_with(http.request.uri.path, \"/palvelut/account/\") or starts_with(http.request.uri.path, \"/palvelut/staff/\") or starts_with(http.request.uri.path, \"/palvelut/report/\") or http.request.uri.path in {\"/palvelut/health/live\" \"/palvelut/health/ready\"})"
+      "expression": "starts_with(http.request.uri.path, \"/palvelut/\") and (http.request.method not in {\"GET\" \"HEAD\"} or len(http.request.headers[\"authorization\"][0]) gt 0 or len(http.request.headers[\"cookie\"][0]) gt 0 or starts_with(http.request.uri.path, \"/palvelut/account/\") or starts_with(http.request.uri.path, \"/palvelut/staff/\") or starts_with(http.request.uri.path, \"/palvelut/report/\") or http.request.uri.path in {\"/palvelut/health/live\" \"/palvelut/health/ready\"})"
     },
     {
       "name": "palvelut-anonymous-public-respect-origin",
@@ -15,7 +15,7 @@
       "action": "cache_eligible",
       "edge_ttl_mode": "respect_origin",
       "browser_ttl_mode": "respect_origin",
-      "expression": "http.request.method in {\"GET\" \"HEAD\"} and starts_with(http.request.uri.path, \"/palvelut/\") and len(http.request.headers[\"cookie\"][0]) eq 0 and not starts_with(http.request.uri.path, \"/palvelut/account/\") and not starts_with(http.request.uri.path, \"/palvelut/staff/\") and not starts_with(http.request.uri.path, \"/palvelut/report/\") and http.request.uri.path not in {\"/palvelut/health/live\" \"/palvelut/health/ready\"}"
+      "expression": "http.request.method in {\"GET\" \"HEAD\"} and starts_with(http.request.uri.path, \"/palvelut/\") and len(http.request.headers[\"authorization\"][0]) eq 0 and len(http.request.headers[\"cookie\"][0]) eq 0 and not starts_with(http.request.uri.path, \"/palvelut/account/\") and not starts_with(http.request.uri.path, \"/palvelut/staff/\") and not starts_with(http.request.uri.path, \"/palvelut/report/\") and http.request.uri.path not in {\"/palvelut/health/live\" \"/palvelut/health/ready\"}"
     }
   ],
   "waf": {
