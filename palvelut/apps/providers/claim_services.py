@@ -22,6 +22,7 @@ ALLOWED_CLAIM_EVIDENCE = {
     "business_domain_email",
     "staff_reviewed_equivalent",
 }
+CURRENT_PROVIDER_TERMS_VERSION = "2026-09-09"
 
 
 def _require_authenticated(actor: AbstractBaseUser) -> None:
@@ -34,6 +35,34 @@ def _require_staff(actor: AbstractBaseUser) -> None:
         raise PermissionDenied("Staff access is required")
 
 
+def _validate_provider_eligibility(
+    *,
+    provider: Provider,
+    professional_right_reference: str,
+    employer_authorization_reference: str,
+) -> tuple[str, str]:
+    professional_right_reference = professional_right_reference.strip()
+    employer_authorization_reference = employer_authorization_reference.strip()
+
+    if provider.provider_type == Provider.Type.BUSINESS:
+        if not provider.y_tunnus.strip():
+            raise ValidationError("Y-tunnus is required for a commercial provider")
+        return "", ""
+
+    if provider.provider_type == Provider.Type.INDIVIDUAL:
+        if not professional_right_reference:
+            raise ValidationError(
+                "Official professional-right evidence is required for an employed regulated professional"
+            )
+        if not employer_authorization_reference:
+            raise ValidationError(
+                "Employer authorization is required for an employed regulated professional"
+            )
+        return professional_right_reference, employer_authorization_reference
+
+    raise ValidationError("Unsupported provider type")
+
+
 @transaction.atomic
 def submit_provider_claim(
     *,
@@ -41,10 +70,15 @@ def submit_provider_claim(
     actor: AbstractBaseUser,
     evidence_kind: ClaimEvidenceKind,
     evidence_reference: str,
+    provider_terms_accepted: bool,
+    professional_right_reference: str = "",
+    employer_authorization_reference: str = "",
 ) -> Provider:
     _require_authenticated(actor)
     if actor.is_staff:
         raise ValidationError("Staff accounts cannot claim provider ownership")
+    if not provider_terms_accepted:
+        raise ValidationError("Current provider terms must be accepted")
     if evidence_kind not in ALLOWED_CLAIM_EVIDENCE:
         raise ValidationError("Independent business-control evidence is required")
     reference = evidence_reference.strip()
@@ -60,19 +94,34 @@ def submit_provider_claim(
     }:
         raise ValidationError("A claim is already pending or approved")
 
+    professional_right_reference, employer_authorization_reference = (
+        _validate_provider_eligibility(
+            provider=provider,
+            professional_right_reference=professional_right_reference,
+            employer_authorization_reference=employer_authorization_reference,
+        )
+    )
+    submitted_at = timezone.now()
     provider.claim_status = Provider.ClaimStatus.PENDING
     provider.claim_evidence = {
         "kind": evidence_kind,
         "reference": reference,
         "claimant_user_id": str(actor.pk),
-        "submitted_at": timezone.now().isoformat(),
+        "submitted_at": submitted_at.isoformat(),
+        "provider_terms_version": CURRENT_PROVIDER_TERMS_VERSION,
+        "provider_terms_accepted_at": submitted_at.isoformat(),
+        "professional_right_reference": professional_right_reference,
+        "employer_authorization_reference": employer_authorization_reference,
     }
     provider.save(update_fields=("claim_status", "claim_evidence", "updated_at"))
     AuditEvent.objects.create(
         provider=provider,
         actor=actor,
         action="provider.claim_submitted",
-        metadata={"evidence_kind": evidence_kind},
+        metadata={
+            "evidence_kind": evidence_kind,
+            "provider_terms_version": CURRENT_PROVIDER_TERMS_VERSION,
+        },
     )
     return provider
 
@@ -87,6 +136,9 @@ def start_new_provider_claim(
     y_tunnus: str,
     evidence_kind: ClaimEvidenceKind,
     evidence_reference: str,
+    provider_terms_accepted: bool,
+    professional_right_reference: str = "",
+    employer_authorization_reference: str = "",
 ) -> Provider:
     _require_authenticated(actor)
     if actor.is_staff:
@@ -100,7 +152,7 @@ def start_new_provider_claim(
     if not legal_name or not display_name:
         raise ValidationError("Provider legal and display names are required")
     if provider_type == Provider.Type.BUSINESS and not y_tunnus:
-        raise ValidationError("Y-tunnus is required for a business provider")
+        raise ValidationError("Y-tunnus is required for a commercial provider")
     if y_tunnus and Provider.objects.filter(y_tunnus=y_tunnus).exists():
         raise ValidationError(
             "A provider with this Y-tunnus already exists; claim the existing draft instead"
@@ -124,6 +176,9 @@ def start_new_provider_claim(
         actor=actor,
         evidence_kind=evidence_kind,
         evidence_reference=evidence_reference,
+        provider_terms_accepted=provider_terms_accepted,
+        professional_right_reference=professional_right_reference,
+        employer_authorization_reference=employer_authorization_reference,
     )
 
 
@@ -148,6 +203,19 @@ def resolve_provider_claim(
     claimant_id = evidence.get("claimant_user_id")
     if not claimant_id:
         raise ValidationError("Claimant identity is missing")
+    if evidence.get("provider_terms_version") != CURRENT_PROVIDER_TERMS_VERSION:
+        raise ValidationError("Claim does not include acceptance of the current provider terms")
+    if not evidence.get("provider_terms_accepted_at"):
+        raise ValidationError("Provider terms acceptance timestamp is missing")
+    _validate_provider_eligibility(
+        provider=provider,
+        professional_right_reference=str(
+            evidence.get("professional_right_reference", "")
+        ),
+        employer_authorization_reference=str(
+            evidence.get("employer_authorization_reference", "")
+        ),
+    )
 
     reviewed_at = timezone.now()
     evidence.update(
