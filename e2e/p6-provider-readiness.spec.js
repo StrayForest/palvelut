@@ -73,6 +73,23 @@ test("brand-new provider can enter self-service without preseeded provider or me
 
   await page.setViewportSize({ width: 390, height: 900 });
   await page.goto("/palvelut/account/provider/start/");
+  await page.getByLabel("Provider type").selectOption("individual");
+  await page.getByLabel("Legal name").fill("Fresh Browser Professional");
+  await page.getByLabel("Display name").fill("Fresh Browser Professional");
+  await page.getByLabel("Evidence kind").selectOption("staff_reviewed_equivalent");
+  await page.getByLabel("Evidence reference").fill("Synthetic staff-reviewed ownership evidence");
+  await page.getByLabel("I accept the current provider terms").check();
+  await page.getByRole("button", { name: "Send ownership claim" }).click();
+  await expect(page.getByText("Official professional-right evidence is required.")).toBeVisible();
+  await expect(page.getByText("Employer authorization is required.")).toBeVisible();
+  await page.getByLabel("Professional-right reference").focus();
+  await expect(page.getByLabel("Professional-right reference")).toBeFocused();
+  for (const width of widths) {
+    await saveEvidence(page, testInfo, "provider-start-errors", width);
+  }
+
+  await page.setViewportSize({ width: 390, height: 900 });
+  await page.goto("/palvelut/account/provider/start/");
   await expect(page.getByRole("link", { name: "Read provider terms" })).toBeVisible();
   await page.getByLabel("Provider type").selectOption("business");
   await page.getByLabel("Legal name").fill("Fresh Browser Provider Oy");
