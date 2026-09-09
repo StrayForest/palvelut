@@ -4,7 +4,6 @@ Depends: P5. Read: `docs/01-product.md`, `docs/03-experience.md`, `docs/04-desig
 
 ## Readiness
 
-- Re-review provider terms, privacy/data fields, moderation wording and controller surfaces against the actual beta flow; unresolved legal/policy uncertainty blocks launch.
 - Connect Search Console/Bing, production monitoring and the funnel/dashboard used for the beta decision; freeze metric, schema and bot-rule versions and reconcile raw events to aggregates before launch.
 
 Do not start provider recruitment for the launch-density target until all Readiness items above are complete and archived.
