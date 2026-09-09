@@ -5,12 +5,8 @@ const { test, expect } = require("@playwright/test");
 const widths = [360, 390, 768, 1024, 1440];
 const evidenceDir = path.join("test-results", "p6-provider-readiness-evidence");
 
-async function capture(page, testInfo, name, url, width) {
+async function saveEvidence(page, testInfo, name, width) {
   await page.setViewportSize({ width, height: 900 });
-  const response = await page.goto(url);
-  expect(response).not.toBeNull();
-  expect(response.status()).toBe(200);
-
   const hasOverflow = await page.evaluate(
     () => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
   );
@@ -23,14 +19,32 @@ async function capture(page, testInfo, name, url, width) {
   await testInfo.attach(filename, { path: screenshotPath, contentType: "image/png" });
 }
 
+async function capture(page, testInfo, name, url, width) {
+  await page.setViewportSize({ width, height: 900 });
+  const response = await page.goto(url);
+  expect(response).not.toBeNull();
+  expect(response.status()).toBe(200);
+  await saveEvidence(page, testInfo, name, width);
+}
+
 test("brand-new provider can enter self-service without preseeded provider or membership", async ({ page }, testInfo) => {
-  test.setTimeout(180_000);
+  test.setTimeout(240_000);
 
   for (const width of widths) {
     await capture(page, testInfo, "public-provider-cta", "/palvelut/en/", width);
     await capture(page, testInfo, "for-professionals", "/palvelut/en/for-professionals/", width);
+    await capture(page, testInfo, "for-professionals-fi", "/palvelut/fi/for-professionals/", width);
+    await capture(page, testInfo, "for-professionals-ru", "/palvelut/ru/for-professionals/", width);
     await capture(page, testInfo, "register", "/palvelut/account/register/", width);
     await capture(page, testInfo, "login", "/palvelut/account/login/", width);
+  }
+
+  await page.setViewportSize({ width: 390, height: 900 });
+  await page.goto("/palvelut/account/register/");
+  await page.getByLabel("Email").focus();
+  await expect(page.getByLabel("Email")).toBeFocused();
+  for (const width of widths) {
+    await saveEvidence(page, testInfo, "register-focus", width);
   }
 
   await page.setViewportSize({ width: 390, height: 900 });
@@ -44,6 +58,14 @@ test("brand-new provider can enter self-service without preseeded provider or me
   for (const width of widths) {
     await capture(page, testInfo, "workspace-empty", "/palvelut/account/profile/", width);
     await capture(page, testInfo, "provider-start", "/palvelut/account/provider/start/", width);
+  }
+
+  await page.setViewportSize({ width: 390, height: 900 });
+  await page.goto("/palvelut/account/provider/start/");
+  await page.getByRole("button", { name: "Send ownership claim" }).click();
+  await expect(page.getByText("This field is required.").first()).toBeVisible();
+  for (const width of widths) {
+    await saveEvidence(page, testInfo, "provider-start-errors", width);
   }
 
   await page.setViewportSize({ width: 390, height: 900 });
@@ -65,5 +87,29 @@ test("brand-new provider can enter self-service without preseeded provider or me
 
   for (const width of widths) {
     await capture(page, testInfo, "ownership-pending", "/palvelut/account/profile/", width);
+  }
+});
+
+test("provider edit and preview are retained at all P6 evidence widths", async ({ page }, testInfo) => {
+  test.setTimeout(180_000);
+
+  await page.setViewportSize({ width: 390, height: 900 });
+  await page.goto("/palvelut/account/login/");
+  await page.getByLabel("Email").fill("provider-e2e@example.test");
+  await page.getByLabel("Password").fill("provider-e2e-pass");
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page).toHaveURL(/\/palvelut\/account\/profile\/$/);
+
+  const providerSection = page.locator('[id^="provider-"]').first();
+  await expect(providerSection).toBeVisible();
+  const sectionId = await providerSection.getAttribute("id");
+  expect(sectionId).not.toBeNull();
+  const providerId = sectionId.replace("provider-", "");
+  const editUrl = `/palvelut/account/profile/${providerId}/`;
+  const previewUrl = `/palvelut/account/profile/${providerId}/preview/`;
+
+  for (const width of widths) {
+    await capture(page, testInfo, "workspace-edit", editUrl, width);
+    await capture(page, testInfo, "workspace-preview", previewUrl, width);
   }
 });
