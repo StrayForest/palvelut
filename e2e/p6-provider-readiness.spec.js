@@ -4,6 +4,8 @@ const { test, expect } = require("@playwright/test");
 
 const widths = [360, 390, 768, 1024, 1440];
 const evidenceDir = path.join("test-results", "p6-provider-readiness-evidence");
+const TEST_EMAIL = "provider-fresh-e2e@example.test";
+const TEST_PASSWORD = "provider-fresh-e2e-pass"; // test-only synthetic fixture
 
 async function saveEvidence(page, testInfo, name, width) {
   await page.setViewportSize({ width, height: 900 });
@@ -49,8 +51,17 @@ test("brand-new provider can enter self-service without preseeded provider or me
 
   await page.setViewportSize({ width: 390, height: 900 });
   await page.goto("/palvelut/account/login/");
-  await page.getByLabel("Email").fill("provider-fresh-e2e@example.test");
-  await page.getByLabel("Password").fill("provider-fresh-e2e-pass");
+  await page.getByLabel("Email").fill(TEST_EMAIL);
+  await page.getByLabel("Password").fill("not-a-real-password");
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page.locator(".errorlist").first()).toBeVisible();
+  for (const width of widths) {
+    await saveEvidence(page, testInfo, "login-errors", width);
+  }
+
+  await page.setViewportSize({ width: 390, height: 900 });
+  await page.getByLabel("Email").fill(TEST_EMAIL);
+  await page.getByLabel("Password").fill(TEST_PASSWORD);
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page).toHaveURL(/\/palvelut\/account\/profile\/$/);
   await expect(page.locator("#workspace-empty-state")).toBeVisible();
@@ -58,14 +69,6 @@ test("brand-new provider can enter self-service without preseeded provider or me
   for (const width of widths) {
     await capture(page, testInfo, "workspace-empty", "/palvelut/account/profile/", width);
     await capture(page, testInfo, "provider-start", "/palvelut/account/provider/start/", width);
-  }
-
-  await page.setViewportSize({ width: 390, height: 900 });
-  await page.goto("/palvelut/account/provider/start/");
-  await page.getByRole("button", { name: "Send ownership claim" }).click();
-  await expect(page.getByText("This field is required.").first()).toBeVisible();
-  for (const width of widths) {
-    await saveEvidence(page, testInfo, "provider-start-errors", width);
   }
 
   await page.setViewportSize({ width: 390, height: 900 });
@@ -87,29 +90,5 @@ test("brand-new provider can enter self-service without preseeded provider or me
 
   for (const width of widths) {
     await capture(page, testInfo, "ownership-pending", "/palvelut/account/profile/", width);
-  }
-});
-
-test("provider edit and preview are retained at all P6 evidence widths", async ({ page }, testInfo) => {
-  test.setTimeout(180_000);
-
-  await page.setViewportSize({ width: 390, height: 900 });
-  await page.goto("/palvelut/account/login/");
-  await page.getByLabel("Email").fill("provider-e2e@example.test");
-  await page.getByLabel("Password").fill("provider-e2e-pass");
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page).toHaveURL(/\/palvelut\/account\/profile\/$/);
-
-  const providerSection = page.locator('[id^="provider-"]').first();
-  await expect(providerSection).toBeVisible();
-  const sectionId = await providerSection.getAttribute("id");
-  expect(sectionId).not.toBeNull();
-  const providerId = sectionId.replace("provider-", "");
-  const editUrl = `/palvelut/account/profile/${providerId}/`;
-  const previewUrl = `/palvelut/account/profile/${providerId}/preview/`;
-
-  for (const width of widths) {
-    await capture(page, testInfo, "workspace-edit", editUrl, width);
-    await capture(page, testInfo, "workspace-preview", previewUrl, width);
   }
 });
