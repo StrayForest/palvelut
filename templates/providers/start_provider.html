@@ -1,32 +1,33 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
 {% block title %}{% translate "Start provider profile" %} · Finrix Palvelut{% endblock %}
 {% block content %}
 <section class="mx-auto max-w-2xl py-8" id="provider-start">
-  <p class="text-sm font-semibold uppercase tracking-wide text-slate-500">{% translate "Provider onboarding" %}</p>
+  <p class="text-sm font-semibold uppercase tracking-wide text-[#5E6A65]">{% translate "Provider onboarding" %}</p>
   <h1 class="mt-3 text-3xl font-bold tracking-tight">{% translate "Start a new provider profile" %}</h1>
-  <p class="mt-3 text-slate-600">{% translate "This creates a private provider record and sends your ownership evidence to Finrix staff. Nothing is published yet." %}</p>
-  <div class="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-    <p class="font-semibold">{% translate "Eligibility before ownership review" %}</p>
+  <p class="mt-3 text-[#5E6A65]">{% translate "This creates a private provider record and sends your ownership evidence to Finrix staff. Nothing is published yet." %}</p>
+  <div class="mt-5 rounded-2xl border border-[#DDE3DF] bg-white p-5 text-sm text-[#5E6A65]">
+    <p class="font-semibold text-[#17211D]">{% translate "Eligibility before ownership review" %}</p>
     <ul class="mt-2 list-disc space-y-1 pl-5">
       <li>{% translate "Businesses and self-employed providers need an active Finnish Y-tunnus matching the legal identity." %}</li>
       <li>{% translate "An employed regulated professional needs an official professional-right reference and employer authorization." %}</li>
     </ul>
   </div>
 
-  <form class="mt-8 space-y-5 rounded-2xl border border-slate-200 p-5 sm:p-6 [&_p]:space-y-2 [&_label]:block [&_label]:text-sm [&_label]:font-medium [&_input:not([type=checkbox])]:block [&_input:not([type=checkbox])]:w-full [&_input:not([type=checkbox])]:max-w-full [&_input:not([type=checkbox])]:rounded-lg [&_input:not([type=checkbox])]:border [&_input:not([type=checkbox])]:border-slate-300 [&_input:not([type=checkbox])]:bg-white [&_input:not([type=checkbox])]:px-3 [&_input:not([type=checkbox])]:py-3 [&_input:not([type=checkbox])]:text-base [&_input[type=checkbox]]:mr-2 [&_input[type=checkbox]]:h-5 [&_input[type=checkbox]]:w-5 [&_select]:block [&_select]:w-full [&_select]:max-w-full [&_select]:rounded-lg [&_select]:border [&_select]:border-slate-300 [&_select]:bg-white [&_select]:px-3 [&_select]:py-3 [&_select]:text-base [&_textarea]:block [&_textarea]:min-h-24 [&_textarea]:w-full [&_textarea]:max-w-full [&_textarea]:resize-y [&_textarea]:rounded-lg [&_textarea]:border [&_textarea]:border-slate-300 [&_textarea]:bg-white [&_textarea]:px-3 [&_textarea]:py-3 [&_textarea]:text-base" method="post">
+  <form class="mt-6 space-y-5 rounded-2xl border border-[#DDE3DF] bg-white p-5 sm:p-6 [&_.errorlist]:mb-2 [&_.errorlist]:rounded-xl [&_.errorlist]:bg-red-50 [&_.errorlist]:p-3 [&_.errorlist]:text-sm [&_.errorlist]:text-[#B42318] [&_p]:space-y-2 [&_label]:block [&_label]:text-sm [&_label]:font-medium [&_input:not([type=checkbox])]:block [&_input:not([type=checkbox])]:w-full [&_input:not([type=checkbox])]:max-w-full [&_input:not([type=checkbox])]:rounded-xl [&_input:not([type=checkbox])]:border [&_input:not([type=checkbox])]:border-[#DDE3DF] [&_input:not([type=checkbox])]:bg-white [&_input:not([type=checkbox])]:px-3 [&_input:not([type=checkbox])]:py-3 [&_input:not([type=checkbox])]:text-base [&_input:not([type=checkbox])]:focus:border-[#12664F] [&_input:not([type=checkbox])]:focus:outline-none [&_input:not([type=checkbox])]:focus:ring-2 [&_input:not([type=checkbox])]:focus:ring-[#12664F]/20 [&_input[type=checkbox]]:mr-2 [&_input[type=checkbox]]:h-5 [&_input[type=checkbox]]:w-5 [&_select]:block [&_select]:w-full [&_select]:max-w-full [&_select]:rounded-xl [&_select]:border [&_select]:border-[#DDE3DF] [&_select]:bg-white [&_select]:px-3 [&_select]:py-3 [&_select]:text-base [&_textarea]:block [&_textarea]:min-h-24 [&_textarea]:w-full [&_textarea]:max-w-full [&_textarea]:resize-y [&_textarea]:rounded-xl [&_textarea]:border [&_textarea]:border-[#DDE3DF] [&_textarea]:bg-white [&_textarea]:px-3 [&_textarea]:py-3 [&_textarea]:text-base" method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <p class="text-sm text-slate-600">
+    <p class="text-sm text-[#5E6A65]">
       {% translate "Provider terms version" %} {{ provider_terms_version }} ·
-      <a class="font-medium underline underline-offset-4" href="{% url 'legal-document' locale='fi' document='terms' %}" target="_blank" rel="noopener">{% translate "Read provider terms" %}</a>
+      <a class="font-medium text-[#12664F] underline underline-offset-4" href="{% url 'legal-document' locale=LANGUAGE_CODE document='terms' %}" target="_blank" rel="noopener">{% translate "Read provider terms" %}</a>
     </p>
-    <button class="inline-flex min-h-11 items-center justify-center rounded-lg bg-slate-950 px-5 py-3 font-semibold text-white focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2" type="submit">{% translate "Send ownership claim" %}</button>
+    <button class="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#12664F] px-5 py-3 font-semibold text-white hover:bg-[#0B4F3C] focus:outline-none focus:ring-2 focus:ring-[#12664F] focus:ring-offset-2" type="submit">{% translate "Send ownership claim" %}</button>
   </form>
 
   <div class="mt-6 flex flex-wrap gap-3 text-sm">
-    <a class="font-medium underline underline-offset-4" href="{% url 'account-claim-list' %}">{% translate "Claim an existing provider instead" %}</a>
-    <a class="font-medium underline underline-offset-4" href="{% url 'provider-workspace' %}">{% translate "Back to workspace" %}</a>
+    <a class="font-medium text-[#12664F] underline underline-offset-4" href="{% url 'account-claim-list' %}">{% translate "Claim an existing provider instead" %}</a>
+    <a class="font-medium text-[#12664F] underline underline-offset-4" href="{% url 'provider-workspace' %}">{% translate "Back to workspace" %}</a>
   </div>
 </section>
 {% endblock %}

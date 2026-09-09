@@ -6,10 +6,11 @@ from django.contrib.auth.forms import (
     SetPasswordForm,
     UserCreationForm,
 )
+from django.utils.translation import gettext_lazy as _
 
 
 class ProviderRegistrationForm(UserCreationForm):
-    email = forms.EmailField()
+    email = forms.EmailField(label=_("Email"))
 
     class Meta(UserCreationForm.Meta):
         model = get_user_model()
@@ -18,7 +19,7 @@ class ProviderRegistrationForm(UserCreationForm):
     def clean_email(self):
         email = self.cleaned_data["email"].strip().lower()
         if get_user_model().objects.filter(email__iexact=email).exists():
-            raise forms.ValidationError("An account already exists for this email.")
+            raise forms.ValidationError(_("An account already exists for this email."))
         return email
 
     def save(self, commit=True):
@@ -32,7 +33,7 @@ class ProviderRegistrationForm(UserCreationForm):
 
 
 class EmailAuthenticationForm(AuthenticationForm):
-    username = forms.EmailField(label="Email")
+    username = forms.EmailField(label=_("Email"))
 
 
 class RateLimitedPasswordResetForm(PasswordResetForm):
@@ -44,4 +45,4 @@ class SecureSetPasswordForm(SetPasswordForm):
 
 
 class MFAForm(forms.Form):
-    code = forms.CharField(min_length=6, max_length=6)
+    code = forms.CharField(min_length=6, max_length=6, label=_("Code"))

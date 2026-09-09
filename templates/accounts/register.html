@@ -1,16 +1,24 @@
 {% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Create provider account" %} · Finrix Palvelut{% endblock %}
 {% block content %}
-<section class="mx-auto max-w-lg py-8">
-  <p class="text-sm font-semibold uppercase tracking-wide text-slate-500">Provider onboarding</p>
-  <h1 class="mt-3 text-3xl font-bold tracking-tight">Create provider account</h1>
-  <p class="mt-3 text-slate-600">Create your account first. Your provider profile stays private until ownership and profile review are complete.</p>
+<section class="mx-auto max-w-lg py-8" id="provider-register">
+  <p class="text-sm font-semibold uppercase tracking-wide text-[#5E6A65]">{% translate "Provider onboarding" %}</p>
+  <h1 class="mt-3 text-3xl font-bold tracking-tight">{% translate "Create provider account" %}</h1>
+  <p class="mt-3 text-[#5E6A65]">{% translate "Create your account first. Your provider profile stays private until ownership and profile review are complete." %}</p>
 
-  <form method="post" class="mt-8 space-y-5 rounded-2xl border border-slate-200 p-5 sm:p-6 [&_p]:space-y-2 [&_label]:block [&_label]:text-sm [&_label]:font-medium [&_input]:block [&_input]:w-full [&_input]:max-w-full [&_input]:rounded-lg [&_input]:border [&_input]:border-slate-300 [&_input]:bg-white [&_input]:px-3 [&_input]:py-3 [&_input]:text-base [&_.helptext]:block [&_.helptext]:text-sm [&_.helptext]:leading-5 [&_.helptext]:text-slate-600 [&_ul]:text-sm [&_ul]:leading-5 [&_ul]:text-slate-600">
+  <ol class="mt-6 grid gap-3 rounded-2xl border border-[#DDE3DF] bg-white p-5 text-sm text-[#5E6A65]">
+    <li><span class="font-semibold text-[#17211D]">1.</span> {% translate "Verify your email." %}</li>
+    <li><span class="font-semibold text-[#17211D]">2.</span> {% translate "Start a private provider profile or claim an existing draft." %}</li>
+    <li><span class="font-semibold text-[#17211D]">3.</span> {% translate "Ownership approval unlocks profile editing; it does not publish the profile." %}</li>
+  </ol>
+
+  <form method="post" class="mt-6 space-y-5 rounded-2xl border border-[#DDE3DF] bg-white p-5 sm:p-6 [&_.errorlist]:mb-2 [&_.errorlist]:rounded-xl [&_.errorlist]:bg-red-50 [&_.errorlist]:p-3 [&_.errorlist]:text-sm [&_.errorlist]:text-[#B42318] [&_p]:space-y-2 [&_label]:block [&_label]:text-sm [&_label]:font-medium [&_input]:block [&_input]:w-full [&_input]:max-w-full [&_input]:rounded-xl [&_input]:border [&_input]:border-[#DDE3DF] [&_input]:bg-white [&_input]:px-3 [&_input]:py-3 [&_input]:text-base [&_input]:focus:border-[#12664F] [&_input]:focus:outline-none [&_input]:focus:ring-2 [&_input]:focus:ring-[#12664F]/20 [&_.helptext]:block [&_.helptext]:text-sm [&_.helptext]:leading-5 [&_.helptext]:text-[#5E6A65] [&_ul]:text-sm [&_ul]:leading-5 [&_ul]:text-[#5E6A65]">
     {% csrf_token %}
     {{ form.as_p }}
-    <button class="inline-flex min-h-11 items-center justify-center rounded-lg bg-slate-950 px-5 py-3 font-semibold text-white focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2" type="submit">Create account</button>
+    <button class="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#12664F] px-5 py-3 font-semibold text-white hover:bg-[#0B4F3C] focus:outline-none focus:ring-2 focus:ring-[#12664F] focus:ring-offset-2" type="submit">{% translate "Create account" %}</button>
   </form>
 
-  <p class="mt-5 text-sm text-slate-600">Already registered? <a class="font-semibold text-slate-950 underline underline-offset-4" href="{% url 'account-login' %}">Sign in</a></p>
+  <p class="mt-5 text-sm text-[#5E6A65]">{% translate "Already registered?" %} <a class="font-semibold text-[#12664F] underline underline-offset-4" href="{% url 'account-login' %}">{% translate "Sign in" %}</a></p>
 </section>
 {% endblock %}

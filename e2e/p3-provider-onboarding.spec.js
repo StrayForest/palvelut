@@ -16,7 +16,7 @@ test("provider completes onboarding on mobile without staff edits", async ({ pag
 
   await page.goto("/palvelut/account/profile/");
   await expect(page.getByRole("heading", { name: "Provider workspace" })).toBeVisible();
-  await page.getByRole("link", { name: "Edit profile" }).click();
+  await page.getByRole("link", { name: "Continue profile" }).click();
 
   await expect(page.getByText("Complete the profile yourself")).toBeVisible();
   await page.getByLabel("Display name").fill("Synthetic Mobile Legal Specialist");
@@ -48,7 +48,7 @@ test("provider completes onboarding on mobile without staff edits", async ({ pag
   await expect(page.getByText("Revision: Pending")).toBeVisible();
 });
 
-test("provider workspace has keyboard and accessibility smoke coverage", async ({ page }) => {
+test("provider pending workspace has keyboard and accessibility smoke coverage", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/palvelut/account/login/");
   await page.getByLabel("Email").fill("provider-e2e@example.test");
@@ -57,17 +57,12 @@ test("provider workspace has keyboard and accessibility smoke coverage", async (
 
   await page.goto("/palvelut/account/profile/");
   await expect(page.getByRole("heading", { level: 1, name: "Provider workspace" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Edit profile" })).toBeVisible();
+  await expect(page.getByText("Profile status: Pending · Revision: Pending")).toBeVisible();
+  await expect(page.getByText("Wait for profile review. Your last submitted revision is pending.")).toBeVisible();
 
-  await page.getByRole("link", { name: "Edit profile" }).focus();
-  await expect(page.getByRole("link", { name: "Edit profile" })).toBeFocused();
-  await page.keyboard.press("Enter");
-
-  await expect(page.getByLabel("Display name")).toBeVisible();
-  await expect(page.getByLabel("Service title")).toBeVisible();
-  await expect(page.getByLabel("Service description")).toBeVisible();
-  await expect(page.getByLabel("Price text")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Save draft" })).toBeVisible();
+  const startAnother = page.getByRole("link", { name: "Start another provider profile" });
+  await startAnother.focus();
+  await expect(startAnother).toBeFocused();
 
   const results = await new AxeBuilder({ page }).analyze();
   const blocking = results.violations.filter((violation) =>
