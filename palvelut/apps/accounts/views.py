@@ -79,7 +79,7 @@ class ProviderLoginView(LoginView):
     def get_success_url(self):
         if self.request.user.is_staff:
             return reverse("staff-mfa")
-        return reverse("localized-home", kwargs={"locale": "fi"})
+        return reverse("provider-workspace")
 
 
 class ProviderLogoutView(LogoutView):
