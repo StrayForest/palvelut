@@ -153,6 +153,16 @@ def approve_revision(*, revision_id: object, actor) -> ProfileRevision:
     revision.status = ProfileRevision.Status.APPROVED
     revision.reviewed_at = timezone.now()
     revision.save(update_fields=("status", "reviewed_at"))
+
+    # Publication is not complete until discovery has a stable public URL and an
+    # approved read model. Keep these writes in the same transaction as approval
+    # so a staff approval cannot leave a provider marked published but invisible.
+    from palvelut.apps.discovery.services import rebuild_provider_read_document
+    from palvelut.apps.publishing.services import ensure_provider_slug
+
+    ensure_provider_slug(provider_id=provider.pk)
+    rebuild_provider_read_document(provider_id=provider.pk)
+
     AuditEvent.objects.create(
         provider=provider,
         actor=actor,
