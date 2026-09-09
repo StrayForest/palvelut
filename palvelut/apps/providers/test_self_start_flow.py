@@ -138,7 +138,9 @@ class ProviderSelfStartFlowTests(TestCase):
             },
         )
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Official professional-right evidence is required")
+        self.assertContains(
+            response, "Official professional-right evidence is required"
+        )
         self.assertContains(response, "Employer authorization is required")
         self.assertFalse(Provider.objects.exists())
 
