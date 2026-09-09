@@ -51,6 +51,7 @@ class AtomicProviderAcceptanceTests(TestCase):
             actor=self.claimant,
             evidence_kind="registry_signatory",
             evidence_reference="PRH signatory record",
+            provider_terms_accepted=True,
         )
 
     def _approve_claim(self) -> None:
