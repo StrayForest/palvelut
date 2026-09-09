@@ -4,7 +4,7 @@ from django.urls import reverse
 
 from palvelut.apps.moderation.models import AuditEvent
 
-from .claim_services import resolve_provider_claim
+from .claim_services import CURRENT_PROVIDER_TERMS_VERSION, resolve_provider_claim
 from .models import Provider, ProviderMembership
 
 TEST_PASSWORD = "Strong-passphrase-2026!"  # test-only
@@ -36,6 +36,7 @@ class ProviderSelfStartFlowTests(TestCase):
                 "y_tunnus": "2468135-7",
                 "evidence_kind": "registry_signatory",
                 "evidence_reference": "PRH signatory record for Fresh Provider Oy",
+                "provider_terms_accepted": "on",
             },
         )
 
@@ -65,6 +66,11 @@ class ProviderSelfStartFlowTests(TestCase):
         self.assertEqual(
             provider.claim_evidence["claimant_user_id"], str(self.provider_user.pk)
         )
+        self.assertEqual(
+            provider.claim_evidence["provider_terms_version"],
+            CURRENT_PROVIDER_TERMS_VERSION,
+        )
+        self.assertTrue(provider.claim_evidence["provider_terms_accepted_at"])
         self.assertFalse(ProviderMembership.objects.filter(provider=provider).exists())
         self.assertTrue(
             AuditEvent.objects.filter(
@@ -81,6 +87,23 @@ class ProviderSelfStartFlowTests(TestCase):
         self.assertContains(workspace, "Pending")
         self.assertContains(workspace, "Nothing is public yet")
 
+    def test_terms_acceptance_is_required_before_claim_submission(self) -> None:
+        self.client.force_login(self.provider_user)
+        response = self.client.post(
+            reverse("account-provider-start"),
+            {
+                "provider_type": Provider.Type.BUSINESS,
+                "legal_name": "Terms Missing Oy",
+                "display_name": "Terms Missing",
+                "y_tunnus": "1234567-1",
+                "evidence_kind": "registry_signatory",
+                "evidence_reference": "registry evidence",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "This field is required")
+        self.assertFalse(Provider.objects.exists())
+
     def test_business_self_start_requires_y_tunnus(self) -> None:
         self.client.force_login(self.provider_user)
         response = self.client.post(
@@ -92,11 +115,56 @@ class ProviderSelfStartFlowTests(TestCase):
                 "y_tunnus": "",
                 "evidence_kind": "registry_signatory",
                 "evidence_reference": "registry evidence",
+                "provider_terms_accepted": "on",
             },
         )
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Y-tunnus is required for a business provider")
+        self.assertContains(response, "Y-tunnus is required for a commercial provider")
         self.assertFalse(Provider.objects.exists())
+
+    def test_employed_regulated_professional_requires_both_eligibility_references(
+        self,
+    ) -> None:
+        self.client.force_login(self.provider_user)
+        response = self.client.post(
+            reverse("account-provider-start"),
+            {
+                "provider_type": Provider.Type.INDIVIDUAL,
+                "legal_name": "Licensed Person",
+                "display_name": "Licensed Person",
+                "evidence_kind": "staff_reviewed_equivalent",
+                "evidence_reference": "identity document reference",
+                "provider_terms_accepted": "on",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Official professional-right evidence is required")
+        self.assertContains(response, "Employer authorization is required")
+        self.assertFalse(Provider.objects.exists())
+
+        response = self.client.post(
+            reverse("account-provider-start"),
+            {
+                "provider_type": Provider.Type.INDIVIDUAL,
+                "legal_name": "Licensed Person",
+                "display_name": "Licensed Person",
+                "evidence_kind": "staff_reviewed_equivalent",
+                "evidence_reference": "identity document reference",
+                "professional_right_reference": "JulkiTerhikki record 123",
+                "employer_authorization_reference": "Employer authorization ref 456",
+                "provider_terms_accepted": "on",
+            },
+        )
+        self.assertRedirects(response, reverse("provider-workspace"))
+        provider = Provider.objects.get(legal_name="Licensed Person")
+        self.assertEqual(
+            provider.claim_evidence["professional_right_reference"],
+            "JulkiTerhikki record 123",
+        )
+        self.assertEqual(
+            provider.claim_evidence["employer_authorization_reference"],
+            "Employer authorization ref 456",
+        )
 
     def test_existing_y_tunnus_directs_provider_to_claim_existing_record(self) -> None:
         Provider.objects.create(
@@ -117,6 +185,7 @@ class ProviderSelfStartFlowTests(TestCase):
                 "y_tunnus": "2468135-7",
                 "evidence_kind": "registry_signatory",
                 "evidence_reference": "registry evidence",
+                "provider_terms_accepted": "on",
             },
         )
         self.assertEqual(response.status_code, 200)
