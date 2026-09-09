@@ -48,12 +48,14 @@ test("brand-new provider can enter self-service without preseeded provider or me
 
   await page.setViewportSize({ width: 390, height: 900 });
   await page.goto("/palvelut/account/provider/start/");
+  await expect(page.getByRole("link", { name: "Read provider terms" })).toBeVisible();
   await page.getByLabel("Provider type").selectOption("business");
   await page.getByLabel("Legal name").fill("Fresh Browser Provider Oy");
   await page.getByLabel("Display name").fill("Fresh Browser Provider");
   await page.getByLabel("Y-tunnus").fill("1357924-6");
   await page.getByLabel("Evidence kind").selectOption("registry_signatory");
   await page.getByLabel("Evidence reference").fill("Synthetic PRH signatory evidence for browser acceptance");
+  await page.getByLabel("I accept the current provider terms").check();
   await page.getByRole("button", { name: "Send ownership claim" }).click();
 
   await expect(page).toHaveURL(/\/palvelut\/account\/profile\/$/);

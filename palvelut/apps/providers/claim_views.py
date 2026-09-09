@@ -9,6 +9,7 @@ from django.views.decorators.http import require_http_methods
 
 from .claim_forms import NewProviderClaimForm, ProviderClaimForm, StaffClaimDecisionForm
 from .claim_services import (
+    CURRENT_PROVIDER_TERMS_VERSION,
     resolve_provider_claim,
     start_new_provider_claim,
     submit_provider_claim,
@@ -54,12 +55,23 @@ def start_provider(request: HttpRequest) -> HttpResponse:
                 y_tunnus=form.cleaned_data["y_tunnus"],
                 evidence_kind=form.cleaned_data["evidence_kind"],
                 evidence_reference=form.cleaned_data["evidence_reference"],
+                provider_terms_accepted=form.cleaned_data["provider_terms_accepted"],
+                professional_right_reference=form.cleaned_data.get(
+                    "professional_right_reference", ""
+                ),
+                employer_authorization_reference=form.cleaned_data.get(
+                    "employer_authorization_reference", ""
+                ),
             )
         except ValidationError as exc:
             form.add_error(None, exc)
         else:
             return redirect("provider-workspace")
-    response = render(request, "providers/start_provider.html", {"form": form})
+    response = render(
+        request,
+        "providers/start_provider.html",
+        {"form": form, "provider_terms_version": CURRENT_PROVIDER_TERMS_VERSION},
+    )
     response["Cache-Control"] = "private, no-store"
     return response
 
@@ -91,6 +103,13 @@ def claim_provider(request: HttpRequest, provider_id) -> HttpResponse:
                 actor=request.user,
                 evidence_kind=form.cleaned_data["evidence_kind"],
                 evidence_reference=form.cleaned_data["evidence_reference"],
+                provider_terms_accepted=form.cleaned_data["provider_terms_accepted"],
+                professional_right_reference=form.cleaned_data.get(
+                    "professional_right_reference", ""
+                ),
+                employer_authorization_reference=form.cleaned_data.get(
+                    "employer_authorization_reference", ""
+                ),
             )
         except ValidationError as exc:
             form.add_error(None, exc)
@@ -99,7 +118,11 @@ def claim_provider(request: HttpRequest, provider_id) -> HttpResponse:
     return render(
         request,
         "providers/claim_provider.html",
-        {"provider": provider, "form": form},
+        {
+            "provider": provider,
+            "form": form,
+            "provider_terms_version": CURRENT_PROVIDER_TERMS_VERSION,
+        },
     )
 
 

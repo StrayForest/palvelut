@@ -5,7 +5,11 @@ from django.urls import reverse
 
 from palvelut.apps.moderation.models import AuditEvent
 
-from .claim_services import resolve_provider_claim, submit_provider_claim
+from .claim_services import (
+    CURRENT_PROVIDER_TERMS_VERSION,
+    resolve_provider_claim,
+    submit_provider_claim,
+)
 from .models import Provider, ProviderMembership
 
 TEST_PASSWORD = "Strong-passphrase-2026!"  # test-only
@@ -44,6 +48,7 @@ class ProviderClaimFlowTests(TestCase):
             actor=self.claimant,
             evidence_kind="registry_signatory",
             evidence_reference="PRH signatory record 2026-09-05",
+            provider_terms_accepted=True,
         )
 
     def test_claim_submission_requires_independent_business_control_evidence(
@@ -52,7 +57,11 @@ class ProviderClaimFlowTests(TestCase):
         self.client.force_login(self.claimant)
         response = self.client.post(
             reverse("account-claim-provider", kwargs={"provider_id": self.provider.pk}),
-            {"evidence_kind": "email", "evidence_reference": self.claimant.email},
+            {
+                "evidence_kind": "email",
+                "evidence_reference": self.claimant.email,
+                "provider_terms_accepted": "on",
+            },
         )
         self.assertEqual(response.status_code, 200)
         self.provider.refresh_from_db()
@@ -66,6 +75,7 @@ class ProviderClaimFlowTests(TestCase):
             {
                 "evidence_kind": "business_domain_email",
                 "evidence_reference": "owner@claimable.example",
+                "provider_terms_accepted": "on",
             },
         )
         self.assertRedirects(response, reverse("account-claim-list"))
@@ -74,6 +84,10 @@ class ProviderClaimFlowTests(TestCase):
         self.assertEqual(self.provider.lifecycle, Provider.Lifecycle.UNCLAIMED)
         self.assertEqual(
             self.provider.claim_evidence["claimant_user_id"], str(self.claimant.pk)
+        )
+        self.assertEqual(
+            self.provider.claim_evidence["provider_terms_version"],
+            CURRENT_PROVIDER_TERMS_VERSION,
         )
         self.assertFalse(
             ProviderMembership.objects.filter(provider=self.provider).exists()
@@ -86,6 +100,18 @@ class ProviderClaimFlowTests(TestCase):
             ).exists()
         )
 
+    def test_claim_submission_requires_current_provider_terms(self) -> None:
+        with self.assertRaises(ValidationError):
+            submit_provider_claim(
+                provider_id=self.provider.pk,
+                actor=self.claimant,
+                evidence_kind="registry_signatory",
+                evidence_reference="PRH signatory record",
+                provider_terms_accepted=False,
+            )
+        self.provider.refresh_from_db()
+        self.assertEqual(self.provider.claim_status, Provider.ClaimStatus.UNCLAIMED)
+
     def test_competing_claim_cannot_replace_pending_claim(self) -> None:
         self._submit()
         with self.assertRaises(ValidationError):
@@ -94,6 +120,7 @@ class ProviderClaimFlowTests(TestCase):
                 actor=self.other,
                 evidence_kind="staff_reviewed_equivalent",
                 evidence_reference="separate documents",
+                provider_terms_accepted=True,
             )
         self.provider.refresh_from_db()
         self.assertEqual(
