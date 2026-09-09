@@ -16,7 +16,7 @@ test("provider completes onboarding on mobile without staff edits", async ({ pag
 
   await page.goto("/palvelut/account/profile/");
   await expect(page.getByRole("heading", { name: "Provider workspace" })).toBeVisible();
-  await page.getByRole("link", { name: "Edit profile" }).click();
+  await page.getByRole("link", { name: "Continue profile" }).click();
 
   await expect(page.getByText("Complete the profile yourself")).toBeVisible();
   await page.getByLabel("Display name").fill("Synthetic Mobile Legal Specialist");
@@ -57,10 +57,10 @@ test("provider workspace has keyboard and accessibility smoke coverage", async (
 
   await page.goto("/palvelut/account/profile/");
   await expect(page.getByRole("heading", { level: 1, name: "Provider workspace" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Edit profile" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Continue profile" })).toBeVisible();
 
-  await page.getByRole("link", { name: "Edit profile" }).focus();
-  await expect(page.getByRole("link", { name: "Edit profile" })).toBeFocused();
+  await page.getByRole("link", { name: "Continue profile" }).focus();
+  await expect(page.getByRole("link", { name: "Continue profile" })).toBeFocused();
   await page.keyboard.press("Enter");
 
   await expect(page.getByLabel("Display name")).toBeVisible();
