@@ -1,37 +1,43 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% block title %}{% translate "Provider workspace" %} · Finrix Palvelut{% endblock %}
 {% block content %}
-<main>
+<section id="provider-workspace">
   <div class="flex flex-wrap items-start justify-between gap-4">
     <div>
-      <p class="text-sm font-semibold uppercase tracking-wide text-slate-500">{% translate "For professionals" %}</p>
-      <h1 class="mt-2 text-3xl font-bold tracking-tight">Provider workspace</h1>
+      <p class="text-sm font-semibold uppercase tracking-wide text-[#5E6A65]">{% translate "For professionals" %}</p>
+      <h1 class="mt-2 text-3xl font-bold tracking-tight">{% translate "Provider workspace" %}</h1>
+      <p class="mt-2 text-[#5E6A65]">{% translate "Your provider status and next required action are shown first." %}</p>
     </div>
-    <a class="inline-flex min-h-11 items-center rounded-lg border border-slate-300 px-4 py-2 font-semibold" href="{% url 'account-provider-start' %}">{% translate "Start another provider profile" %}</a>
+    <a class="inline-flex min-h-11 items-center rounded-xl border border-[#DDE3DF] bg-white px-4 py-2 font-semibold text-[#17211D] hover:border-[#12664F] focus:outline-none focus:ring-2 focus:ring-[#12664F] focus:ring-offset-2" href="{% url 'account-provider-start' %}">{% translate "Start another provider profile" %}</a>
   </div>
 
-  {% if request.GET.submitted %}<p class="mt-4 rounded-xl bg-slate-50 p-4" role="status">Profile submitted for review.</p>{% endif %}
+  {% if request.GET.submitted %}<p class="mt-4 rounded-xl border border-[#DDE3DF] bg-white p-4" role="status">{% translate "Profile submitted for review." %}</p>{% endif %}
 
   {% if ownership_claims %}
     <section class="mt-6" aria-labelledby="ownership-title">
       <h2 class="text-xl font-semibold" id="ownership-title">{% translate "Ownership review" %}</h2>
       <div class="mt-3 grid gap-4">
         {% for provider in ownership_claims %}
-          <article class="rounded-2xl border border-slate-200 p-5">
+          <article class="rounded-2xl border border-[#DDE3DF] bg-white p-5" data-workspace-status="ownership-{{ provider.claim_status }}">
             <div class="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <h3 class="text-lg font-semibold">{{ provider.display_name }}</h3>
-                <p class="mt-1 text-sm text-slate-600">{% translate "Ownership claim:" %} {{ provider.get_claim_status_display }}</p>
+                <p class="mt-2 text-sm font-semibold uppercase tracking-wide text-[#5E6A65]">{% translate "Current status" %}</p>
+                <p class="mt-1 text-sm text-[#17211D]">{% translate "Ownership claim:" %} {{ provider.get_claim_status_display }}</p>
               </div>
               {% if provider.claim_status == 'rejected' %}
-                <a class="inline-flex min-h-11 items-center rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold" href="{% url 'account-claim-provider' provider.id %}">{% translate "Update ownership evidence" %}</a>
+                <a class="inline-flex min-h-11 items-center rounded-xl bg-[#12664F] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0B4F3C] focus:outline-none focus:ring-2 focus:ring-[#12664F] focus:ring-offset-2" href="{% url 'account-claim-provider' provider.id %}">{% translate "Update ownership evidence" %}</a>
               {% endif %}
             </div>
-            {% if provider.claim_status == 'pending' %}
-              <p class="mt-3 text-sm text-slate-600">{% translate "Finrix staff must approve provider ownership before the profile workspace unlocks. Nothing is public yet." %}</p>
-            {% else %}
-              <p class="mt-3 text-sm text-slate-600">{% translate "The previous ownership evidence was not accepted. You can submit new evidence for review." %}</p>
-            {% endif %}
+            <div class="mt-4 rounded-xl bg-[#F6F7F4] p-4" data-next-action>
+              <p class="text-sm font-semibold text-[#17211D]">{% translate "Next action" %}</p>
+              {% if provider.claim_status == 'pending' %}
+                <p class="mt-1 text-sm text-[#5E6A65]">{% translate "Wait for Finrix staff to review ownership. Nothing is public yet and no further action is required from you now." %}</p>
+              {% else %}
+                <p class="mt-1 text-sm text-[#5E6A65]">{% translate "Update the ownership evidence and submit it again for review." %}</p>
+              {% endif %}
+            </div>
           </article>
         {% endfor %}
       </div>
@@ -39,12 +45,16 @@
   {% endif %}
 
   {% if not dashboard_rows and not ownership_claims %}
-    <section class="mt-6 rounded-2xl border border-slate-200 p-6" id="workspace-empty-state">
-      <h2 class="text-xl font-semibold">{% translate "Start your provider profile" %}</h2>
-      <p class="mt-2 text-slate-600">{% translate "Create a new private provider record or claim an existing Finrix draft. Ownership must be approved before profile editing starts." %}</p>
+    <section class="mt-6 rounded-2xl border border-[#DDE3DF] bg-white p-6" id="workspace-empty-state" data-workspace-status="not-started">
+      <p class="text-sm font-semibold uppercase tracking-wide text-[#5E6A65]">{% translate "Current status" %}</p>
+      <h2 class="mt-2 text-xl font-semibold">{% translate "No provider profile yet" %}</h2>
+      <div class="mt-4 rounded-xl bg-[#F6F7F4] p-4" data-next-action>
+        <p class="text-sm font-semibold">{% translate "Next action" %}</p>
+        <p class="mt-1 text-sm text-[#5E6A65]">{% translate "Start a new private provider profile or claim an existing Finrix draft. Ownership must be approved before profile editing starts." %}</p>
+      </div>
       <div class="mt-5 flex flex-wrap gap-3">
-        <a class="inline-flex min-h-11 items-center rounded-lg bg-slate-950 px-4 py-2 font-semibold text-white" href="{% url 'account-provider-start' %}">{% translate "Start new provider profile" %}</a>
-        <a class="inline-flex min-h-11 items-center rounded-lg border border-slate-300 px-4 py-2 font-semibold" href="{% url 'account-claim-list' %}">{% translate "Claim existing provider" %}</a>
+        <a class="inline-flex min-h-11 items-center rounded-xl bg-[#12664F] px-4 py-2 font-semibold text-white hover:bg-[#0B4F3C] focus:outline-none focus:ring-2 focus:ring-[#12664F] focus:ring-offset-2" href="{% url 'account-provider-start' %}">{% translate "Start new provider profile" %}</a>
+        <a class="inline-flex min-h-11 items-center rounded-xl border border-[#DDE3DF] px-4 py-2 font-semibold hover:border-[#12664F] focus:outline-none focus:ring-2 focus:ring-[#12664F] focus:ring-offset-2" href="{% url 'account-claim-list' %}">{% translate "Claim existing provider" %}</a>
       </div>
     </section>
   {% endif %}
@@ -52,18 +62,37 @@
   <div class="mt-6 grid gap-6">
     {% for row in dashboard_rows %}
       {% with membership=row.membership provider=row.membership.provider %}
-      <section class="rounded-2xl border border-slate-200 p-5" aria-labelledby="provider-{{ provider.id }}">
+      <section class="rounded-2xl border border-[#DDE3DF] bg-white p-5" aria-labelledby="provider-{{ provider.id }}" data-workspace-status="active">
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 id="provider-{{ provider.id }}" class="text-xl font-semibold">{{ provider.display_name }}</h2>
-            <p class="mt-1 text-sm text-slate-600">Status: {{ provider.get_lifecycle_display }}{% if row.revision %} · Revision: {{ row.revision.get_status_display }}{% endif %}</p>
+            <p class="mt-2 text-sm font-semibold uppercase tracking-wide text-[#5E6A65]">{% translate "Current status" %}</p>
+            <p class="mt-1 text-sm text-[#5E6A65]">{% translate "Profile status:" %} {{ provider.get_lifecycle_display }}{% if row.revision %} · {% translate "Revision:" %} {{ row.revision.get_status_display }}{% endif %}</p>
           </div>
-          <a class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium" href="{% url 'provider-workspace-edit' provider.id %}">Edit profile</a>
+        </div>
+
+        <div class="mt-4 rounded-xl bg-[#F6F7F4] p-4" data-next-action>
+          <p class="text-sm font-semibold">{% translate "Next action" %}</p>
+          {% if row.revision and row.revision.status == 'pending' %}
+            <p class="mt-1 text-sm text-[#5E6A65]">{% translate "Wait for profile review. Your last submitted revision is pending." %}</p>
+          {% elif row.revision and row.revision.status == 'changes_requested' %}
+            <p class="mt-1 text-sm text-[#5E6A65]">{% translate "Review the requested corrections, update the profile and submit it again." %}</p>
+            <a class="mt-3 inline-flex min-h-11 items-center rounded-xl bg-[#12664F] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0B4F3C]" href="{% url 'provider-workspace-edit' provider.id %}">{% translate "Update profile" %}</a>
+          {% elif row.completed < row.total %}
+            <p class="mt-1 text-sm text-[#5E6A65]">{% translate "Complete the missing profile details before submitting for review." %}</p>
+            <a class="mt-3 inline-flex min-h-11 items-center rounded-xl bg-[#12664F] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0B4F3C]" href="{% url 'provider-workspace-edit' provider.id %}">{% translate "Continue profile" %}</a>
+          {% else %}
+            <p class="mt-1 text-sm text-[#5E6A65]">{% translate "Review the profile preview and submit the current revision when it is ready." %}</p>
+            <div class="mt-3 flex flex-wrap gap-3">
+              <a class="inline-flex min-h-11 items-center rounded-xl border border-[#DDE3DF] px-4 py-2 text-sm font-semibold hover:border-[#12664F]" href="{% url 'provider-workspace-preview' provider.id %}">{% translate "Preview profile" %}</a>
+              <a class="inline-flex min-h-11 items-center rounded-xl bg-[#12664F] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0B4F3C]" href="{% url 'provider-workspace-edit' provider.id %}">{% translate "Edit profile" %}</a>
+            </div>
+          {% endif %}
         </div>
 
         <div class="mt-5">
-          <h3 class="font-semibold">Profile checklist</h3>
-          <p class="mt-1 text-sm text-slate-600">{{ row.completed }}/{{ row.total }} complete</p>
+          <h3 class="font-semibold">{% translate "Profile checklist" %}</h3>
+          <p class="mt-1 text-sm text-[#5E6A65]">{{ row.completed }}/{{ row.total }} {% translate "complete" %}</p>
           <ul class="mt-3 grid gap-2 sm:grid-cols-2">
             {% for label,complete in row.checklist %}
               <li class="text-sm">{% if complete %}✓{% else %}○{% endif %} {{ label }}</li>
@@ -71,25 +100,18 @@
           </ul>
         </div>
 
-        <div class="mt-5">
-          <h3 class="font-semibold">Aggregate analytics</h3>
+        <details class="mt-5 border-t border-[#DDE3DF] pt-5">
+          <summary class="cursor-pointer font-semibold">{% translate "Aggregate analytics" %}</summary>
           <dl class="mt-3 grid gap-3 sm:grid-cols-3">
-            <div><dt class="text-sm text-slate-600">Impressions</dt><dd class="text-2xl font-semibold">{{ row.impressions }}</dd></div>
-            <div><dt class="text-sm text-slate-600">Profile views</dt><dd class="text-2xl font-semibold">{{ row.profile_views }}</dd></div>
-            <div><dt class="text-sm text-slate-600">Contact clicks</dt><dd class="text-2xl font-semibold">{{ row.contact_clicks }}</dd></div>
+            <div><dt class="text-sm text-[#5E6A65]">{% translate "Impressions" %}</dt><dd class="text-2xl font-semibold">{{ row.impressions }}</dd></div>
+            <div><dt class="text-sm text-[#5E6A65]">{% translate "Profile views" %}</dt><dd class="text-2xl font-semibold">{{ row.profile_views }}</dd></div>
+            <div><dt class="text-sm text-[#5E6A65]">{% translate "Contact clicks" %}</dt><dd class="text-2xl font-semibold">{{ row.contact_clicks }}</dd></div>
           </dl>
-          <div class="mt-3 text-xs text-slate-500">
-            <p>Anonymous provider-level totals only. No visitor identity, IP address, search text, or cross-site identifier is stored or shown.</p>
-            <dl class="mt-2 grid gap-1">
-              <div><dt class="inline font-medium text-slate-600">Impressions:</dt> <dd class="inline">times this provider appears in anonymous public discovery results.</dd></div>
-              <div><dt class="inline font-medium text-slate-600">Profile views:</dt> <dd class="inline">anonymous public opens of this provider profile.</dd></div>
-              <div><dt class="inline font-medium text-slate-600">Contact clicks:</dt> <dd class="inline">tracked clicks from this provider profile to a public contact channel.</dd></div>
-            </dl>
-          </div>
-        </div>
+          <p class="mt-3 text-xs text-[#5E6A65]">{% translate "Anonymous provider-level totals only. No visitor identity, IP address, search text, or cross-site identifier is stored or shown." %}</p>
+        </details>
       </section>
       {% endwith %}
     {% endfor %}
   </div>
-</main>
+</section>
 {% endblock %}
