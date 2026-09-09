@@ -1,13 +1,27 @@
 {% extends "base.html" %}
-{% block title %}Report {{ provider.display_name }} · Finrix Palvelut{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Report provider content" %} · Finrix Palvelut{% endblock %}
 {% block content %}
 <section class="mx-auto max-w-2xl px-4 py-10">
-  <h1 class="text-3xl font-bold">Report content</h1>
-  <p class="mt-3 text-slate-600">Report inaccurate, harmful or otherwise problematic content on {{ provider.display_name }}. No account is required.</p>
-  <form method="post" class="mt-8 space-y-5">
+  <p class="text-sm font-semibold uppercase tracking-wide text-[#5E6A65]">{% translate "Directory trust" %}</p>
+  <h1 class="mt-3 text-3xl font-bold">{% translate "Report provider content" %}</h1>
+  <p class="mt-3 text-[#5E6A65]">
+    {% blocktranslate with provider_name=provider.display_name %}Report suspected illegal content, impersonation, inaccurate information or another directory-policy problem on {{ provider_name }}. No account is required.{% endblocktranslate %}
+  </p>
+  <div class="mt-5 rounded-2xl border border-[#DDE3DF] bg-white p-5 text-sm text-[#5E6A65]">
+    <p class="font-semibold text-[#17211D]">{% translate "What happens next" %}</p>
+    <p class="mt-2">{% translate "Finrix staff reviews the report and may request clarification, notify the provider, correct or restrict content, dismiss the report, or take another proportionate action. A report does not automatically remove a profile." %}</p>
+    <p class="mt-2">{% translate "After submission you receive a private status code. Keep it confidential: it lets you check the report status without an account." %}</p>
+    <p class="mt-2">{% translate "Do not use this form for emergencies. Contact the appropriate emergency or public authority when immediate action is required." %}</p>
+  </div>
+  <form method="post" class="mt-6 space-y-5 rounded-2xl border border-[#DDE3DF] bg-white p-5 sm:p-6 [&_.errorlist]:mb-2 [&_.errorlist]:rounded-xl [&_.errorlist]:bg-red-50 [&_.errorlist]:p-3 [&_.errorlist]:text-sm [&_.errorlist]:text-[#B42318] [&_p]:space-y-2 [&_label]:block [&_label]:text-sm [&_label]:font-medium [&_select]:block [&_select]:w-full [&_select]:rounded-xl [&_select]:border [&_select]:border-[#DDE3DF] [&_select]:bg-white [&_select]:px-3 [&_select]:py-3 [&_textarea]:block [&_textarea]:min-h-32 [&_textarea]:w-full [&_textarea]:rounded-xl [&_textarea]:border [&_textarea]:border-[#DDE3DF] [&_textarea]:bg-white [&_textarea]:px-3 [&_textarea]:py-3 [&_.helptext]:text-sm [&_.helptext]:text-[#5E6A65]">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit" class="rounded bg-slate-900 px-4 py-2 text-white">Submit report</button>
+    <button type="submit" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#12664F] px-5 py-3 font-semibold text-white hover:bg-[#0B4F3C] focus:outline-none focus:ring-2 focus:ring-[#12664F] focus:ring-offset-2">{% translate "Submit report" %}</button>
   </form>
+  <p class="mt-5 text-sm text-[#5E6A65]">
+    {% translate "How report data is handled is described in the" %}
+    <a class="font-medium text-[#12664F] underline underline-offset-4" href="{% url 'legal-document' locale=locale document='privacy' %}">{% translate "privacy notice" %}</a>.
+  </p>
 </section>
 {% endblock %}

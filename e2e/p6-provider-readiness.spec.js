@@ -37,6 +37,8 @@ test("brand-new provider can enter self-service without preseeded provider or me
     await capture(page, testInfo, "for-professionals", "/palvelut/en/for-professionals/", width);
     await capture(page, testInfo, "for-professionals-fi", "/palvelut/fi/for-professionals/", width);
     await capture(page, testInfo, "for-professionals-ru", "/palvelut/ru/for-professionals/", width);
+    await capture(page, testInfo, "provider-terms", "/palvelut/en/legal/terms/", width);
+    await capture(page, testInfo, "privacy-notice", "/palvelut/en/legal/privacy/", width);
     await capture(page, testInfo, "register", "/palvelut/account/register/", width);
     await capture(page, testInfo, "login", "/palvelut/account/login/", width);
   }
@@ -107,5 +109,18 @@ test("brand-new provider can enter self-service without preseeded provider or me
 
   for (const width of widths) {
     await capture(page, testInfo, "ownership-pending", "/palvelut/account/profile/", width);
+  }
+});
+
+test("public report policy surface is retained across supported widths", async ({ page }, testInfo) => {
+  test.setTimeout(120_000);
+  await page.goto("/palvelut/en/search/?q=accounting");
+  await page.getByRole("link", { name: "View profile" }).first().click();
+  await page.getByRole("link", { name: "Report this profile" }).click();
+  await expect(page.getByText("What happens next")).toBeVisible();
+  await expect(page.getByText(/does not automatically remove a profile/)).toBeVisible();
+
+  for (const width of widths) {
+    await saveEvidence(page, testInfo, "content-report-policy", width);
   }
 });

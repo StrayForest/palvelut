@@ -4,31 +4,59 @@
 {% block title %}{{ document_title }} · Finrix Palvelut{% endblock %}
 
 {% block content %}
-<article class="prose max-w-3xl">
+<article class="mx-auto max-w-3xl px-4 py-10 text-[#17211D] [&_a]:font-medium [&_a]:text-[#12664F] [&_a]:underline [&_a]:underline-offset-4 [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:tracking-tight sm:[&_h1]:text-4xl [&_h2]:mt-8 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_p]:mt-3 [&_p]:leading-7 [&_strong]:font-semibold">
   <h1>{{ document_title }}</h1>
   <p>{% translate "Finrix Palvelut is a free beta directory operated by Aleksei Lisitcin as a private individual. Contact: aleksei.lisitsin1@gmail.com." %}</p>
 
   {% if document == "privacy" %}
     <h2>{% translate "Controller and contact" %}</h2>
     <p>{% translate "Data controller: Aleksei Lisitcin. Service: Finrix Palvelut (finrix.fi). Privacy contact: aleksei.lisitsin1@gmail.com." %}</p>
-    <h2>{% translate "Personal data and purposes" %}</h2>
-    <p>{% translate "The service processes provider account and profile data, moderation and verification records, security records, and minimal first-party aggregate analytics needed to operate, secure and improve the directory." %}</p>
-    <h2>{% translate "Legal basis and retention" %}</h2>
-    <p>{% translate "Account and provider-workspace data is processed to provide the service requested by the provider. Security, moderation and abuse-prevention records are processed for the controller's legitimate interests in operating a safe and reliable directory. Records are retained only for as long as needed for those purposes and applicable legal obligations." %}</p>
-    <h2>{% translate "Recipients and processors" %}</h2>
-    <p>{% translate "Data may be processed by infrastructure, email and other technical service providers used to run Finrix Palvelut. Personal data is not sold to advertisers." %}</p>
+
+    <h2>{% translate "What provider data is processed" %}</h2>
+    <p>{% translate "For provider accounts and onboarding, the service processes account email and authentication records; legal and display names; provider type and Y-tunnus where applicable; ownership-control evidence; provider-terms version and acceptance time; and, for an employed regulated professional, the professional-right reference and employer-authorization reference required for eligibility review." %}</p>
+    <p>{% translate "For an approved profile, the service also processes provider-supplied services, areas, languages, descriptions, prices, photos and contact channels. Fields intended for the public profile are published only after the required ownership and content review. Ownership and eligibility evidence is kept private from directory visitors." %}</p>
+    <p>{% translate "Moderation and trust records can include content reports, provider replies or appeals, staff review notes, verification source references, decisions and audit history. Data-rights requests can include the request type, requester note, staff outcome and event history." %}</p>
+    <p>{% translate "Security and operations records include session and authentication events, request identifiers and audit events needed to prevent abuse and investigate incidents. Product analytics are first-party and deliberately minimize visitor data: no user account, precise location, message body or cross-site identifier is collected for MVP analytics." %}</p>
+
+    <h2>{% translate "Purposes and legal bases" %}</h2>
+    <p>{% translate "Provider account, onboarding, ownership review, workspace and publication data is processed to take steps requested by the provider and to provide the beta directory service under the provider terms. Security, fraud prevention, moderation, factual verification, audit records and service-quality analytics are processed for the controller's legitimate interests in operating a safe, accurate and reliable directory. Data required by applicable law may also be processed to meet that legal obligation." %}</p>
+
+    <h2>{% translate "Sources" %}</h2>
+    <p>{% translate "Account, onboarding and profile information is normally supplied by the provider. Verification can also use identified public official sources such as Finnish business or professional registers. Imported draft records remain non-public until the provider proves control and staff approves the claim." %}</p>
+
+    <h2>{% translate "Retention" %}</h2>
+    <p>{% translate "Provider account and workspace data is retained while needed to provide the account and manage the provider relationship. Ownership, verification, moderation, security and audit records are retained while needed to document decisions, handle disputes, prevent abuse and meet applicable legal obligations. When those purposes no longer require identifiable records, they are deleted or de-identified through the controlled data-rights and retention process." %}</p>
+    <p>{% translate "Raw product-analytics events expire after 90 days. Daily aggregates retain no visitor identity." %}</p>
+
+    <h2>{% translate "Recipients, processors and international transfers" %}</h2>
+    <p>{% translate "Data may be processed by infrastructure, storage, email, security and other technical service providers used to run Finrix Palvelut. Personal data is not sold to advertisers. If a processor handles personal data outside the EU/EEA, the controller uses an applicable GDPR transfer mechanism and safeguards before that processing is enabled." %}</p>
+
     <h2>{% translate "Your rights" %}</h2>
-    <p>{% translate "Depending on the processing, you may request access, correction, deletion, restriction or portability, or object to processing. You may also lodge a complaint with the competent data-protection authority. Signed-in providers can submit an access, export or deletion request through the service." %}</p>
+    <p>{% translate "Depending on the processing, you may request access, correction, deletion, restriction or portability, or object to processing. You may also lodge a complaint with the competent data-protection authority. Signed-in providers can submit an access, export or deletion request through the service; other privacy requests can be sent to the privacy contact above." %}</p>
     <p><a href="{% url 'data-subject-requests' %}">{% translate "Manage data requests" %}</a></p>
+
   {% elif document == "terms" %}
-    <h2>{% translate "Beta service" %}</h2>
-    <p>{% translate "Finrix Palvelut is currently provided free of charge as a beta directory. Listing in the directory does not create an employment, agency or endorsement relationship with the operator." %}</p>
-    <h2>{% translate "Provider responsibility" %}</h2>
-    <p>{% translate "Providers are responsible for supplying accurate public identity, service, price, area and contact information and for keeping it current. Providers must have the right to publish all submitted content." %}</p>
+    <p><strong>{% translate "Current provider-terms version: 2026-09-10." %}</strong></p>
+
+    <h2>{% translate "Beta service and relationship" %}</h2>
+    <p>{% translate "Finrix Palvelut is currently provided free of charge as a beta directory. Listing in the directory does not create an employment, agency, partnership or endorsement relationship with the operator. A customer contacts and contracts with the provider directly; Finrix Palvelut is not a party to that service contract." %}</p>
+
+    <h2>{% translate "Who may list" %}</h2>
+    <p>{% translate "A business or self-employed commercial provider must have an active Finnish Y-tunnus and a public legal identity that can be matched to the applicable Finnish register. An employed regulated professional may list only after identity, the applicable official professional right and employer authorization to list services are reviewed. Informal, anonymous, prohibited, suspended or unverifiable providers are not eligible for publication." %}</p>
+
+    <h2>{% translate "Ownership and provider responsibility" %}</h2>
+    <p>{% translate "The person claiming a profile must provide independent evidence of authority to control that provider profile. Email possession by itself does not transfer ownership. Providers are responsible for supplying accurate identity, service, price, area, language and contact information, keeping it current, and having the right to publish all submitted text and media." %}</p>
+
     <h2>{% translate "Verification and moderation" %}</h2>
-    <p>{% translate "A verification label confirms only the specific fact, source and check date shown. It does not guarantee service quality or any licence that was not explicitly checked. Profiles and revisions may be corrected, unpublished, suspended or rejected when necessary for directory integrity, safety or legal compliance." %}</p>
-    <h2>{% translate "Availability" %}</h2>
-    <p>{% translate "The beta service may change, be interrupted or be discontinued. The operator does not guarantee uninterrupted availability or that every provider or service in Finland is represented." %}</p>
+    <p>{% translate "A verification label confirms only the specific fact, source and check date shown. It does not guarantee service quality or any licence, registration or authorization that was not explicitly checked. Ownership approval does not publish a profile: profile content is reviewed separately before publication." %}</p>
+    <p>{% translate "Profiles and revisions may be corrected, rejected, unpublished, suspended or archived when needed for directory integrity, safety or legal compliance. Users may report suspected illegal content, impersonation, inaccurate information or other problems without creating an account. Providers can see provider-visible moderation notices and use the available appeal process." %}</p>
+
+    <h2>{% translate "Privacy and evidence" %}</h2>
+    <p>{% translate "Ownership and eligibility evidence, including professional-right and employer-authorization references where required, is processed for review and audit but is not published merely because it was submitted. The privacy notice describes the data categories, purposes, retention criteria, processors and data-rights route." %}</p>
+
+    <h2>{% translate "Availability and changes" %}</h2>
+    <p>{% translate "The beta service may change, be interrupted or be discontinued. The operator does not guarantee uninterrupted availability, customer enquiries, ranking, publication, or that every provider or service in Finland is represented. When provider terms change materially, a new version is issued and new ownership approval requires acceptance of that current version." %}</p>
+
   {% elif document == "cookies" %}
     <h2>{% translate "Current cookie use" %}</h2>
     <p>{% translate "Finrix Palvelut uses only cookies and equivalent storage needed for security, sessions and signed-in account functionality. Product analytics are first-party and aggregate and do not create cross-site visitor profiles." %}</p>
