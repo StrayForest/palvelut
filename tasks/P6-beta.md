@@ -1,15 +1,26 @@
 # P6 — Helsinki beta
 
-Depends: P5. Read: `docs/01-product.md`, `docs/02-research.md`.
+Depends: P5. Read: `docs/01-product.md`, `docs/03-experience.md`, `docs/04-design.md`, `docs/06-quality.md`.
+
+## Readiness
+
+- Make the provider self-service acquisition path work end to end for a brand-new verified account: public provider CTA / `for-professionals` entry → registration/login → create a private provider identity or claim an existing unclaimed draft → submit independent control evidence → staff ownership approval → provider workspace. A new provider must not require a staff-preseeded `Provider` row or direct database `ProviderMembership` creation. Keep every self-created record non-public until ownership and later profile moderation pass.
+- Require explicit provider-terms acceptance and align the collected legal/identity fields with the eligibility contract before ownership review.
+- Bring provider auth/onboarding/workspace surfaces to the design and localization contract, with clear status/next-action states and visible account/workspace navigation.
+- Retain and manually review full-page screenshots for provider acquisition/onboarding at 360, 390, 768, 1024 and 1440 px: public CTA, `for-professionals`, register/login, new-provider bootstrap/claim state, workspace, edit and preview. Check hierarchy, design tokens, focus/error states, text expansion and horizontal overflow.
+- Run a fresh-account beta rehearsal: register → verify email → start/claim provider → staff approve ownership → complete profile → preview → submit → staff approve content → discover public profile → use tracked contact. The primary rehearsal account must not be granted membership by fixture/database setup.
+- Re-review provider terms, privacy/data fields, moderation wording and controller surfaces against the actual beta flow; unresolved legal/policy uncertainty blocks launch.
+- Connect Search Console/Bing, production monitoring and the funnel/dashboard used for the beta decision; freeze metric, schema and bot-rule versions and reconcile raw events to aggregates before launch.
+
+Do not start provider recruitment for the launch-density target until all Readiness items above are complete and archived.
 
 ## Operate
 
 - Manually recruit/onboard 50 providers and meet every pre-launch density gate.
 - Review all public content and verification wording; suppress thin pages.
-- Connect Search Console/Bing, production monitoring and funnel dashboard.
 - Launch through Finrix with one clear search promise and provider CTA.
 - Run 30 days; interview providers/users and record aggregate outcomes.
-- Freeze metric/schema/bot-rule versions before launch; reconcile raw events to aggregates and sample at least 20 eligible users.
+- Reconcile raw events to aggregates and sample at least 20 eligible users using the frozen definitions.
 
 ## Decide
 
