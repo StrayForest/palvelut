@@ -4,7 +4,6 @@ Depends: P5. Read: `docs/01-product.md`, `docs/03-experience.md`, `docs/04-desig
 
 ## Readiness
 
-- Make the provider self-service acquisition path work end to end for a brand-new verified account: public provider CTA / `for-professionals` entry → registration/login → create a private provider identity or claim an existing unclaimed draft → submit independent control evidence → staff ownership approval → provider workspace. A new provider must not require a staff-preseeded `Provider` row or direct database `ProviderMembership` creation. Keep every self-created record non-public until ownership and later profile moderation pass.
 - Require explicit provider-terms acceptance and align the collected legal/identity fields with the eligibility contract before ownership review.
 - Bring provider auth/onboarding/workspace surfaces to the design and localization contract, with clear status/next-action states and visible account/workspace navigation.
 - Retain and manually review full-page screenshots for provider acquisition/onboarding at 360, 390, 768, 1024 and 1440 px: public CTA, `for-professionals`, register/login, new-provider bootstrap/claim state, workspace, edit and preview. Check hierarchy, design tokens, focus/error states, text expansion and horizontal overflow.
