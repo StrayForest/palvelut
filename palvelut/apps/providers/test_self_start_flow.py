@@ -52,7 +52,9 @@ class ProviderSelfStartFlowTests(TestCase):
         self.assertContains(entry, reverse("account-register"))
         self.assertContains(entry, reverse("account-login"))
 
-    def test_new_verified_account_can_start_private_provider_without_preseed(self) -> None:
+    def test_new_verified_account_can_start_private_provider_without_preseed(
+        self,
+    ) -> None:
         self.assertFalse(Provider.objects.exists())
         self.assertFalse(ProviderMembership.objects.exists())
 
