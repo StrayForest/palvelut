@@ -39,7 +39,9 @@ class StaffContentCaseForm(forms.Form):
         )
     )
     note = forms.CharField(
-        max_length=2000, widget=forms.Textarea(attrs={"rows": 5}), label=_("Review note")
+        max_length=2000,
+        widget=forms.Textarea(attrs={"rows": 5}),
+        label=_("Review note"),
     )
 
 
