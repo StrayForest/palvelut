@@ -17,19 +17,26 @@
   <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
   <script src="{% static 'vendor/alpine.min.js' %}" defer></script>
 </head>
-<body class="min-h-screen bg-white text-slate-950 antialiased">
-  <a class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-white focus:px-3 focus:py-2 focus:shadow" href="#main-content">{% translate "Skip to main content" %}</a>
-  <header class="border-b border-slate-200">
-    <nav aria-label="{% translate 'Primary navigation' %}" class="mx-auto max-w-6xl px-4 py-4 sm:px-6 lg:px-8">{% translate "Finrix Palvelut" %}</nav>
+<body class="min-h-screen bg-[#F6F7F4] text-[#17211D] antialiased">
+  <a class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-xl focus:bg-white focus:px-3 focus:py-2 focus:shadow" href="#main-content">{% translate "Skip to main content" %}</a>
+  <header class="border-b border-[#DDE3DF] bg-white">
+    <nav aria-label="{% translate 'Primary navigation' %}" class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
+      <a class="text-lg font-bold tracking-tight text-[#17211D]" href="{% url 'localized-home' locale=LANGUAGE_CODE %}">{% translate "Finrix Palvelut" %}</a>
+      <div class="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 text-sm font-semibold">
+        <a class="rounded-xl px-2 py-2 text-[#17211D] hover:text-[#12664F] focus:outline-none focus:ring-2 focus:ring-[#12664F] focus:ring-offset-2" href="{% url 'for-professionals' locale=LANGUAGE_CODE %}">{% translate "For professionals" %}</a>
+        <a class="rounded-xl px-2 py-2 text-[#17211D] hover:text-[#12664F] focus:outline-none focus:ring-2 focus:ring-[#12664F] focus:ring-offset-2" href="{% url 'provider-workspace' %}">{% translate "Provider workspace" %}</a>
+        <a class="inline-flex min-h-11 items-center rounded-xl bg-[#12664F] px-4 py-2 text-white hover:bg-[#0B4F3C] focus:outline-none focus:ring-2 focus:ring-[#12664F] focus:ring-offset-2" href="{% url 'account-login' %}">{% translate "Sign in" %}</a>
+      </div>
+    </nav>
   </header>
   <main class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8" id="main-content" tabindex="-1">{% block content %}{% endblock %}</main>
-  <footer class="mx-auto max-w-6xl px-4 py-8 text-sm text-slate-600 sm:px-6 lg:px-8">
+  <footer class="mx-auto max-w-6xl px-4 py-8 text-sm text-[#5E6A65] sm:px-6 lg:px-8">
     <p>{% translate "Find specialists and contact them directly." %}</p>
-    <nav aria-label="{% translate 'Legal' %}">
-      <a href="{% url 'legal-document' locale=LANGUAGE_CODE document='privacy' %}">{% translate "Privacy" %}</a>
-      <a href="{% url 'legal-document' locale=LANGUAGE_CODE document='terms' %}">{% translate "Terms" %}</a>
-      <a href="{% url 'legal-document' locale=LANGUAGE_CODE document='cookies' %}">{% translate "Cookies" %}</a>
-      <a href="{% url 'legal-document' locale=LANGUAGE_CODE document='accessibility' %}">{% translate "Accessibility" %}</a>
+    <nav aria-label="{% translate 'Legal' %}" class="mt-3 flex flex-wrap gap-x-4 gap-y-2">
+      <a class="underline underline-offset-4" href="{% url 'legal-document' locale=LANGUAGE_CODE document='privacy' %}">{% translate "Privacy" %}</a>
+      <a class="underline underline-offset-4" href="{% url 'legal-document' locale=LANGUAGE_CODE document='terms' %}">{% translate "Terms" %}</a>
+      <a class="underline underline-offset-4" href="{% url 'legal-document' locale=LANGUAGE_CODE document='cookies' %}">{% translate "Cookies" %}</a>
+      <a class="underline underline-offset-4" href="{% url 'legal-document' locale=LANGUAGE_CODE document='accessibility' %}">{% translate "Accessibility" %}</a>
     </nav>
   </footer>
 </body>
