@@ -42,7 +42,8 @@ class NewProviderClaimForm(ProviderClaimForm):
         value = self.cleaned_data.get("y_tunnus", "").strip()
         if value and Provider.objects.filter(y_tunnus=value).exists():
             raise forms.ValidationError(
-                "A provider with this Y-tunnus already exists. Claim the existing profile instead."
+                "A provider with this Y-tunnus already exists. "
+                "Claim the existing profile instead."
             )
         return value
 
@@ -57,5 +58,7 @@ class NewProviderClaimForm(ProviderClaimForm):
 
 
 class StaffClaimDecisionForm(forms.Form):
-    decision = forms.ChoiceField(choices=(("approve", "Approve"), ("reject", "Reject")))
+    decision = forms.ChoiceField(
+        choices=(("approve", "Approve"), ("reject", "Reject")),
+    )
     review_note = forms.CharField(max_length=500, required=False, widget=forms.Textarea)
