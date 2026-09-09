@@ -230,7 +230,9 @@ def resolve_provider_claim(
     if evidence.get("kind") not in ALLOWED_CLAIM_EVIDENCE:
         raise ValidationError("Claim lacks independent business-control evidence")
     if evidence.get("provider_terms_version") != CURRENT_PROVIDER_TERMS_VERSION:
-        raise ValidationError("Claim does not include acceptance of the current provider terms")
+        raise ValidationError(
+            "Claim does not include acceptance of the current provider terms"
+        )
     if not evidence.get("provider_terms_accepted_at"):
         raise ValidationError("Provider terms acceptance timestamp is missing")
     _validate_provider_eligibility(
