@@ -7,7 +7,7 @@ from django.views.decorators.http import require_http_methods, require_POST
 
 from palvelut.apps.analytics.services import aggregate_provider_metrics
 from palvelut.apps.providers.access_audit import audit_cross_provider_denial
-from palvelut.apps.providers.models import ProviderMembership
+from palvelut.apps.providers.models import Provider, ProviderMembership
 from palvelut.apps.providers.workspace_forms import ProviderProfileForm
 from palvelut.apps.providers.workspace_services import (
     autosave_revision,
@@ -134,10 +134,24 @@ def workspace(request):
                 "contact_clicks": provider_metrics["contact_click"],
             }
         )
+
+    ownership_claims = list(
+        Provider.objects.filter(
+            claim_evidence__claimant_user_id=str(request.user.pk),
+            claim_status__in=(
+                Provider.ClaimStatus.PENDING,
+                Provider.ClaimStatus.REJECTED,
+            ),
+        ).order_by("-updated_at", "id")
+    )
     response = render(
         request,
         "providers/workspace.html",
-        {"dashboard_rows": dashboard_rows},
+        {
+            "dashboard_rows": dashboard_rows,
+            "ownership_claims": ownership_claims,
+            "robots_meta": "noindex,nofollow",
+        },
     )
     response["Cache-Control"] = "private, no-store"
     return response

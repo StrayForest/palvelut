@@ -1,8 +1,54 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% block content %}
 <main>
-  <h1>Provider workspace</h1>
-  {% if request.GET.submitted %}<p role="status">Profile submitted for review.</p>{% endif %}
+  <div class="flex flex-wrap items-start justify-between gap-4">
+    <div>
+      <p class="text-sm font-semibold uppercase tracking-wide text-slate-500">{% translate "For professionals" %}</p>
+      <h1 class="mt-2 text-3xl font-bold tracking-tight">Provider workspace</h1>
+    </div>
+    <a class="inline-flex min-h-11 items-center rounded-lg border border-slate-300 px-4 py-2 font-semibold" href="{% url 'account-provider-start' %}">{% translate "Start another provider profile" %}</a>
+  </div>
+
+  {% if request.GET.submitted %}<p class="mt-4 rounded-xl bg-slate-50 p-4" role="status">Profile submitted for review.</p>{% endif %}
+
+  {% if ownership_claims %}
+    <section class="mt-6" aria-labelledby="ownership-title">
+      <h2 class="text-xl font-semibold" id="ownership-title">{% translate "Ownership review" %}</h2>
+      <div class="mt-3 grid gap-4">
+        {% for provider in ownership_claims %}
+          <article class="rounded-2xl border border-slate-200 p-5">
+            <div class="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h3 class="text-lg font-semibold">{{ provider.display_name }}</h3>
+                <p class="mt-1 text-sm text-slate-600">{% translate "Ownership claim:" %} {{ provider.get_claim_status_display }}</p>
+              </div>
+              {% if provider.claim_status == 'rejected' %}
+                <a class="inline-flex min-h-11 items-center rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold" href="{% url 'account-claim-provider' provider.id %}">{% translate "Update ownership evidence" %}</a>
+              {% endif %}
+            </div>
+            {% if provider.claim_status == 'pending' %}
+              <p class="mt-3 text-sm text-slate-600">{% translate "Finrix staff must approve provider ownership before the profile workspace unlocks. Nothing is public yet." %}</p>
+            {% else %}
+              <p class="mt-3 text-sm text-slate-600">{% translate "The previous ownership evidence was not accepted. You can submit new evidence for review." %}</p>
+            {% endif %}
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+
+  {% if not dashboard_rows and not ownership_claims %}
+    <section class="mt-6 rounded-2xl border border-slate-200 p-6" id="workspace-empty-state">
+      <h2 class="text-xl font-semibold">{% translate "Start your provider profile" %}</h2>
+      <p class="mt-2 text-slate-600">{% translate "Create a new private provider record or claim an existing Finrix draft. Ownership must be approved before profile editing starts." %}</p>
+      <div class="mt-5 flex flex-wrap gap-3">
+        <a class="inline-flex min-h-11 items-center rounded-lg bg-slate-950 px-4 py-2 font-semibold text-white" href="{% url 'account-provider-start' %}">{% translate "Start new provider profile" %}</a>
+        <a class="inline-flex min-h-11 items-center rounded-lg border border-slate-300 px-4 py-2 font-semibold" href="{% url 'account-claim-list' %}">{% translate "Claim existing provider" %}</a>
+      </div>
+    </section>
+  {% endif %}
+
   <div class="mt-6 grid gap-6">
     {% for row in dashboard_rows %}
       {% with membership=row.membership provider=row.membership.provider %}
@@ -43,8 +89,6 @@
         </div>
       </section>
       {% endwith %}
-    {% empty %}
-      <p>No provider workspace yet.</p>
     {% endfor %}
   </div>
 </main>

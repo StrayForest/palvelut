@@ -1,13 +1,67 @@
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.http import HttpRequest, HttpResponse
+from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import translation
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 
-from .claim_forms import ProviderClaimForm, StaffClaimDecisionForm
-from .claim_services import resolve_provider_claim, submit_provider_claim
+from .claim_forms import NewProviderClaimForm, ProviderClaimForm, StaffClaimDecisionForm
+from .claim_services import (
+    resolve_provider_claim,
+    start_new_provider_claim,
+    submit_provider_claim,
+)
 from .models import Provider
+
+SUPPORTED_LOCALES = {code for code, _name in settings.LANGUAGES}
+
+
+def for_professionals(request: HttpRequest, locale: str) -> HttpResponse:
+    if locale not in SUPPORTED_LOCALES:
+        raise Http404("Unsupported locale")
+    hreflang_links = [
+        (code, f"{settings.PUBLIC_BASE_URL}/{code}/for-professionals/")
+        for code, _name in settings.LANGUAGES
+    ]
+    context = {
+        "locale": locale,
+        "canonical_url": f"{settings.PUBLIC_BASE_URL}/{locale}/for-professionals/",
+        "hreflang_links": hreflang_links,
+        "x_default_url": (
+            f"{settings.PUBLIC_BASE_URL}/{settings.LANGUAGE_CODE}/for-professionals/"
+        ),
+        "robots_meta": "index,follow",
+        "meta_description": "Create or claim a provider profile for Finrix Palvelut.",
+    }
+    with translation.override(locale):
+        return render(request, "providers/for_professionals.html", context)
+
+
+@never_cache
+@login_required
+@require_http_methods(["GET", "POST"])
+def start_provider(request: HttpRequest) -> HttpResponse:
+    form = NewProviderClaimForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        try:
+            start_new_provider_claim(
+                actor=request.user,
+                provider_type=form.cleaned_data["provider_type"],
+                legal_name=form.cleaned_data["legal_name"],
+                display_name=form.cleaned_data["display_name"],
+                y_tunnus=form.cleaned_data["y_tunnus"],
+                evidence_kind=form.cleaned_data["evidence_kind"],
+                evidence_reference=form.cleaned_data["evidence_reference"],
+            )
+        except ValidationError as exc:
+            form.add_error(None, exc)
+        else:
+            return redirect("provider-workspace")
+    response = render(request, "providers/start_provider.html", {"form": form})
+    response["Cache-Control"] = "private, no-store"
+    return response
 
 
 @never_cache

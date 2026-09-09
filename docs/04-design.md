@@ -38,9 +38,11 @@ Desktop: results plus compact filter rail; mobile: list plus filter sheet. Start
 
 Identity/trust summary first, evidence and details second. Primary contact stays reachable with one thumb; destructive/report actions are visually quiet but accessible.
 
-### Provider workspace
+### Provider acquisition and workspace
 
-Status and next required action first. Use a progress checklist, autosaved drafts, field-level errors and a true public preview. Analytics show definitions, not vanity charts.
+The public provider CTA and `for-professionals` page must explain the sequence before account creation: verify email → prove provider ownership/control → complete private profile → submit for review → publish after approval. Registration/login pages must look like first-class product surfaces rather than framework defaults.
+
+After sign-in, show the current ownership/profile state and the single next required action first. A new account with no provider membership must be able to start a private provider claim. Pending ownership review must be explicit and must not look published. The workspace uses a progress checklist, autosaved drafts, field-level errors and a true public preview. Analytics show definitions, not vanity charts.
 
 ## Content rules
 
@@ -56,4 +58,6 @@ Required widths: 360, 390, 768, 1024, 1440. Support 200% zoom, keyboard-only use
 
 ## Visual acceptance
 
-P2 PRs retain full-page screenshots for home, results, empty state, profile and provider CTA at 360, 768 and 1440px. Review against this document for hierarchy, token use, text expansion, focus/error states, image treatment and horizontal overflow. A fresh review session must approve the evidence; pixel-perfect snapshots are not a substitute for accessibility or responsive checks.
+P2 PRs retain full-page screenshots for home, results, empty state, profile and provider CTA at 360, 768 and 1440px.
+
+Before P6 recruitment starts, retain a fresh provider-acquisition evidence set at 360, 390, 768, 1024 and 1440px for: public provider CTA, `for-professionals`, register/login, new-provider bootstrap or claim state, workspace, edit and preview. Review the actual PNG evidence against this document for hierarchy, token use, text expansion, focus/error states, image treatment and horizontal overflow. A fresh review session must approve the evidence; pixel-perfect snapshots are not a substitute for accessibility or responsive checks.

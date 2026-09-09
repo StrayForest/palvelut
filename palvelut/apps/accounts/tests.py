@@ -79,9 +79,7 @@ class ProviderAccountSecurityTests(TestCase):
             reverse("account-login"),
             {"username": user.email, "password": TEST_PASSWORD},
         )
-        self.assertRedirects(
-            success, reverse("localized-home", kwargs={"locale": "fi"})
-        )
+        self.assertRedirects(success, reverse("provider-workspace"))
         self.assertNotEqual(old_key, self.client.session.session_key)
 
     def test_login_throttle_cannot_be_bypassed_by_identity_variants(self):

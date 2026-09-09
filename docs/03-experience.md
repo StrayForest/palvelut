@@ -47,15 +47,17 @@ Never show a generic `Verified professional` badge. Examples: `Y-tunnus found in
 
 ## Provider onboarding
 
-1. Verify email and accept provider terms.
-2. Choose individual/company and satisfy the provider eligibility contract.
-3. Add category, cities, remote/on-site mode and languages.
-4. Add public identity, description, prices, photos and contacts.
-5. Preview exact public page.
-6. Submit immutable revision for staff review.
-7. Publish or return structured corrections.
+1. Verify email and explicitly accept the current provider terms.
+2. Enter the minimum private legal identity needed to start: individual/company type, legal/display name and Y-tunnus when applicable.
+3. For a new provider, create a non-public `unclaimed` provider record and submit independent control evidence. For an imported provider, select the existing non-public draft and submit the same claim evidence.
+4. Staff reviews legal identity/control evidence. Only an approved ownership claim creates the active owner membership and unlocks the provider workspace; claim approval does not publish the profile.
+5. Add category, cities, remote/on-site mode and languages.
+6. Add public description, prices, photos and contacts.
+7. Preview the exact public page.
+8. Submit an immutable profile revision for staff content/verification review.
+9. Publish or return structured corrections. Edits to a live profile create a pending revision while the current approved version remains public.
 
-Edits to a live profile create a pending revision; the current approved version remains public.
+A brand-new provider must be able to complete steps 1–3 without a staff-preseeded `Provider` row or direct database membership creation.
 
 ## Claim an existing draft
 
@@ -69,4 +71,4 @@ Imported records are never public. A provider signs in, selects the draft, and p
 
 ## Staff workflow
 
-Queue → revision diff → official-source checks → preview → approve/reject with reason → audit event → cache/SEO invalidation. Reports and stale profiles use the same case system.
+Queue → ownership/revision diff → official-source checks → preview → approve/reject with reason → audit event → cache/SEO invalidation. Reports and stale profiles use the same case system.

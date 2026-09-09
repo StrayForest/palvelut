@@ -42,8 +42,10 @@ from palvelut.apps.moderation.views import (
 from palvelut.apps.providers.claim_views import (
     claim_candidates,
     claim_provider,
+    for_professionals,
     staff_claim_list,
     staff_claim_review,
+    start_provider,
 )
 from palvelut.apps.providers.workspace_views import (
     edit_profile,
@@ -129,6 +131,11 @@ urlpatterns = [
         name="account-password-reset-complete",
     ),
     path("palvelut/account/mfa/", staff_mfa, name="staff-mfa"),
+    path(
+        "palvelut/account/provider/start/",
+        start_provider,
+        name="account-provider-start",
+    ),
     path("palvelut/account/claims/", claim_candidates, name="account-claim-list"),
     path(
         "palvelut/account/claims/<uuid:provider_id>/",
@@ -207,6 +214,11 @@ urlpatterns = [
     path("palvelut/<str:locale>/", cached_home, name="localized-home"),
     path("palvelut/<str:locale>/search/", cached_search, name="discovery-search"),
     path("palvelut/<str:locale>/trust/", cached_trust, name="trust"),
+    path(
+        "palvelut/<str:locale>/for-professionals/",
+        for_professionals,
+        name="for-professionals",
+    ),
     path(
         "palvelut/<str:locale>/legal/<str:document>/",
         legal_document,
