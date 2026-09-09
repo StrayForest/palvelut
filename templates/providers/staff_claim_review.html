@@ -1,15 +1,22 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% block content %}
-<main class="mx-auto max-w-xl px-4 py-10">
-  <h1 class="text-2xl font-semibold">Review {{ provider.display_name }}</h1>
-  <dl class="mt-4">
-    <dt>Evidence type</dt><dd>{{ provider.claim_evidence.kind }}</dd>
-    <dt>Evidence reference</dt><dd>{{ provider.claim_evidence.reference }}</dd>
+<main class="mx-auto max-w-2xl px-4 py-10">
+  <h1 class="text-2xl font-semibold">{% blocktranslate with name=provider.display_name %}Review {{ name }}{% endblocktranslate %}</h1>
+  <dl class="mt-5 grid gap-x-4 gap-y-3 rounded-xl border border-slate-200 p-5 sm:grid-cols-[12rem_1fr]">
+    <dt class="font-medium">{% translate "Provider type" %}</dt><dd>{{ provider.get_provider_type_display }}</dd>
+    <dt class="font-medium">{% translate "Legal name" %}</dt><dd>{{ provider.legal_name }}</dd>
+    <dt class="font-medium">{% translate "Y-tunnus" %}</dt><dd>{{ provider.y_tunnus|default:"—" }}</dd>
+    <dt class="font-medium">{% translate "Evidence type" %}</dt><dd>{{ provider.claim_evidence.kind }}</dd>
+    <dt class="font-medium">{% translate "Evidence reference" %}</dt><dd class="break-words">{{ provider.claim_evidence.reference }}</dd>
+    <dt class="font-medium">{% translate "Professional right" %}</dt><dd class="break-words">{{ provider.claim_evidence.professional_right_reference|default:"—" }}</dd>
+    <dt class="font-medium">{% translate "Employer authorization" %}</dt><dd class="break-words">{{ provider.claim_evidence.employer_authorization_reference|default:"—" }}</dd>
+    <dt class="font-medium">{% translate "Provider terms" %}</dt><dd>{{ provider.claim_evidence.provider_terms_version }} · {{ provider.claim_evidence.provider_terms_accepted_at }}</dd>
   </dl>
   <form method="post" class="mt-6 space-y-4">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit" class="rounded bg-slate-900 px-4 py-2 text-white">Record decision</button>
+    <button type="submit" class="min-h-11 rounded-lg bg-slate-900 px-4 py-2 text-white">{% translate "Record decision" %}</button>
   </form>
 </main>
 {% endblock %}
