@@ -10,7 +10,7 @@ Run one stage at a time. Each stage must leave a deployable main branch.
 | P3 | Provider account, onboarding, profile revisions | [tasks/P3-provider.md](tasks/P3-provider.md) |
 | P4 | Verification, reports, legal/accessibility surfaces | [tasks/P4-trust.md](tasks/P4-trust.md) |
 | P5 | Reproducible host, cache, observability, backups, deploy and load gates | [tasks/P5-production.md](tasks/P5-production.md) |
-| P6 | Seeded Helsinki beta and GO/NO-GO measurement | [tasks/P6-beta.md](tasks/P6-beta.md) |
+| P6 | Provider beta readiness, seeded Helsinki beta and GO/NO-GO measurement | [tasks/P6-beta.md](tasks/P6-beta.md) |
 | P7 | Paid visibility, only after GO | [tasks/P7-monetization.md](tasks/P7-monetization.md) |
 
 Current stage: **P6**.
