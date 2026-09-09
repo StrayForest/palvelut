@@ -9,47 +9,38 @@
     <p class="mt-3 text-[#5E6A65]">{% translate "Review the profile as a customer will see it. Nothing becomes public until staff approves the submitted revision." %}</p>
   </header>
 
+  {% with service=payload.services.0 contact=payload.contacts.0 %}
   <article class="mt-8 overflow-hidden rounded-2xl border border-[#DDE3DF] bg-white shadow-sm" aria-labelledby="preview-provider-name">
     <div class="border-b border-[#DDE3DF] bg-[#F7F9F8] p-5 sm:p-6">
       <p class="text-xs font-semibold uppercase tracking-wide text-[#5E6A65]">{% translate "Profile preview" %}</p>
       <h2 id="preview-provider-name" class="mt-2 text-2xl font-bold tracking-tight text-[#17211D]">{{ payload.display_name }}</h2>
-      {% if payload.service_title %}<p class="mt-2 text-base font-medium text-[#12664F]">{{ payload.service_title }}</p>{% endif %}
+      {% if service.title %}<p class="mt-2 text-base font-medium text-[#12664F]">{{ service.title }}</p>{% endif %}
     </div>
 
     <div class="grid gap-6 p-5 sm:p-6">
-      {% if payload.service_description %}
+      {% if service.description %}
         <section aria-labelledby="preview-service-heading">
           <h3 id="preview-service-heading" class="text-sm font-semibold uppercase tracking-wide text-[#5E6A65]">{% translate "Service" %}</h3>
-          <p class="mt-2 whitespace-pre-line leading-7 text-[#17211D]">{{ payload.service_description }}</p>
+          <p class="mt-2 whitespace-pre-line leading-7 text-[#17211D]">{{ service.description }}</p>
         </section>
       {% endif %}
 
-      <dl class="grid gap-4 sm:grid-cols-2">
-        {% if payload.price_text %}
-          <div class="rounded-xl border border-[#DDE3DF] p-4">
-            <dt class="text-xs font-semibold uppercase tracking-wide text-[#5E6A65]">{% translate "Price" %}</dt>
-            <dd class="mt-1 font-semibold text-[#17211D]">{{ payload.price_text }}</dd>
-          </div>
-        {% endif %}
-        {% if payload.primary_municipality %}
-          <div class="rounded-xl border border-[#DDE3DF] p-4">
-            <dt class="text-xs font-semibold uppercase tracking-wide text-[#5E6A65]">{% translate "Area" %}</dt>
-            <dd class="mt-1 text-[#17211D]">{{ payload.primary_municipality }}</dd>
-          </div>
-        {% endif %}
-        {% if payload.service_mode %}
-          <div class="rounded-xl border border-[#DDE3DF] p-4">
-            <dt class="text-xs font-semibold uppercase tracking-wide text-[#5E6A65]">{% translate "Service mode" %}</dt>
-            <dd class="mt-1 text-[#17211D]">{{ payload.service_mode }}</dd>
-          </div>
-        {% endif %}
-        {% if payload.service_language %}
-          <div class="rounded-xl border border-[#DDE3DF] p-4">
-            <dt class="text-xs font-semibold uppercase tracking-wide text-[#5E6A65]">{% translate "Language" %}</dt>
-            <dd class="mt-1 text-[#17211D]">{{ payload.service_language }}</dd>
-          </div>
-        {% endif %}
-      </dl>
+      {% if service.price_text or contact.value %}
+        <dl class="grid gap-4 sm:grid-cols-2">
+          {% if service.price_text %}
+            <div class="rounded-xl border border-[#DDE3DF] p-4">
+              <dt class="text-xs font-semibold uppercase tracking-wide text-[#5E6A65]">{% translate "Price" %}</dt>
+              <dd class="mt-1 font-semibold text-[#17211D]">{{ service.price_text }}</dd>
+            </div>
+          {% endif %}
+          {% if contact.value and contact.is_public %}
+            <div class="rounded-xl border border-[#DDE3DF] p-4">
+              <dt class="text-xs font-semibold uppercase tracking-wide text-[#5E6A65]">{% translate "Public contact" %}</dt>
+              <dd class="mt-1 break-words text-[#17211D]">{{ contact.value }}</dd>
+            </div>
+          {% endif %}
+        </dl>
+      {% endif %}
 
       <section class="rounded-xl bg-[#F7F9F8] p-4" aria-labelledby="preview-identity-heading">
         <h3 id="preview-identity-heading" class="text-sm font-semibold text-[#17211D]">{% translate "Business identity" %}</h3>
@@ -58,6 +49,7 @@
       </section>
     </div>
   </article>
+  {% endwith %}
 
   <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
     <form method="post" action="{% url 'provider-workspace-submit' provider.id %}">
