@@ -102,10 +102,22 @@
 
         <details class="mt-5 border-t border-[#DDE3DF] pt-5">
           <summary class="cursor-pointer font-semibold">{% translate "Aggregate analytics" %}</summary>
-          <dl class="mt-3 grid gap-3 sm:grid-cols-3">
-            <div><dt class="text-sm text-[#5E6A65]">{% translate "Impressions" %}</dt><dd class="text-2xl font-semibold">{{ row.impressions }}</dd></div>
-            <div><dt class="text-sm text-[#5E6A65]">{% translate "Profile views" %}</dt><dd class="text-2xl font-semibold">{{ row.profile_views }}</dd></div>
-            <div><dt class="text-sm text-[#5E6A65]">{% translate "Contact clicks" %}</dt><dd class="text-2xl font-semibold">{{ row.contact_clicks }}</dd></div>
+          <dl class="mt-3 grid gap-4 sm:grid-cols-3">
+            <div>
+              <dt class="text-sm font-semibold text-[#17211D]">{% translate "Impressions" %}</dt>
+              <dd class="mt-1 text-2xl font-semibold">{{ row.impressions }}</dd>
+              <p class="mt-1 text-xs text-[#5E6A65]">{% translate "times this provider appears in anonymous public discovery results." %}</p>
+            </div>
+            <div>
+              <dt class="text-sm font-semibold text-[#17211D]">{% translate "Profile views" %}</dt>
+              <dd class="mt-1 text-2xl font-semibold">{{ row.profile_views }}</dd>
+              <p class="mt-1 text-xs text-[#5E6A65]">{% translate "anonymous public opens of this provider profile." %}</p>
+            </div>
+            <div>
+              <dt class="text-sm font-semibold text-[#17211D]">{% translate "Contact clicks" %}</dt>
+              <dd class="mt-1 text-2xl font-semibold">{{ row.contact_clicks }}</dd>
+              <p class="mt-1 text-xs text-[#5E6A65]">{% translate "tracked clicks from this provider profile to a public contact channel." %}</p>
+            </div>
           </dl>
           <p class="mt-3 text-xs text-[#5E6A65]">{% translate "Anonymous provider-level totals only. No visitor identity, IP address, search text, or cross-site identifier is stored or shown." %}</p>
         </details>
