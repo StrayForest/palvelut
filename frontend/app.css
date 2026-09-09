@@ -1,2 +1,8 @@
 @import "tailwindcss";
 @source "../templates";
+
+/* Keep legacy muted utility content AA-compliant on the P6 canvas while old
+   public surfaces are migrated to the shared design token. */
+.text-slate-500 {
+  color: #5E6A65;
+}
