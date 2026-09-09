@@ -198,24 +198,9 @@ def resolve_provider_claim(
     if provider.claim_status != Provider.ClaimStatus.PENDING:
         raise ValidationError("Only a pending claim can be reviewed")
     evidence = dict(provider.claim_evidence or {})
-    if evidence.get("kind") not in ALLOWED_CLAIM_EVIDENCE:
-        raise ValidationError("Claim lacks independent business-control evidence")
     claimant_id = evidence.get("claimant_user_id")
     if not claimant_id:
         raise ValidationError("Claimant identity is missing")
-    if evidence.get("provider_terms_version") != CURRENT_PROVIDER_TERMS_VERSION:
-        raise ValidationError("Claim does not include acceptance of the current provider terms")
-    if not evidence.get("provider_terms_accepted_at"):
-        raise ValidationError("Provider terms acceptance timestamp is missing")
-    _validate_provider_eligibility(
-        provider=provider,
-        professional_right_reference=str(
-            evidence.get("professional_right_reference", "")
-        ),
-        employer_authorization_reference=str(
-            evidence.get("employer_authorization_reference", "")
-        ),
-    )
 
     reviewed_at = timezone.now()
     evidence.update(
@@ -242,6 +227,21 @@ def resolve_provider_claim(
         )
         return provider
 
+    if evidence.get("kind") not in ALLOWED_CLAIM_EVIDENCE:
+        raise ValidationError("Claim lacks independent business-control evidence")
+    if evidence.get("provider_terms_version") != CURRENT_PROVIDER_TERMS_VERSION:
+        raise ValidationError("Claim does not include acceptance of the current provider terms")
+    if not evidence.get("provider_terms_accepted_at"):
+        raise ValidationError("Provider terms acceptance timestamp is missing")
+    _validate_provider_eligibility(
+        provider=provider,
+        professional_right_reference=str(
+            evidence.get("professional_right_reference", "")
+        ),
+        employer_authorization_reference=str(
+            evidence.get("employer_authorization_reference", "")
+        ),
+    )
     if ProviderMembership.objects.filter(provider=provider, is_active=True).exists():
         raise ValidationError("Provider already has an active membership")
     provider.claim_status = Provider.ClaimStatus.APPROVED
