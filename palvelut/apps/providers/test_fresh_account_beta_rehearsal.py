@@ -55,7 +55,9 @@ class FreshAccountBetaRehearsalTests(TestCase):
                 "display_name": "P6 Beta Rehearsal",
                 "y_tunnus": "1357924-6",
                 "evidence_kind": "registry_signatory",
-                "evidence_reference": "Synthetic PRH signatory evidence for P6 rehearsal",
+                "evidence_reference": (
+                    "Synthetic PRH signatory evidence for P6 rehearsal"
+                ),
                 "provider_terms_accepted": "on",
             },
         )
@@ -148,7 +150,9 @@ class FreshAccountBetaRehearsalTests(TestCase):
             )
         )
         self.assertEqual(tracked_contact.status_code, 302)
-        self.assertEqual(tracked_contact.headers["Location"], "mailto:p6-contact@example.test")
+        self.assertEqual(
+            tracked_contact.headers["Location"], "mailto:p6-contact@example.test"
+        )
         self.assertTrue(
             AnalyticsEvent.objects.filter(
                 provider=provider,
