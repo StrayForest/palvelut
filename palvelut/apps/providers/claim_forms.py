@@ -49,9 +49,8 @@ class NewProviderClaimForm(ProviderClaimForm):
 
     def clean(self):
         cleaned = super().clean()
-        if (
-            cleaned.get("provider_type") == Provider.Type.BUSINESS
-            and not cleaned.get("y_tunnus")
+        if cleaned.get("provider_type") == Provider.Type.BUSINESS and not cleaned.get(
+            "y_tunnus"
         ):
             self.add_error("y_tunnus", "Y-tunnus is required for a business provider.")
         return cleaned
