@@ -45,9 +45,7 @@ class ProviderSelfStartFlowTests(TestCase):
         self.assertContains(home, reverse("for-professionals", kwargs={"locale": "en"}))
         self.assertNotContains(home, "Provider self-service is being prepared")
 
-        entry = self.client.get(
-            reverse("for-professionals", kwargs={"locale": "en"})
-        )
+        entry = self.client.get(reverse("for-professionals", kwargs={"locale": "en"}))
         self.assertEqual(entry.status_code, 200)
         self.assertContains(entry, reverse("account-register"))
         self.assertContains(entry, reverse("account-login"))
@@ -67,9 +65,7 @@ class ProviderSelfStartFlowTests(TestCase):
         self.assertEqual(
             provider.claim_evidence["claimant_user_id"], str(self.provider_user.pk)
         )
-        self.assertFalse(
-            ProviderMembership.objects.filter(provider=provider).exists()
-        )
+        self.assertFalse(ProviderMembership.objects.filter(provider=provider).exists())
         self.assertTrue(
             AuditEvent.objects.filter(
                 provider=provider,
