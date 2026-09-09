@@ -57,10 +57,12 @@ test("provider workspace has keyboard and accessibility smoke coverage", async (
 
   await page.goto("/palvelut/account/profile/");
   await expect(page.getByRole("heading", { level: 1, name: "Provider workspace" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Continue profile" })).toBeVisible();
+  // The previous onboarding test completes the deterministic seeded profile,
+  // so the status-driven CTA is now the completed-profile action.
+  await expect(page.getByRole("link", { name: "Edit profile" })).toBeVisible();
 
-  await page.getByRole("link", { name: "Continue profile" }).focus();
-  await expect(page.getByRole("link", { name: "Continue profile" })).toBeFocused();
+  await page.getByRole("link", { name: "Edit profile" }).focus();
+  await expect(page.getByRole("link", { name: "Edit profile" })).toBeFocused();
   await page.keyboard.press("Enter");
 
   await expect(page.getByLabel("Display name")).toBeVisible();
