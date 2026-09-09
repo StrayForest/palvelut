@@ -66,5 +66,14 @@ ProviderMembership.objects.update_or_create(
     account=account,
     defaults={"role": ProviderMembership.Role.OWNER, "is_active": True},
 )
+
+fresh_account, _ = get_user_model().objects.get_or_create(
+    username="provider-fresh-e2e@example.test",
+    defaults={"email": "provider-fresh-e2e@example.test", "is_active": True},
+)
+fresh_account.email = "provider-fresh-e2e@example.test"
+fresh_account.is_active = True
+fresh_account.set_password("provider-fresh-e2e-pass")
+fresh_account.save()
 '
 "${COMPOSE[@]}" run --rm e2e
