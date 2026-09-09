@@ -20,7 +20,7 @@ class ProviderSurfaceContractTests(TestCase):
         user = get_user_model().objects.create_user(
             username="surface-contract@example.test",
             email="surface-contract@example.test",
-            password="surface-contract-pass",
+            password="surface-contract-pass",  # test-only
         )
         self.client.force_login(user)
 
