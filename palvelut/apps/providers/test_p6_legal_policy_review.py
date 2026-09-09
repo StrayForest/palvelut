@@ -19,11 +19,17 @@ class P6LegalPolicyReviewTests(TestCase):
         self.assertContains(response, "ownership-control evidence")
         self.assertContains(response, "professional-right reference")
         self.assertContains(response, "employer-authorization reference")
-        self.assertContains(response, "Ownership and eligibility evidence is kept private")
-        self.assertContains(response, "Raw product-analytics events expire after 90 days")
+        self.assertContains(
+            response, "Ownership and eligibility evidence is kept private"
+        )
+        self.assertContains(
+            response, "Raw product-analytics events expire after 90 days"
+        )
         self.assertContains(response, "Manage data requests")
 
-    def test_provider_terms_publish_the_same_version_enforced_by_claim_review(self) -> None:
+    def test_provider_terms_publish_the_same_version_enforced_by_claim_review(
+        self,
+    ) -> None:
         response = self.client.get(
             reverse(
                 "legal-document",
@@ -38,11 +44,15 @@ class P6LegalPolicyReviewTests(TestCase):
         )
         self.assertContains(response, "must have an active Finnish Y-tunnus")
         self.assertContains(response, "employer authorization to list services")
-        self.assertContains(response, "Finrix Palvelut is not a party to that service contract")
+        self.assertContains(
+            response, "Finrix Palvelut is not a party to that service contract"
+        )
         self.assertContains(response, "Ownership approval does not publish a profile")
         self.assertContains(response, "a new version is issued")
 
-    def test_public_report_form_uses_neutral_policy_wording_and_data_minimization_hint(self) -> None:
+    def test_public_report_form_uses_neutral_policy_wording_and_data_minimization_hint(
+        self,
+    ) -> None:
         form = ContentReportForm()
 
         self.assertEqual(form.fields["category"].label, "What is the problem?")
