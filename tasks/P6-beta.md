@@ -4,7 +4,6 @@ Depends: P5. Read: `docs/01-product.md`, `docs/03-experience.md`, `docs/04-desig
 
 ## Readiness
 
-- Bring provider auth/onboarding/workspace surfaces to the design and localization contract, with clear status/next-action states and visible account/workspace navigation.
 - Retain and manually review full-page screenshots for provider acquisition/onboarding at 360, 390, 768, 1024 and 1440 px: public CTA, `for-professionals`, register/login, new-provider bootstrap/claim state, workspace, edit and preview. Check hierarchy, design tokens, focus/error states, text expansion and horizontal overflow.
 - Run a fresh-account beta rehearsal: register → verify email → start/claim provider → staff approve ownership → complete profile → preview → submit → staff approve content → discover public profile → use tracked contact. The primary rehearsal account must not be granted membership by fixture/database setup.
 - Re-review provider terms, privacy/data fields, moderation wording and controller surfaces against the actual beta flow; unresolved legal/policy uncertainty blocks launch.
