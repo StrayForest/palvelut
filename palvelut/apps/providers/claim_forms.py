@@ -16,7 +16,6 @@ class ProviderClaimForm(forms.Form):
     professional_right_reference = forms.CharField(
         max_length=500,
         required=False,
-        widget=forms.Textarea,
         help_text=(
             "Required for an employed regulated professional: official register or "
             "professional-right reference."
@@ -25,7 +24,6 @@ class ProviderClaimForm(forms.Form):
     employer_authorization_reference = forms.CharField(
         max_length=500,
         required=False,
-        widget=forms.Textarea,
         help_text=(
             "Required for an employed regulated professional: employer authorization "
             "to list services."
