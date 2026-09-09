@@ -46,9 +46,9 @@ class ProviderSurfaceContractTests(TestCase):
             self.assertIn("{% load i18n %}", source)
             self.assertIn("{% translate", source)
 
-        account_forms = (
-            repository_root / "palvelut/apps/accounts/forms.py"
-        ).read_text(encoding="utf-8")
+        account_forms = (repository_root / "palvelut/apps/accounts/forms.py").read_text(
+            encoding="utf-8"
+        )
         claim_forms = (
             repository_root / "palvelut/apps/providers/claim_forms.py"
         ).read_text(encoding="utf-8")
