@@ -22,7 +22,7 @@ ALLOWED_CLAIM_EVIDENCE = {
     "business_domain_email",
     "staff_reviewed_equivalent",
 }
-CURRENT_PROVIDER_TERMS_VERSION = "2026-09-09"
+CURRENT_PROVIDER_TERMS_VERSION = "2026-09-10"
 
 
 def _require_authenticated(actor: AbstractBaseUser) -> None:
