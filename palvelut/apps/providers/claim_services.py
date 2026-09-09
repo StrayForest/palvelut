@@ -78,6 +78,56 @@ def submit_provider_claim(
 
 
 @transaction.atomic
+def start_new_provider_claim(
+    *,
+    actor: AbstractBaseUser,
+    provider_type: str,
+    legal_name: str,
+    display_name: str,
+    y_tunnus: str,
+    evidence_kind: ClaimEvidenceKind,
+    evidence_reference: str,
+) -> Provider:
+    _require_authenticated(actor)
+    if actor.is_staff:
+        raise ValidationError("Staff accounts cannot start provider ownership claims")
+    if provider_type not in Provider.Type.values:
+        raise ValidationError("Unsupported provider type")
+
+    legal_name = legal_name.strip()
+    display_name = display_name.strip()
+    y_tunnus = y_tunnus.strip()
+    if not legal_name or not display_name:
+        raise ValidationError("Provider legal and display names are required")
+    if provider_type == Provider.Type.BUSINESS and not y_tunnus:
+        raise ValidationError("Y-tunnus is required for a business provider")
+    if y_tunnus and Provider.objects.filter(y_tunnus=y_tunnus).exists():
+        raise ValidationError(
+            "A provider with this Y-tunnus already exists; claim the existing draft instead"
+        )
+    if Provider.objects.filter(
+        claim_status=Provider.ClaimStatus.PENDING,
+        claim_evidence__claimant_user_id=str(actor.pk),
+    ).exists():
+        raise ValidationError("An ownership claim is already pending for this account")
+
+    provider = Provider.objects.create(
+        provider_type=provider_type,
+        lifecycle=Provider.Lifecycle.UNCLAIMED,
+        claim_status=Provider.ClaimStatus.UNCLAIMED,
+        legal_name=legal_name,
+        display_name=display_name,
+        y_tunnus=y_tunnus,
+    )
+    return submit_provider_claim(
+        provider_id=provider.pk,
+        actor=actor,
+        evidence_kind=evidence_kind,
+        evidence_reference=evidence_reference,
+    )
+
+
+@transaction.atomic
 def resolve_provider_claim(
     *,
     provider_id: object,
