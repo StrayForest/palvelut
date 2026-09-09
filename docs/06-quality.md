@@ -55,10 +55,12 @@ Budgets are CI/release gates, not aspirations. Test with production-like images 
 - Unit: domain rules, normalization, ranking, verification labels.
 - Database: constraints, migrations, query count and indexes.
 - Integration: auth/ownership, revision publish, cache invalidation, contact redirect, outbox idempotency.
-- Browser: public search/profile/contact and provider onboarding at required viewports, keyboard and reduced motion.
+- Browser: public search/profile/contact and the complete provider path `register → verify → start/claim provider → ownership approval → workspace → submit` at required viewports, keyboard and reduced motion.
 - Security: dependency/secret scan, headers, CSRF, IDOR, upload corpus, rate limits.
 - SEO/accessibility: rendered metadata/schema/sitemap, axe plus manual keyboard/screen-reader smoke.
 - Load: anonymous browse/search mix; include cache cold/warm and database saturation metrics.
+
+P6 fresh-account acceptance must not prove onboarding by directly creating the primary test account's `ProviderMembership` or by pre-seeding the provider row it is supposed to create. Test fixtures may still create independent staff/moderation actors and unrelated public demo providers.
 
 ## Observability
 
