@@ -4,7 +4,6 @@ Depends: P5. Read: `docs/01-product.md`, `docs/03-experience.md`, `docs/04-desig
 
 ## Readiness
 
-- Run a fresh-account beta rehearsal: register → verify email → start/claim provider → staff approve ownership → complete profile → preview → submit → staff approve content → discover public profile → use tracked contact. The primary rehearsal account must not be granted membership by fixture/database setup.
 - Re-review provider terms, privacy/data fields, moderation wording and controller surfaces against the actual beta flow; unresolved legal/policy uncertainty blocks launch.
 - Connect Search Console/Bing, production monitoring and the funnel/dashboard used for the beta decision; freeze metric, schema and bot-rule versions and reconcile raw events to aggregates before launch.
 
