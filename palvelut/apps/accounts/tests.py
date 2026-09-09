@@ -75,7 +75,7 @@ class ProviderAccountSecurityTests(TestCase):
         self.assertNotEqual(old_key, self.client.session.session_key)
 
     def test_login_throttle_cannot_be_bypassed_by_identity_variants(self):
-        user = get_user_model().objects.create_user(
+        get_user_model().objects.create_user(
             username="provider@example.com",
             email="provider@example.com",
             password=TEST_PASSWORD,
