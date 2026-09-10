@@ -1,18 +1,17 @@
 {% extends "base.html" %}
-{% load i18n %}
-{% block title %}{% translate "Preview profile" %} · Finrix Palvelut{% endblock %}
+{% block title %}Предпросмотр карточки · Finrix Palvelut{% endblock %}
 {% block content %}
-<main class="mx-auto max-w-3xl px-4 py-8">
+<section class="mx-auto max-w-3xl py-8">
   <header class="max-w-2xl">
-    <p class="text-sm font-semibold uppercase tracking-wide text-[#5E6A65]">{% translate "Provider workspace" %}</p>
-    <h1 class="mt-3 text-3xl font-bold tracking-tight text-[#17211D]">{% translate "Preview profile" %}</h1>
-    <p class="mt-3 text-[#5E6A65]">{% translate "Review the profile as a customer will see it. Nothing becomes public until staff approves the submitted revision." %}</p>
+    <p class="text-sm font-semibold uppercase tracking-wide text-[#5E6A65]">Кабинет специалиста</p>
+    <h1 class="mt-3 text-3xl font-bold tracking-tight text-[#17211D]">Предпросмотр карточки</h1>
+    <p class="mt-3 text-[#5E6A65]">Проверьте карточку так, как её увидит посетитель. Ничего не станет публичным, пока отправленная версия не пройдёт проверку.</p>
   </header>
 
   {% with service=payload.services.0 contact=payload.contacts.0 %}
   <article class="mt-8 overflow-hidden rounded-2xl border border-[#DDE3DF] bg-white shadow-sm" aria-labelledby="preview-provider-name">
     <div class="border-b border-[#DDE3DF] bg-[#F7F9F8] p-5 sm:p-6">
-      <p class="text-xs font-semibold uppercase tracking-wide text-[#5E6A65]">{% translate "Profile preview" %}</p>
+      <p class="text-xs font-semibold uppercase tracking-wide text-[#5E6A65]">Предпросмотр</p>
       <h2 id="preview-provider-name" class="mt-2 text-2xl font-bold tracking-tight text-[#17211D]">{{ payload.display_name }}</h2>
       {% if service.title %}<p class="mt-2 text-base font-medium text-[#12664F]">{{ service.title }}</p>{% endif %}
     </div>
@@ -20,7 +19,7 @@
     <div class="grid gap-6 p-5 sm:p-6">
       {% if service.description %}
         <section aria-labelledby="preview-service-heading">
-          <h3 id="preview-service-heading" class="text-sm font-semibold uppercase tracking-wide text-[#5E6A65]">{% translate "Service" %}</h3>
+          <h3 id="preview-service-heading" class="text-sm font-semibold uppercase tracking-wide text-[#5E6A65]">Услуга</h3>
           <p class="mt-2 whitespace-pre-line leading-7 text-[#17211D]">{{ service.description }}</p>
         </section>
       {% endif %}
@@ -29,13 +28,13 @@
         <dl class="grid gap-4 sm:grid-cols-2">
           {% if service.price_text %}
             <div class="rounded-xl border border-[#DDE3DF] p-4">
-              <dt class="text-xs font-semibold uppercase tracking-wide text-[#5E6A65]">{% translate "Price" %}</dt>
+              <dt class="text-xs font-semibold uppercase tracking-wide text-[#5E6A65]">Цена</dt>
               <dd class="mt-1 font-semibold text-[#17211D]">{{ service.price_text }}</dd>
             </div>
           {% endif %}
           {% if contact.value and contact.is_public %}
             <div class="rounded-xl border border-[#DDE3DF] p-4">
-              <dt class="text-xs font-semibold uppercase tracking-wide text-[#5E6A65]">{% translate "Public contact" %}</dt>
+              <dt class="text-xs font-semibold uppercase tracking-wide text-[#5E6A65]">Публичный контакт</dt>
               <dd class="mt-1 break-words text-[#17211D]">{{ contact.value }}</dd>
             </div>
           {% endif %}
@@ -43,9 +42,9 @@
       {% endif %}
 
       <section class="rounded-xl bg-[#F7F9F8] p-4" aria-labelledby="preview-identity-heading">
-        <h3 id="preview-identity-heading" class="text-sm font-semibold text-[#17211D]">{% translate "Business identity" %}</h3>
+        <h3 id="preview-identity-heading" class="text-sm font-semibold text-[#17211D]">Данные специалиста или компании</h3>
         <p class="mt-2 text-sm text-[#5E6A65]">{{ payload.legal_name }}</p>
-        {% if payload.y_tunnus %}<p class="mt-1 text-sm text-[#5E6A65]">{% translate "Y-tunnus" %}: {{ payload.y_tunnus }}</p>{% endif %}
+        {% if payload.y_tunnus %}<p class="mt-1 text-sm text-[#5E6A65]">Y-tunnus: {{ payload.y_tunnus }}</p>{% endif %}
       </section>
     </div>
   </article>
@@ -54,9 +53,9 @@
   <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
     <form method="post" action="{% url 'provider-workspace-submit' provider.id %}">
       {% csrf_token %}
-      <button class="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-[#12664F] px-5 py-3 font-semibold text-white hover:bg-[#0B4F3C] focus:outline-none focus:ring-2 focus:ring-[#12664F] focus:ring-offset-2 sm:w-auto" type="submit">{% translate "Submit for review" %}</button>
+      <button class="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-[#12664F] px-5 py-3 font-semibold text-white hover:bg-[#0B4F3C] focus:outline-none focus:ring-2 focus:ring-[#12664F] focus:ring-offset-2 sm:w-auto" type="submit">Отправить на проверку</button>
     </form>
-    <a class="inline-flex min-h-11 items-center justify-center rounded-xl border border-[#DDE3DF] bg-white px-5 py-3 font-semibold text-[#17211D] hover:bg-[#F7F9F8] focus:outline-none focus:ring-2 focus:ring-[#12664F] focus:ring-offset-2" href="{% url 'provider-workspace-edit' provider.id %}">{% translate "Back to edit" %}</a>
+    <a class="inline-flex min-h-11 items-center justify-center rounded-xl border border-[#DDE3DF] bg-white px-5 py-3 font-semibold text-[#17211D] hover:bg-[#F7F9F8] focus:outline-none focus:ring-2 focus:ring-[#12664F] focus:ring-offset-2" href="{% url 'provider-workspace-edit' provider.id %}">Вернуться к редактированию</a>
   </div>
-</main>
+</section>
 {% endblock %}
