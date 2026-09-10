@@ -4,10 +4,11 @@ import re
 from urllib.parse import urlsplit
 
 from django.conf import settings
-from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.http import Http404, HttpRequest, HttpResponse
 
+from palvelut.apps.analytics.beta import record_beta_contact
 from palvelut.apps.analytics.models import AnalyticsEvent
 from palvelut.apps.analytics.services import is_synthetic_request
 from palvelut.apps.providers.models import ContactChannel, Provider
@@ -86,13 +87,19 @@ def contact_redirect(
         raise Http404("Contact channel not found")
 
     destination = _contact_destination(contact)
+    response = HttpResponse(status=302)
+    response.headers["Location"] = destination
+    response.headers["Cache-Control"] = "private, no-store"
     if not is_synthetic_request(request):
         AnalyticsEvent.objects.create(
             kind=AnalyticsEvent.Kind.CONTACT_CLICK,
             provider=contact.provider,
             channel=contact.kind,
         )
-    response = HttpResponse(status=302)
-    response.headers["Location"] = destination
-    response.headers["Cache-Control"] = "private, no-store"
+        record_beta_contact(
+            request,
+            response,
+            provider=contact.provider,
+            channel=contact.kind,
+        )
     return response
