@@ -10,7 +10,9 @@ from palvelut.apps.taxonomy.models import Category, Language, Municipality
 
 class RussianCategoryChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj: Category) -> str:
-        label = next((item.label for item in obj.labels.all() if item.locale == "ru"), None)
+        label = next(
+            (item.label for item in obj.labels.all() if item.locale == "ru"), None
+        )
         return label or obj.name
 
 
@@ -31,7 +33,10 @@ class RussianLanguageChoiceField(forms.ModelChoiceField):
 class ProviderProfileForm(forms.Form):
     provider_type = forms.ChoiceField(
         label="Тип специалиста",
-        choices=((Provider.Type.INDIVIDUAL, "Частное лицо"), (Provider.Type.BUSINESS, "Компания или предприниматель")),
+        choices=(
+            (Provider.Type.INDIVIDUAL, "Частное лицо"),
+            (Provider.Type.BUSINESS, "Компания или предприниматель"),
+        ),
     )
     legal_name = forms.CharField(max_length=200, label="Юридическое имя или название")
     display_name = forms.CharField(max_length=200, label="Название в каталоге")
@@ -43,22 +48,33 @@ class ProviderProfileForm(forms.Form):
         required=False,
         empty_label="Выберите услугу",
     )
-    service_title = forms.CharField(max_length=160, required=False, label="Название услуги")
+    service_title = forms.CharField(
+        max_length=160, required=False, label="Название услуги"
+    )
     service_description = forms.CharField(
         required=False,
         label="Описание услуги",
         widget=forms.Textarea(attrs={"rows": 4}),
     )
-    price_text = forms.CharField(max_length=160, required=False, label="Цена или принцип расчёта")
+    price_text = forms.CharField(
+        max_length=160, required=False, label="Цена или принцип расчёта"
+    )
     primary_municipality = RussianMunicipalityChoiceField(
         label="Основной город",
-        queryset=Municipality.objects.filter(region__country__code="FI").order_by("name"),
+        queryset=Municipality.objects.filter(region__country__code="FI").order_by(
+            "name"
+        ),
         required=False,
         empty_label="Выберите город",
     )
     service_mode = forms.ChoiceField(
         label="Как вы оказываете услугу",
-        choices=(("", "Выберите формат работы"), (ServiceArea.Mode.ONSITE, "На месте"), (ServiceArea.Mode.TRAVEL, "Выезд к клиенту"), (ServiceArea.Mode.REMOTE, "Удалённо")),
+        choices=(
+            ("", "Выберите формат работы"),
+            (ServiceArea.Mode.ONSITE, "На месте"),
+            (ServiceArea.Mode.TRAVEL, "Выезд к клиенту"),
+            (ServiceArea.Mode.REMOTE, "Удалённо"),
+        ),
         required=False,
     )
     service_language = RussianLanguageChoiceField(
@@ -85,7 +101,9 @@ class ProviderProfileForm(forms.Form):
     # These hidden structured fields remain for backwards-compatible services/tests.
     contacts = forms.JSONField(required=False, initial=list, widget=forms.HiddenInput)
     services = forms.JSONField(required=False, initial=list, widget=forms.HiddenInput)
-    service_areas = forms.JSONField(required=False, initial=list, widget=forms.HiddenInput)
+    service_areas = forms.JSONField(
+        required=False, initial=list, widget=forms.HiddenInput
+    )
     languages = forms.JSONField(required=False, initial=list, widget=forms.HiddenInput)
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -130,7 +148,9 @@ class ProviderProfileForm(forms.Form):
 
     def _list_of_dicts(self, field: str) -> list[dict[str, Any]]:
         value = self.cleaned_data.get(field) or []
-        if not isinstance(value, list) or any(not isinstance(item, dict) for item in value):
+        if not isinstance(value, list) or any(
+            not isinstance(item, dict) for item in value
+        ):
             raise forms.ValidationError("Ожидался список структурированных значений.")
         return value
 
@@ -142,7 +162,9 @@ class ProviderProfileForm(forms.Form):
             kind = str(item.get("kind", "")).strip()
             value = str(item.get("value", "")).strip()
             if kind not in allowed or not value:
-                raise forms.ValidationError("Для каждого контакта нужны допустимый тип и значение.")
+                raise forms.ValidationError(
+                    "Для каждого контакта нужны допустимый тип и значение."
+                )
             normalized.append(
                 {
                     "kind": kind,
@@ -158,7 +180,9 @@ class ProviderProfileForm(forms.Form):
         items = self._list_of_dicts("services")
         category_ids = {str(item.get("category_id", "")).strip() for item in items}
         category_ids.discard("")
-        known = set(Category.objects.filter(pk__in=category_ids).values_list("pk", flat=True))
+        known = set(
+            Category.objects.filter(pk__in=category_ids).values_list("pk", flat=True)
+        )
         if {str(pk) for pk in known} != category_ids:
             raise forms.ValidationError("Неизвестная категория услуги.")
         normalized: list[dict[str, Any]] = []
@@ -179,9 +203,15 @@ class ProviderProfileForm(forms.Form):
 
     def clean_service_areas(self) -> list[dict[str, Any]]:
         items = self._list_of_dicts("service_areas")
-        municipality_ids = {str(item.get("municipality_id", "")).strip() for item in items}
+        municipality_ids = {
+            str(item.get("municipality_id", "")).strip() for item in items
+        }
         municipality_ids.discard("")
-        known = set(Municipality.objects.filter(pk__in=municipality_ids).values_list("pk", flat=True))
+        known = set(
+            Municipality.objects.filter(pk__in=municipality_ids).values_list(
+                "pk", flat=True
+            )
+        )
         if {str(pk) for pk in known} != municipality_ids:
             raise forms.ValidationError("Неизвестный город.")
         allowed_modes = set(ServiceArea.Mode.values)
@@ -190,7 +220,9 @@ class ProviderProfileForm(forms.Form):
             municipality_id = str(item.get("municipality_id", "")).strip()
             mode = str(item.get("mode", "")).strip()
             if not municipality_id or mode not in allowed_modes:
-                raise forms.ValidationError("Для каждой зоны обслуживания нужны город и формат работы.")
+                raise forms.ValidationError(
+                    "Для каждой зоны обслуживания нужны город и формат работы."
+                )
             normalized.append({"municipality_id": municipality_id, "mode": mode})
         return normalized
 
@@ -198,7 +230,9 @@ class ProviderProfileForm(forms.Form):
         items = self._list_of_dicts("languages")
         language_ids = {str(item.get("language_id", "")).strip() for item in items}
         language_ids.discard("")
-        known = set(Language.objects.filter(pk__in=language_ids).values_list("pk", flat=True))
+        known = set(
+            Language.objects.filter(pk__in=language_ids).values_list("pk", flat=True)
+        )
         if {str(pk) for pk in known} != language_ids:
             raise forms.ValidationError("Неизвестный язык обслуживания.")
         return [
@@ -222,7 +256,9 @@ class ProviderProfileForm(forms.Form):
             visible_service = {
                 "category_id": str(category.pk),
                 "title": str(self.cleaned_data.get("service_title") or "").strip(),
-                "description": str(self.cleaned_data.get("service_description") or "").strip(),
+                "description": str(
+                    self.cleaned_data.get("service_description") or ""
+                ).strip(),
                 "price_text": str(self.cleaned_data.get("price_text") or "").strip(),
                 "is_active": True,
             }
