@@ -33,8 +33,13 @@ def issue_email_verification(user, request) -> None:
         reverse("account-verify-email", kwargs={"token": token})
     )
     send_mail(
-        "Verify your Finrix Palvelut email",
-        f"Verify your email: {url}",
+        "Подтвердите электронную почту — Finrix Palvelut",
+        (
+            "Вы зарегистрировались в Finrix Palvelut как специалист.\n\n"
+            "Подтвердите электронную почту по ссылке:\n"
+            f"{url}\n\n"
+            "После подтверждения войдите в аккаунт и продолжите создание карточки специалиста."
+        ),
         settings.DEFAULT_FROM_EMAIL,
         [user.email],
     )
