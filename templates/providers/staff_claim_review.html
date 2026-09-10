@@ -1,22 +1,22 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% block title %}Проверка права на карточку · Finrix Palvelut{% endblock %}
 {% block content %}
-<main class="mx-auto max-w-2xl px-4 py-10">
-  <h1 class="text-2xl font-semibold">{% blocktranslate with name=provider.display_name %}Review {{ name }}{% endblocktranslate %}</h1>
+<section class="mx-auto max-w-2xl px-4 py-10">
+  <h1 class="text-2xl font-semibold">Проверка «{{ provider.display_name }}»</h1>
   <dl class="mt-5 grid gap-x-4 gap-y-3 rounded-xl border border-slate-200 p-5 sm:grid-cols-[12rem_1fr]">
-    <dt class="font-medium">{% translate "Provider type" %}</dt><dd>{{ provider.get_provider_type_display }}</dd>
-    <dt class="font-medium">{% translate "Legal name" %}</dt><dd>{{ provider.legal_name }}</dd>
-    <dt class="font-medium">{% translate "Y-tunnus" %}</dt><dd>{{ provider.y_tunnus|default:"—" }}</dd>
-    <dt class="font-medium">{% translate "Evidence type" %}</dt><dd>{{ provider.claim_evidence.kind }}</dd>
-    <dt class="font-medium">{% translate "Evidence reference" %}</dt><dd class="break-words">{{ provider.claim_evidence.reference }}</dd>
-    <dt class="font-medium">{% translate "Professional right" %}</dt><dd class="break-words">{{ provider.claim_evidence.professional_right_reference|default:"—" }}</dd>
-    <dt class="font-medium">{% translate "Employer authorization" %}</dt><dd class="break-words">{{ provider.claim_evidence.employer_authorization_reference|default:"—" }}</dd>
-    <dt class="font-medium">{% translate "Provider terms" %}</dt><dd>{{ provider.claim_evidence.provider_terms_version }} · {{ provider.claim_evidence.provider_terms_accepted_at }}</dd>
+    <dt class="font-medium">Тип специалиста</dt><dd>{% if provider.provider_type == 'business' %}Компания или предприниматель{% elif provider.provider_type == 'individual' %}Частное лицо{% else %}{{ provider.provider_type }}{% endif %}</dd>
+    <dt class="font-medium">Юридическое имя или название</dt><dd>{{ provider.legal_name }}</dd>
+    <dt class="font-medium">Y-tunnus</dt><dd>{{ provider.y_tunnus|default:"—" }}</dd>
+    <dt class="font-medium">Тип подтверждения</dt><dd>{% if provider.claim_evidence.kind == 'registry_signatory' %}Право представлять компанию в официальном реестре{% elif provider.claim_evidence.kind == 'business_domain_email' %}Рабочая почта на домене компании{% elif provider.claim_evidence.kind == 'staff_reviewed_equivalent' %}Другое подтверждение для ручной проверки{% else %}{{ provider.claim_evidence.kind }}{% endif %}</dd>
+    <dt class="font-medium">Подтверждение</dt><dd class="break-words">{{ provider.claim_evidence.reference }}</dd>
+    <dt class="font-medium">Профессиональное право</dt><dd class="break-words">{{ provider.claim_evidence.professional_right_reference|default:"—" }}</dd>
+    <dt class="font-medium">Разрешение работодателя</dt><dd class="break-words">{{ provider.claim_evidence.employer_authorization_reference|default:"—" }}</dd>
+    <dt class="font-medium">Условия для специалистов</dt><dd>{{ provider.claim_evidence.provider_terms_version }} · {{ provider.claim_evidence.provider_terms_accepted_at }}</dd>
   </dl>
   <form method="post" class="mt-6 space-y-4">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit" class="min-h-11 rounded-lg bg-slate-900 px-4 py-2 text-white">{% translate "Record decision" %}</button>
+    <button type="submit" class="min-h-11 rounded-lg bg-slate-900 px-4 py-2 text-white">Записать решение</button>
   </form>
-</main>
+</section>
 {% endblock %}
