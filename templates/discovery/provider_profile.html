@@ -1,35 +1,35 @@
 {% extends "base.html" %}
-{% load i18n verification_tags %}
+{% load verification_tags %}
 {% block title %}{{ document.document.display_name|default:document.provider.display_name }} · Finrix Palvelut{% endblock %}
 {% block content %}
 {% with provider=document.provider %}
 <article class="mx-auto max-w-3xl" data-analytics-provider="{{ provider.id }}">
-  <a class="text-sm text-slate-600 underline" href="{% url 'localized-home' locale=locale %}">← {% translate "Find specialists" %}</a>
+  <a class="text-sm text-slate-600 underline" href="{% url 'localized-home' locale='ru' %}">← Найти специалиста</a>
   <header class="mt-6 border-b border-slate-200 pb-6">
-    <p class="text-sm font-medium uppercase tracking-wide text-slate-500">{% for service in provider.services.all %}{% if service.is_active %}{{ service.category.name }}{% endif %}{% endfor %}</p>
+    <p class="text-sm font-medium uppercase tracking-wide text-slate-500">{% for service in provider.services.all %}{% if service.is_active %}{{ service.title|default:service.category.name }}{% endif %}{% endfor %}</p>
     <h1 class="mt-2 text-4xl font-bold tracking-tight">{{ document.document.display_name|default:provider.display_name }}</h1>
-    <p class="mt-3 text-slate-600">{% for area in provider.service_areas.all %}{{ area.municipality.name }}{% if not forloop.last %}, {% endif %}{% endfor %} · {% for language in provider.languages.all %}{{ language.language.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+    <p class="mt-3 text-slate-600">{% for area in provider.service_areas.all %}{{ area.municipality.name }}{% if not forloop.last %}, {% endif %}{% endfor %} · {% for language in provider.languages.all %}{% if language.language.code == 'ru' %}русский{% elif language.language.code == 'fi' %}финский{% elif language.language.code == 'en' %}английский{% else %}{{ language.language.name }}{% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
   </header>
 
   {% verification_facts provider as facts %}
   {% if facts %}
   <section class="py-6">
-    <h2 class="text-xl font-semibold">{% translate "Verification facts" %}</h2>
+    <h2 class="text-xl font-semibold">Проверенные факты</h2>
     <ul class="mt-4 grid gap-3">
       {% for fact in facts %}
       <li class="rounded-xl border border-slate-200 p-4">
         <p class="font-medium">{{ fact.label }}</p>
-        {% if fact.source_url %}<a class="mt-2 inline-block text-sm text-slate-600 underline" href="{{ fact.source_url }}" rel="nofollow noopener">{% translate "Official source" %}</a>{% endif %}
+        {% if fact.source_url %}<a class="mt-2 inline-block text-sm text-slate-600 underline" href="{{ fact.source_url }}" rel="nofollow noopener">Официальный источник</a>{% endif %}
       </li>
       {% endfor %}
     </ul>
     {% trust_explanation as trust_copy %}
-    <p class="mt-4 text-sm text-slate-600">{{ trust_copy }} <a class="underline" href="{% url 'trust' locale=locale %}">{% translate "How verification works" %}</a></p>
+    <p class="mt-4 text-sm text-slate-600">{{ trust_copy }} <a class="underline" href="{% url 'trust' locale='ru' %}">Как работает проверка</a></p>
   </section>
   {% endif %}
 
   <section class="border-t border-slate-200 py-6">
-    <h2 class="text-xl font-semibold">{% translate "Services and prices" %}</h2>
+    <h2 class="text-xl font-semibold">Услуги и цены</h2>
     <div class="mt-4 grid gap-3">
       {% for service in provider.services.all %}{% if service.is_active %}
       <div class="rounded-xl border border-slate-200 p-4">
@@ -41,21 +41,21 @@
     </div>
   </section>
 
-  {% if document.document.about %}<section class="border-t border-slate-200 py-6"><h2 class="text-xl font-semibold">{% translate "About" %}</h2><p class="mt-3 whitespace-pre-line text-slate-700">{{ document.document.about }}</p></section>{% endif %}
+  {% if document.document.about %}<section class="border-t border-slate-200 py-6"><h2 class="text-xl font-semibold">О специалисте</h2><p class="mt-3 whitespace-pre-line text-slate-700">{{ document.document.about }}</p></section>{% endif %}
 
   <section class="border-t border-slate-200 py-6">
-    <h2 class="text-xl font-semibold">{% translate "Contact" %}</h2>
+    <h2 class="text-xl font-semibold">Связаться</h2>
     <div class="mt-4 flex flex-wrap gap-3">
       {% for contact in provider.contacts.all %}{% if contact.is_public %}
-      <a class="rounded-lg border border-slate-300 px-4 py-2 font-medium" href="{% url 'contact-redirect' locale=locale provider_id=provider.id channel=contact.kind %}" rel="nofollow">{{ contact.label|default:contact.get_kind_display }}</a>
+      <a class="rounded-lg border border-slate-300 px-4 py-2 font-medium" href="{% url 'contact-redirect' locale='ru' provider_id=provider.id channel=contact.kind %}" rel="nofollow">{% if contact.label %}{{ contact.label }}{% elif contact.kind == 'phone' %}Телефон{% elif contact.kind == 'email' %}Электронная почта{% elif contact.kind == 'website' %}Сайт{% elif contact.kind == 'booking' %}Онлайн-запись{% elif contact.kind == 'telegram' %}Telegram{% elif contact.kind == 'whatsapp' %}WhatsApp{% else %}{{ contact.kind }}{% endif %}</a>
       {% endif %}{% endfor %}
     </div>
   </section>
 
   <section class="border-t border-slate-200 py-6">
-    <h2 class="text-xl font-semibold">{% translate "Company details" %}</h2>
-    <dl class="mt-3 grid gap-2 text-sm"><div><dt class="font-medium">{% translate "Legal name" %}</dt><dd class="text-slate-600">{{ provider.legal_name }}</dd></div>{% if provider.y_tunnus %}<div><dt class="font-medium">Y-tunnus</dt><dd class="text-slate-600">{{ provider.y_tunnus }}</dd></div>{% endif %}</dl>
-    {% with current_slug=provider.slugs.first %}{% if current_slug %}<p class="mt-5 text-sm"><a class="text-slate-600 underline" href="{% url 'content-report-provider' locale=locale slug=current_slug.slug %}">{% translate "Report this profile" %}</a></p>{% endif %}{% endwith %}
+    <h2 class="text-xl font-semibold">Данные специалиста или компании</h2>
+    <dl class="mt-3 grid gap-2 text-sm"><div><dt class="font-medium">Юридическое имя или название</dt><dd class="text-slate-600">{{ provider.legal_name }}</dd></div>{% if provider.y_tunnus %}<div><dt class="font-medium">Y-tunnus</dt><dd class="text-slate-600">{{ provider.y_tunnus }}</dd></div>{% endif %}</dl>
+    {% with current_slug=provider.slugs.first %}{% if current_slug %}<p class="mt-5 text-sm"><a class="text-slate-600 underline" href="{% url 'content-report-provider' locale='ru' slug=current_slug.slug %}">Сообщить о проблеме в карточке</a></p>{% endif %}{% endwith %}
   </section>
 </article>
 {% endwith %}
