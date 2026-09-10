@@ -2,9 +2,9 @@ const { test, expect, chromium } = require("@playwright/test");
 const AxeBuilder = require("@axe-core/playwright").default;
 
 const publicRoutes = [
-  "/palvelut/en/",
-  "/palvelut/en/search/?q=accounting",
-  "/palvelut/en/search/?q=definitely-no-provider",
+  "/palvelut/ru/",
+  "/palvelut/ru/search/?q=accounting",
+  "/palvelut/ru/search/?q=definitely-no-provider",
 ];
 
 test("P2 public discovery has no serious or critical axe violations", async ({ page }) => {
@@ -21,7 +21,7 @@ test("P2 public discovery has no serious or critical axe violations", async ({ p
 });
 
 test("P2 cold and warm anonymous discovery smoke stays inside response budgets", async ({ page }) => {
-  const route = `/palvelut/en/search/?q=p2-gate-${Date.now()}`;
+  const route = `/palvelut/ru/search/?q=p2-gate-${Date.now()}`;
   const startedCold = Date.now();
   const cold = await page.goto(route);
   const coldMs = Date.now() - startedCold;
@@ -46,7 +46,7 @@ test("P2 home passes Lighthouse performance accessibility and SEO categories", a
     chromeFlags: ["--headless", "--no-sandbox", "--disable-dev-shm-usage"],
   });
   try {
-    const result = await lighthouseModule.default("http://nginx:8080/palvelut/en/", {
+    const result = await lighthouseModule.default("http://nginx:8080/palvelut/ru/", {
       port: chrome.port,
       logLevel: "error",
       output: "json",
