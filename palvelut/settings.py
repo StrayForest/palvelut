@@ -91,7 +91,6 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "palvelut.security.SecurityHeadersMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -192,14 +191,8 @@ CSRF_TRUSTED_ORIGINS = [
     if origin.strip()
 ]
 
-LANGUAGE_CODE = "en"
-LANGUAGES = [
-    ("ru", "Russian"),
-    ("fi", "Finnish"),
-    ("en", "English"),
-]
-LOCALE_PATHS = [BASE_DIR / "locale"]
-LANGUAGE_COOKIE_PATH = PUBLIC_MOUNT_PATH
+LANGUAGE_CODE = "ru"
+LANGUAGES = [("ru", "Русский")]
 TIME_ZONE = "Europe/Helsinki"
 USE_I18N = True
 USE_TZ = True
