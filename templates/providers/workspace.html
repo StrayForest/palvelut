@@ -112,9 +112,21 @@
         <details class="mt-5 border-t border-[#DDE3DF] pt-5">
           <summary class="cursor-pointer font-semibold">Статистика карточки</summary>
           <dl class="mt-3 grid gap-4 sm:grid-cols-3">
-            <div><dt class="text-sm font-semibold text-[#17211D]">Показы в каталоге</dt><dd class="mt-1 text-2xl font-semibold">{{ row.impressions }}</dd></div>
-            <div><dt class="text-sm font-semibold text-[#17211D]">Просмотры карточки</dt><dd class="mt-1 text-2xl font-semibold">{{ row.profile_views }}</dd></div>
-            <div><dt class="text-sm font-semibold text-[#17211D]">Переходы к контактам</dt><dd class="mt-1 text-2xl font-semibold">{{ row.contact_clicks }}</dd></div>
+            <div>
+              <dt class="text-sm font-semibold text-[#17211D]">Показы в каталоге</dt>
+              <dd class="mt-1 text-2xl font-semibold">{{ row.impressions }}</dd>
+              <p class="mt-1 text-xs text-[#5E6A65]">Сколько раз карточка появилась в обезличенных публичных результатах поиска.</p>
+            </div>
+            <div>
+              <dt class="text-sm font-semibold text-[#17211D]">Просмотры карточки</dt>
+              <dd class="mt-1 text-2xl font-semibold">{{ row.profile_views }}</dd>
+              <p class="mt-1 text-xs text-[#5E6A65]">Сколько раз посетители открыли эту карточку в публичном каталоге.</p>
+            </div>
+            <div>
+              <dt class="text-sm font-semibold text-[#17211D]">Переходы к контактам</dt>
+              <dd class="mt-1 text-2xl font-semibold">{{ row.contact_clicks }}</dd>
+              <p class="mt-1 text-xs text-[#5E6A65]">Сколько раз посетители перешли из карточки к публичному способу связи.</p>
+            </div>
           </dl>
           <p class="mt-3 text-xs text-[#5E6A65]">Показываются только обезличенные суммарные данные по карточке. Мы не показываем и не сохраняем здесь личность посетителя, IP-адрес, текст поиска или межсайтовый идентификатор.</p>
         </details>
