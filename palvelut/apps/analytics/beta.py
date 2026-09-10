@@ -231,8 +231,7 @@ def reconcile_beta_snapshot(*, window_end=None) -> BetaDecisionSnapshot:
             None,
         )
         if first_search is not None and any(
-            event["kind"] == BETA_CONTACT_KIND
-            and event["occurred_at"] >= first_search
+            event["kind"] == BETA_CONTACT_KIND and event["occurred_at"] >= first_search
             for event in events
         ):
             search_sessions_with_contact.add(session_id)
