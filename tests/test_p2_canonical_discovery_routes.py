@@ -11,7 +11,15 @@ from django.test import Client, SimpleTestCase, override_settings
 from django.urls import reverse
 
 
-@override_settings(ALLOWED_HOSTS=["testserver"])
+LOCAL_MEMORY_CACHE = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "canonical-discovery-routes",
+    }
+}
+
+
+@override_settings(ALLOWED_HOSTS=["testserver"], CACHES=LOCAL_MEMORY_CACHE)
 class CanonicalDiscoveryRouteTests(SimpleTestCase):
     def setUp(self):
         self.client = Client()
