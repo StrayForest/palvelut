@@ -8,7 +8,10 @@ class ProviderClaimForm(forms.Form):
     evidence_kind = forms.ChoiceField(
         label="Как вы подтверждаете право управлять карточкой",
         choices=(
-            ("registry_signatory", "Данные о праве представлять компанию в официальном реестре"),
+            (
+                "registry_signatory",
+                "Данные о праве представлять компанию в официальном реестре",
+            ),
             ("business_domain_email", "Рабочая почта на домене компании"),
             ("staff_reviewed_equivalent", "Другое подтверждение для ручной проверки"),
         ),
