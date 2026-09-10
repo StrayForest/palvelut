@@ -37,15 +37,15 @@ for (const width of [360, 1440]) {
     const evidence = browserEvidence.get(testInfo.testId);
 
     await page.setViewportSize({ width, height: 900 });
-    const response = await page.goto("/palvelut/en/");
+    const response = await page.goto("/palvelut/ru/");
 
     expect(response).not.toBeNull();
     expect(response.status()).toBe(200);
-    await expect(page.locator("html")).toHaveAttribute("lang", "en");
+    await expect(page.locator("html")).toHaveAttribute("lang", "ru");
     await expect(page.locator("body")).toBeVisible();
 
     await page.keyboard.press("Tab");
-    const skipLink = page.getByRole("link", { name: "Skip to main content" });
+    const skipLink = page.getByRole("link", { name: "Перейти к содержанию" });
     await expect(skipLink).toBeFocused();
 
     await page.keyboard.press("Enter");
@@ -60,22 +60,22 @@ test("discovery filters work without JavaScript", async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();
 
-  const response = await page.goto("/palvelut/en/search/?q=accounting");
+  const response = await page.goto("/palvelut/ru/search/?q=accounting");
   expect(response).not.toBeNull();
   expect(response.status()).toBe(200);
 
   const service = page.locator("#discovery-service");
   await expect(service).toHaveValue("accounting");
   await service.fill("bookkeeper");
-  await page.getByRole("button", { name: "Apply filters" }).click();
+  await page.getByRole("button", { name: "Применить фильтры" }).click();
 
-  await expect(page).toHaveURL(/\/palvelut\/en\/search\/\?q=bookkeeper/);
+  await expect(page).toHaveURL(/\/palvelut\/ru\/search\/\?q=bookkeeper/);
   await expect(page.locator("#discovery-service")).toHaveValue("bookkeeper");
   await context.close();
 });
 
 test("HTMX discovery filters preserve URL history and focused field", async ({ page }) => {
-  await page.goto("/palvelut/en/search/?q=accounting");
+  await page.goto("/palvelut/ru/search/?q=accounting");
 
   const service = page.locator("#discovery-service");
   await service.focus();
@@ -84,16 +84,16 @@ test("HTMX discovery filters preserve URL history and focused field", async ({ p
 
   await Promise.all([
     page.waitForResponse((response) =>
-      response.url().includes("/palvelut/en/search/?q=bookkeeper"),
+      response.url().includes("/palvelut/ru/search/?q=bookkeeper"),
     ),
     service.press("Enter"),
   ]);
 
-  await expect(page).toHaveURL(/\/palvelut\/en\/search\/\?q=bookkeeper/);
+  await expect(page).toHaveURL(/\/palvelut\/ru\/search\/\?q=bookkeeper/);
   await expect(page.locator("#discovery-service")).toBeFocused();
   await expect(page.locator("#discovery-service")).toHaveValue("bookkeeper");
 
   await page.goBack();
-  await expect(page).toHaveURL(/\/palvelut\/en\/search\/\?q=accounting/);
+  await expect(page).toHaveURL(/\/palvelut\/ru\/search\/\?q=accounting/);
   await expect(page.locator("#discovery-service")).toHaveValue("accounting");
 });
