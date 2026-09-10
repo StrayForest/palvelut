@@ -420,9 +420,9 @@ def sitemap_xml(request: HttpRequest) -> HttpResponse:
         )
         if current_slug:
             lastmod = document.generated_at.date().isoformat()
-            entries[
-                f"{settings.PUBLIC_BASE_URL}/ru/professionals/{current_slug}/"
-            ] = lastmod
+            entries[f"{settings.PUBLIC_BASE_URL}/ru/professionals/{current_slug}/"] = (
+                lastmod
+            )
         categories = {
             service.category.slug
             for service in document.provider.services.all()
@@ -444,9 +444,9 @@ def sitemap_xml(request: HttpRequest) -> HttpResponse:
     for (city_slug, category_slug), provider_ids in landing_providers.items():
         if len(provider_ids) < 3:
             continue
-        entries[
-            f"{settings.PUBLIC_BASE_URL}/ru/{city_slug}/{category_slug}/"
-        ] = landing_lastmod[(city_slug, category_slug)]
+        entries[f"{settings.PUBLIC_BASE_URL}/ru/{city_slug}/{category_slug}/"] = (
+            landing_lastmod[(city_slug, category_slug)]
+        )
 
     urls = []
     for location, lastmod in sorted(entries.items()):
