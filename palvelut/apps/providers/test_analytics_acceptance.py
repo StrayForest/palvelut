@@ -23,18 +23,18 @@ class ProviderAnalyticsAcceptanceTests(SimpleTestCase):
         )
 
         self.assertIn(
-            "No visitor identity, IP address, search text, or cross-site identifier is stored or shown.",
+            "Мы не показываем и не сохраняем здесь личность посетителя, IP-адрес, текст поиска или межсайтовый идентификатор.",
             template,
         )
         self.assertIn(
-            "times this provider appears in anonymous public discovery results.",
+            "Сколько раз карточка появилась в обезличенных публичных результатах поиска.",
             template,
         )
         self.assertIn(
-            "anonymous public opens of this provider profile.",
+            "Сколько раз посетители открыли эту карточку в публичном каталоге.",
             template,
         )
         self.assertIn(
-            "tracked clicks from this provider profile to a public contact channel.",
+            "Сколько раз посетители перешли из карточки к публичному способу связи.",
             template,
         )
