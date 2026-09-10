@@ -66,8 +66,12 @@ class BetaFunnelEvent(UuidV7Model):
     class Meta:
         ordering = ("occurred_at", "id")
         indexes = (
-            models.Index(fields=("occurred_at", "country_code"), name="beta_evt_time_country"),
-            models.Index(fields=("session_id", "occurred_at"), name="beta_evt_session_time"),
+            models.Index(
+                fields=("occurred_at", "country_code"), name="beta_evt_time_country"
+            ),
+            models.Index(
+                fields=("session_id", "occurred_at"), name="beta_evt_session_time"
+            ),
             models.Index(fields=("kind", "occurred_at"), name="beta_evt_kind_time"),
         )
         constraints = (
