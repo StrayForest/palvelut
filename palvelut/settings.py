@@ -142,6 +142,10 @@ CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://valkey:6379/1")
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://valkey:6379/2")
 CELERY_TIMEZONE = "Europe/Helsinki"
 CELERY_BEAT_SCHEDULE = {
+    "reconcile-beta-funnel": {
+        "task": "palvelut.analytics.reconcile_beta_funnel",
+        "schedule": crontab(hour=3, minute=15),
+    },
     "purge-expired-analytics": {
         "task": "palvelut.analytics.purge_expired",
         "schedule": crontab(hour=3, minute=20),
