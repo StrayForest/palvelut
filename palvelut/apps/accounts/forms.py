@@ -18,7 +18,9 @@ class ProviderRegistrationForm(UserCreationForm):
     def clean_email(self):
         email = self.cleaned_data["email"].strip().lower()
         if get_user_model().objects.filter(email__iexact=email).exists():
-            raise forms.ValidationError("Аккаунт с этой электронной почтой уже существует.")
+            raise forms.ValidationError(
+                "Аккаунт с этой электронной почтой уже существует."
+            )
         return email
 
     def save(self, commit=True):
