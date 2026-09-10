@@ -3,7 +3,7 @@
 ## Information architecture
 
 ```text
-/palvelut/{locale}/
+/palvelut/ru/
 ├── services/{category}/
 ├── {city}/{category}/
 ├── professionals/{provider-slug}/
@@ -14,14 +14,14 @@
 └── account/{login,onboarding,profile,analytics}/
 ```
 
-Canonical origin is `https://finrix.fi`; the Django app is mounted at `/palvelut`. Only `/{city}/{category}/` pages inside that mount meeting the supply/content threshold are indexed. Arbitrary search/filter URLs are canonicalized or `noindex,follow`.
+Canonical origin is `https://finrix.fi`; the Django app is mounted at `/palvelut`. `/palvelut/ru/` is the only supported public UI prefix in the MVP. FI/EN UI routes are unsupported. Only `/{city}/{category}/` pages inside the Russian public mount meeting the supply/content threshold are indexed. Arbitrary search/filter URLs are canonicalized or `noindex,follow`.
 
 ## Public journey
 
 1. Home asks only `What service?` and `Where?`; Russian is implicit in the promise.
 2. Results expose provider count, active filters and honest empty states.
 3. Cards make comparison possible without opening every profile.
-4. Profile explains services, price model, areas, languages, exact checks and recency.
+4. Profile explains services, price model, areas, provider spoken languages, exact checks and recency.
 5. Contact buttons open the provider's phone, WhatsApp, Telegram, email, site or booking page.
 
 No public action requires an account.
@@ -45,17 +45,23 @@ Header: identity, main service, service area, languages, last checked. Sticky mo
 
 Never show a generic `Verified professional` badge. Examples: `Y-tunnus found in YTJ · checked 2026-09-02` or `Professional right found in JulkiTerhikki · checked …`.
 
+## Provider acquisition
+
+The Russian home header and provider CTA expose a primary `Разместить карточку` action. It leads directly to provider registration. A specialist must not need to infer that an English `For professionals` or workspace link is the registration entry point.
+
 ## Provider onboarding
 
-1. Verify email and explicitly accept the current provider terms.
+1. Register an account, verify email and explicitly accept the current provider terms.
 2. Enter the minimum private legal identity needed to start: individual/company type, legal/display name and Y-tunnus when applicable.
 3. For a new provider, create a non-public `unclaimed` provider record and submit independent control evidence. For an imported provider, select the existing non-public draft and submit the same claim evidence.
 4. Staff reviews legal identity/control evidence. Only an approved ownership claim creates the active owner membership and unlocks the provider workspace; claim approval does not publish the profile.
-5. Add category, cities, remote/on-site mode and languages.
+5. Add category, cities, remote/on-site mode and provider spoken languages.
 6. Add public description, prices, photos and contacts.
 7. Preview the exact public page.
 8. Submit an immutable profile revision for staff content/verification review.
 9. Publish or return structured corrections. Edits to a live profile create a pending revision while the current approved version remains public.
+
+All user-facing provider acquisition, registration, verification, claim, workspace, editing, preview and moderation-state surfaces are Russian-only.
 
 A brand-new provider must be able to complete steps 1–3 without a staff-preseeded `Provider` row or direct database membership creation.
 
