@@ -28,25 +28,25 @@ test("provider completes onboarding on mobile without staff edits", async ({ pag
   await page.setViewportSize({ width: 360, height: 800 });
 
   await page.goto("/palvelut/account/login/");
-  await page.getByLabel("Email").fill("provider-e2e@example.test");
-  await page.getByLabel("Password").fill("provider-e2e-pass");
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await page.getByLabel("Электронная почта").fill("provider-e2e@example.test");
+  await page.getByLabel("Пароль").fill("provider-e2e-pass");
+  await page.getByRole("button", { name: "Войти" }).click();
 
   await page.goto("/palvelut/account/profile/");
-  await expect(page.getByRole("heading", { name: "Provider workspace" })).toBeVisible();
-  await page.getByRole("link", { name: "Continue profile" }).click();
+  await expect(page.getByRole("heading", { name: "Кабинет специалиста" })).toBeVisible();
+  await page.getByRole("link", { name: "Продолжить заполнение" }).click();
 
-  await expect(page.getByText("Complete the profile yourself")).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: /Редактировать/ })).toBeVisible();
   for (const width of P6_WIDTHS) {
     await saveP6Evidence(page, testInfo, "workspace-edit", width);
   }
   await page.setViewportSize({ width: 360, height: 800 });
 
-  await page.getByLabel("Display name").fill("Synthetic Mobile Legal Specialist");
-  await page.getByLabel("Service title").fill("Legal consultation");
-  await page.getByLabel("Service description").fill("Synthetic browser acceptance profile.");
-  await page.getByLabel("Price text").fill("From 80 EUR");
-  await page.getByRole("button", { name: "Save draft" }).click();
+  await page.getByLabel("Название в каталоге").fill("Synthetic Mobile Legal Specialist");
+  await page.getByLabel("Название услуги").fill("Legal consultation");
+  await page.getByLabel("Описание услуги").fill("Synthetic browser acceptance profile.");
+  await page.getByLabel("Цена или принцип расчёта").fill("From 80 EUR");
+  await page.getByRole("button", { name: "Сохранить черновик" }).click();
 
   await page.locator("#provider-image").setInputFiles({
     name: "profile.png",
@@ -54,7 +54,7 @@ test("provider completes onboarding on mobile without staff edits", async ({ pag
     buffer: ONE_PIXEL_PNG,
   });
   await page.locator("#provider-image-alt").fill("Synthetic profile image");
-  await page.getByRole("button", { name: "Upload image" }).click();
+  await page.getByRole("button", { name: "Загрузить изображение" }).click();
   await expect(page.getByText("Synthetic profile image")).toBeVisible();
 
   const hasHorizontalOverflow = await page.evaluate(
@@ -62,32 +62,33 @@ test("provider completes onboarding on mobile without staff edits", async ({ pag
   );
   expect(hasHorizontalOverflow).toBe(false);
 
-  await page.getByRole("link", { name: "Preview profile" }).click();
-  await expect(page.getByRole("heading", { name: "Synthetic Mobile Legal Specialist" })).toBeVisible();
+  await page.getByRole("link", { name: "Посмотреть предпросмотр" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Предпросмотр карточки" })).toBeVisible();
+  await expect(page.getByText("Synthetic Mobile Legal Specialist", { exact: true })).toBeVisible();
   for (const width of P6_WIDTHS) {
     await saveP6Evidence(page, testInfo, "workspace-preview", width);
   }
   await page.setViewportSize({ width: 360, height: 800 });
-  await page.getByRole("button", { name: "Submit for review" }).click();
+  await page.getByRole("button", { name: "Отправить на проверку" }).click();
 
   await expect(page).toHaveURL(/\/palvelut\/account\/profile\/\?submitted=1$/);
-  await expect(page.getByRole("status")).toHaveText("Profile submitted for review.");
-  await expect(page.getByText("Revision: Pending")).toBeVisible();
+  await expect(page.getByRole("status")).toHaveText("Карточка отправлена на проверку.");
+  await expect(page.getByText("Карточка на проверке.")).toBeVisible();
 });
 
 test("provider pending workspace has keyboard and accessibility smoke coverage", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/palvelut/account/login/");
-  await page.getByLabel("Email").fill("provider-e2e@example.test");
-  await page.getByLabel("Password").fill("provider-e2e-pass");
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await page.getByLabel("Электронная почта").fill("provider-e2e@example.test");
+  await page.getByLabel("Пароль").fill("provider-e2e-pass");
+  await page.getByRole("button", { name: "Войти" }).click();
 
   await page.goto("/palvelut/account/profile/");
-  await expect(page.getByRole("heading", { level: 1, name: "Provider workspace" })).toBeVisible();
-  await expect(page.getByText("Profile status: Pending · Revision: Pending")).toBeVisible();
-  await expect(page.getByText("Wait for profile review. Your last submitted revision is pending.")).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Кабинет специалиста" })).toBeVisible();
+  await expect(page.getByText("Карточка на проверке.")).toBeVisible();
+  await expect(page.getByText("Дождитесь проверки. Последняя версия карточки уже отправлена на модерацию.")).toBeVisible();
 
-  const startAnother = page.getByRole("link", { name: "Start another provider profile" });
+  const startAnother = page.getByRole("link", { name: "Создать ещё одну карточку" });
   await startAnother.focus();
   await expect(startAnother).toBeFocused();
 
