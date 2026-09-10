@@ -79,20 +79,20 @@ def _completion_checklist(payload):
     services = payload.get("services") or []
     checks = (
         (
-            "Identity",
+            "Данные специалиста",
             all(
                 payload.get(field)
                 for field in ("provider_type", "legal_name", "display_name")
             ),
         ),
-        ("Service", any(item.get("is_active", True) for item in services)),
-        ("Service area", bool(payload.get("service_areas"))),
-        ("Language", bool(payload.get("languages"))),
+        ("Услуга", any(item.get("is_active", True) for item in services)),
+        ("Город и формат работы", bool(payload.get("service_areas"))),
+        ("Язык обслуживания", bool(payload.get("languages"))),
         (
-            "Public contact",
+            "Публичный контакт",
             any(item.get("is_public", True) and item.get("value") for item in contacts),
         ),
-        ("Image", bool(payload.get("media"))),
+        ("Фотография", bool(payload.get("media"))),
     )
     return checks, sum(1 for _label, complete in checks if complete)
 
@@ -180,7 +180,10 @@ def edit_profile(request, provider_id):
             payload=form.cleaned_payload(),
         )
         if request.headers.get("HX-Request") == "true":
-            return HttpResponse("Saved", headers={"HX-Trigger": "providerDraftSaved"})
+            return HttpResponse(
+                "Черновик сохранён",
+                headers={"HX-Trigger": "providerDraftSaved"},
+            )
         return redirect("provider-workspace-edit", provider_id=provider_id)
     return render(
         request,
@@ -195,7 +198,7 @@ def upload_profile_media(request, provider_id):
     _membership_for_request(request, provider_id)
     uploaded_file = request.FILES.get("image")
     if uploaded_file is None:
-        return HttpResponseBadRequest("image is required")
+        return HttpResponseBadRequest("Изображение обязательно.")
     try:
         stage_media_upload(
             provider_id=provider_id,
