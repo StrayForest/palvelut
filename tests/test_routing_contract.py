@@ -14,7 +14,15 @@ from django.test import Client, SimpleTestCase, override_settings
 from palvelut.settings import _public_base_url
 
 
-@override_settings(ALLOWED_HOSTS=["testserver"])
+LOCAL_MEMORY_CACHE = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "routing-contract",
+    }
+}
+
+
+@override_settings(ALLOWED_HOSTS=["testserver"], CACHES=LOCAL_MEMORY_CACHE)
 class RoutingContractTests(SimpleTestCase):
     def setUp(self):
         self.client = Client()
@@ -40,34 +48,25 @@ class RoutingContractTests(SimpleTestCase):
 
     def test_static_and_cookie_paths_keep_public_mount_prefix(self):
         self.assertEqual(settings.STATIC_URL, "/palvelut/static/")
-        self.assertEqual(settings.LANGUAGE_COOKIE_PATH, "/palvelut/")
         self.assertEqual(settings.SESSION_COOKIE_PATH, "/palvelut/")
         self.assertEqual(settings.CSRF_COOKIE_PATH, "/palvelut/")
+        self.assertFalse(settings.is_overridden("LANGUAGE_COOKIE_PATH"))
         response = self.client.get("/palvelut/ru/")
         self.assertContains(response, "/palvelut/static/css/app.css")
         self.assertContains(response, "/palvelut/static/vendor/htmx.min.js")
         self.assertContains(response, "/palvelut/static/vendor/alpine.min.js")
 
     @override_settings(PUBLIC_BASE_URL="https://finrix.fi/palvelut")
-    def test_canonical_and_hreflang_are_absolute_and_russian_only(self):
+    def test_canonical_is_absolute_and_no_multilingual_hreflang_remains(self):
         response = self.client.get("/palvelut/ru/")
         self.assertContains(
             response,
             '<link rel="canonical" href="https://finrix.fi/palvelut/ru/">',
             html=False,
         )
-        self.assertContains(
-            response,
-            '<link rel="alternate" hreflang="ru" href="https://finrix.fi/palvelut/ru/">',
-            html=False,
-        )
         self.assertNotContains(response, 'hreflang="fi"', html=False)
         self.assertNotContains(response, 'hreflang="en"', html=False)
-        self.assertContains(
-            response,
-            '<link rel="alternate" hreflang="x-default" href="https://finrix.fi/palvelut/ru/">',
-            html=False,
-        )
+        self.assertNotContains(response, 'hreflang="x-default"', html=False)
 
     def test_public_base_url_is_mount_scoped_and_absolute(self):
         valid = {
