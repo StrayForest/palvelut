@@ -8,8 +8,10 @@ from django.utils import timezone
 
 from palvelut.apps.analytics.beta import (
     BETA_BOT_RULE_VERSION,
+    BETA_DISCOVERY_KIND,
     BETA_METRIC_VERSION,
     BETA_SCHEMA_VERSION,
+    BETA_SEARCH_KIND,
     BETA_SESSION_COOKIE,
     reconcile_beta_snapshot,
     signed_event_token,
@@ -24,7 +26,7 @@ class BetaFunnelAcceptanceTests(TestCase):
         cache.clear()
 
     def test_collection_is_anonymous_versioned_and_bot_filtered(self):
-        token = signed_event_token(BetaFunnelEvent.Kind.DISCOVERY_VIEW)
+        token = signed_event_token(BETA_DISCOVERY_KIND)
         response = self.client.get(
             reverse("beta-analytics-collect"),
             {"event": token},
@@ -55,7 +57,7 @@ class BetaFunnelAcceptanceTests(TestCase):
 
     def test_search_payload_records_only_result_state_not_query_text(self):
         token = signed_event_token(
-            BetaFunnelEvent.Kind.SEARCH,
+            BETA_SEARCH_KIND,
             search_had_results=False,
         )
         response = self.client.get(
