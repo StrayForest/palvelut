@@ -16,7 +16,7 @@ class RussianOnlyBaseLayoutContractTests(TestCase):
         self.assertNotIn(
             "django.middleware.locale.LocaleMiddleware", settings.MIDDLEWARE
         )
-        self.assertFalse(hasattr(settings, "LOCALE_PATHS"))
+        self.assertFalse(settings.is_overridden("LOCALE_PATHS"))
 
     def test_base_template_has_accessibility_landmarks_and_russian_registration(self):
         html = render_to_string("base.html")
