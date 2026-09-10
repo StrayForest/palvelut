@@ -37,6 +37,8 @@ def _public_base_url() -> str:
 
 PUBLIC_BASE_URL = _public_base_url()
 PUBLIC_MOUNT_PATH = "/palvelut/"
+GOOGLE_SITE_VERIFICATION = os.getenv("GOOGLE_SITE_VERIFICATION", "").strip()
+BING_SITE_VERIFICATION = os.getenv("BING_SITE_VERIFICATION", "").strip()
 
 
 def _validate_environment() -> None:
@@ -140,6 +142,10 @@ CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://valkey:6379/1")
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://valkey:6379/2")
 CELERY_TIMEZONE = "Europe/Helsinki"
 CELERY_BEAT_SCHEDULE = {
+    "reconcile-beta-funnel": {
+        "task": "palvelut.analytics.reconcile_beta_funnel",
+        "schedule": crontab(hour=3, minute=15),
+    },
     "purge-expired-analytics": {
         "task": "palvelut.analytics.purge_expired",
         "schedule": crontab(hour=3, minute=20),

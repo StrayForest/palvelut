@@ -32,6 +32,11 @@ GAUGE_METRICS = {
     "palvelut_db_pool_in_use",
     "palvelut_queue_oldest_age_seconds",
     "palvelut_backup_age_seconds",
+    "palvelut_beta_raw_events",
+    "palvelut_beta_finland_discovery_sessions",
+    "palvelut_beta_search_sessions",
+    "palvelut_beta_contact_conversion_ratio",
+    "palvelut_beta_zero_result_ratio",
 }
 OBSERVATION_METRICS = {"palvelut_http_request_duration_seconds"}
 

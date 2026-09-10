@@ -15,6 +15,7 @@ from palvelut.apps.accounts.views import (
     verify_email,
 )
 from palvelut.apps.analytics.services import track_provider_events
+from palvelut.apps.analytics.views import beta_collect
 from palvelut.apps.content.views import legal_document
 from palvelut.apps.discovery.cache import public_read_through_cache
 from palvelut.apps.discovery.contact import contact_redirect
@@ -98,6 +99,7 @@ urlpatterns = [
     path("palvelut/health/live", health_live, name="health-live"),
     path("palvelut/health/ready", health_ready, name="health-ready"),
     path("palvelut/metrics", metrics, name="metrics"),
+    path("palvelut/analytics/collect/", beta_collect, name="beta-analytics-collect"),
     path("palvelut/robots.txt", robots_txt, name="robots-txt"),
     path("palvelut/sitemap.xml", sitemap_xml, name="sitemap-xml"),
     path("palvelut/account/register/", register, name="account-register"),
