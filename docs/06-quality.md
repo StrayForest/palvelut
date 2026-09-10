@@ -25,11 +25,11 @@ Public profile data must be provider-supplied or clearly sourced. Collect no use
 
 ## SEO contract
 
-- Server-render unique title, H1, description, canonical and social metadata.
+- Server-render unique Russian title, H1, description, canonical and social metadata.
 - `LocalBusiness`/most-specific schema only when page facts support it; no fabricated ratings.
-- XML sitemap contains canonical, published, indexable URLs and accurate `lastmod`.
-- `hreflang` sets are reciprocal; locale routes never auto-redirect crawlers by IP.
-- Index city/category page only with ≥3 active providers and useful localized copy.
+- XML sitemap contains canonical, published, indexable `/palvelut/ru/` URLs and accurate `lastmod`.
+- There are no FI/EN public UI alternates or locale-switch hreflang targets in the Russian-only MVP.
+- Index city/category page only with ≥3 active providers and useful Russian copy.
 - Filter/search/account/admin/report pages are not indexed.
 - Preserve slug redirects and return real 404/410 status for removed content.
 - Search Console and Bing Webmaster Tools are release dependencies.
@@ -55,12 +55,14 @@ Budgets are CI/release gates, not aspirations. Test with production-like images 
 - Unit: domain rules, normalization, ranking, verification labels.
 - Database: constraints, migrations, query count and indexes.
 - Integration: auth/ownership, revision publish, cache invalidation, contact redirect, outbox idempotency.
-- Browser: public search/profile/contact and the complete provider path `register → verify → start/claim provider → ownership approval → workspace → submit` at required viewports, keyboard and reduced motion.
+- Browser: Russian public search/profile/contact and the complete provider path `Разместить карточку → register → verify → start/claim provider → ownership approval → workspace → edit → preview → submit` at required viewports, keyboard and reduced motion.
 - Security: dependency/secret scan, headers, CSRF, IDOR, upload corpus, rate limits.
 - SEO/accessibility: rendered metadata/schema/sitemap, axe plus manual keyboard/screen-reader smoke.
 - Load: anonymous browse/search mix; include cache cold/warm and database saturation metrics.
 
 P6 fresh-account acceptance must not prove onboarding by directly creating the primary test account's `ProviderMembership` or by pre-seeding the provider row it is supposed to create. Test fixtures may still create independent staff/moderation actors and unrelated public demo providers.
+
+P6 Russian-only readiness acceptance must prove that `/palvelut/ru/` is the only supported public UI locale, `/palvelut/fi/` and `/palvelut/en/` do not render product pages, and all provider acquisition/onboarding screenshots use Russian UI copy. Provider spoken-language filtering is explicitly outside this locale restriction.
 
 ## Observability
 
