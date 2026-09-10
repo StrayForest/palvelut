@@ -28,6 +28,7 @@ from .services import (
 
 REPORT_RATE_LIMIT = 5
 REPORT_RATE_WINDOW_SECONDS = 3600
+SUPPORTED_LOCALES = {code for code, _name in settings.LANGUAGES}
 
 
 def _report_rate_key(request: HttpRequest, provider_id: object) -> str:
@@ -57,6 +58,8 @@ def _consume_report_rate_limit(request: HttpRequest, provider_id: object) -> boo
 @never_cache
 @require_http_methods(["GET", "POST"])
 def report_provider(request: HttpRequest, locale: str, slug: str) -> HttpResponse:
+    if locale not in SUPPORTED_LOCALES:
+        raise Http404("Unsupported locale")
     slug_row = get_object_or_404(
         ProviderSlug.objects.select_related("provider"),
         slug=slug,
@@ -67,7 +70,7 @@ def report_provider(request: HttpRequest, locale: str, slug: str) -> HttpRespons
     if request.method == "POST" and not _consume_report_rate_limit(
         request, provider.pk
     ):
-        response = HttpResponse("Too many reports", status=429)
+        response = HttpResponse("Слишком много жалоб. Попробуйте позже.", status=429)
         response["Retry-After"] = str(REPORT_RATE_WINDOW_SECONDS)
         return response
     form = ContentReportForm(request.POST or None)
@@ -117,7 +120,7 @@ def report_status(request: HttpRequest, case_id) -> HttpResponse:
                 status_token=form.cleaned_data["status_token"],
             )
         except (PermissionDenied, ModerationCase.DoesNotExist):
-            form.add_error("status_token", "Invalid case or status code")
+            form.add_error("status_token", "Неверный номер обращения или код статуса")
     return render(
         request,
         "moderation/report_status.html",
