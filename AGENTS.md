@@ -24,7 +24,7 @@
 - Normalize and validate all external contact targets server-side; never implement an open redirect.
 - Uploads are untrusted: constrain type/size, decode and re-encode images, strip metadata, and store outside the app origin.
 - New runtime dependencies or changes to product boundaries need a short entry in `DECISIONS.md`.
-- UI text is localized; code, identifiers, logs, and technical docs are English. Product docs may be Russian.
+- Product and staff UI is Russian-only. Do not add UI locale switching, FI/EN UI translations, or additional public UI locales. Provider spoken languages remain domain data and may include Russian, Finnish, English, or other supported service languages. Code, identifiers, logs, and technical docs are English. Product docs may be Russian.
 - Never claim completion without running the gates in the current task and reporting exact failures.
 
 ## Local and CI contract
