@@ -13,7 +13,9 @@ class RussianOnlyBaseLayoutContractTests(TestCase):
     def test_only_russian_ui_locale_is_supported(self):
         self.assertEqual(settings.LANGUAGE_CODE, "ru")
         self.assertEqual([code for code, _ in settings.LANGUAGES], ["ru"])
-        self.assertNotIn("django.middleware.locale.LocaleMiddleware", settings.MIDDLEWARE)
+        self.assertNotIn(
+            "django.middleware.locale.LocaleMiddleware", settings.MIDDLEWARE
+        )
         self.assertFalse(hasattr(settings, "LOCALE_PATHS"))
 
     def test_base_template_has_accessibility_landmarks_and_russian_registration(self):
