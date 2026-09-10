@@ -137,11 +137,11 @@ def _language_code_for_query(query: str) -> str:
 
 def _mode_for_query(query: str) -> str:
     normalized = query.strip().casefold()
-    aliases = {
-        "на месте": ServiceArea.Mode.ONSITE,
-        "с выездом": ServiceArea.Mode.TRAVEL,
-        "удалённо": ServiceArea.Mode.REMOTE,
-        "удаленно": ServiceArea.Mode.REMOTE,
+    aliases: dict[str, str] = {
+        "на месте": "onsite",
+        "с выездом": "travel",
+        "удалённо": "remote",
+        "удаленно": "remote",
     }
     normalized = aliases.get(normalized, normalized)
     valid_modes = {choice for choice, _label in ServiceArea.Mode.choices}
