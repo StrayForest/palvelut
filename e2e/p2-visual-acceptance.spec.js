@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const { test, expect } = require("@playwright/test");
 
-const widths = [360, 768, 1440];
+const widths = [360, 390, 768, 1024, 1440];
 const evidenceDir = path.join("test-results", "p2-visual-evidence");
 
 async function capture(page, testInfo, name, url, width, beforeCapture) {
@@ -25,14 +25,14 @@ async function capture(page, testInfo, name, url, width, beforeCapture) {
 }
 
 test("P2 responsive visual evidence and design checklist", async ({ page }, testInfo) => {
-  test.setTimeout(120_000);
+  test.setTimeout(180_000);
 
-  await page.goto("/palvelut/en/search/?q=accounting");
+  await page.goto("/palvelut/ru/search/?q=accounting");
   const profileHref = await page.locator('a[href*="/professionals/"]').first().getAttribute("href");
   expect(profileHref).toBeTruthy();
 
   for (const width of widths) {
-    await capture(page, testInfo, "home", "/palvelut/en/", width, async () => {
+    await capture(page, testInfo, "home", "/palvelut/ru/", width, async () => {
       const search = page.locator("#discovery-search-submit");
       await search.focus();
       await expect(search).toBeFocused();
@@ -44,10 +44,10 @@ test("P2 responsive visual evidence and design checklist", async ({ page }, test
       expect(searchBox.y).toBeLessThan(800);
     }
 
-    await capture(page, testInfo, "results", "/palvelut/en/search/?q=accounting", width);
-    await capture(page, testInfo, "empty", "/palvelut/en/search/?q=definitely-no-provider", width);
+    await capture(page, testInfo, "results", "/palvelut/ru/search/?q=accounting", width);
+    await capture(page, testInfo, "empty", "/palvelut/ru/search/?q=definitely-no-provider", width);
     await capture(page, testInfo, "profile", profileHref, width);
-    await capture(page, testInfo, "provider-cta", "/palvelut/en/", width, async () => {
+    await capture(page, testInfo, "provider-cta", "/palvelut/ru/", width, async () => {
       await page.locator("#provider-cta").scrollIntoViewIfNeeded();
     });
   }
