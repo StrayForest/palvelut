@@ -39,7 +39,7 @@ def register(request: HttpRequest) -> HttpResponse:
     if request.method == "POST" and form.is_valid():
         email = form.cleaned_data["email"]
         if rate_limited("register", f"{request.META.get('REMOTE_ADDR', '')}:{email}"):
-            form.add_error(None, "Too many attempts. Try again later.")
+            form.add_error(None, "Слишком много попыток. Попробуйте позже.")
         else:
             user = form.save()
             issue_email_verification(user, request)
@@ -51,7 +51,7 @@ def register(request: HttpRequest) -> HttpResponse:
 def verify_email(request: HttpRequest, token: str) -> HttpResponse:
     if not verify_email_token(token):
         return render(request, "accounts/verification_invalid.html", status=400)
-    messages.success(request, "Email verified. You can now sign in.")
+    messages.success(request, "Электронная почта подтверждена. Теперь можно войти.")
     return redirect("account-login")
 
 
@@ -66,7 +66,7 @@ class ProviderLoginView(LoginView):
                 "login", f"{request.META.get('REMOTE_ADDR', '')}:{identity}"
             ):
                 form = self.get_form()
-                form.add_error(None, "Too many attempts. Try again later.")
+                form.add_error(None, "Слишком много попыток. Попробуйте позже.")
                 return self.form_invalid(form)
         return super().dispatch(request, *args, **kwargs)
 
@@ -127,14 +127,14 @@ class SecurePasswordResetCompleteView(PasswordResetCompleteView):
 @require_http_methods(["GET", "POST"])
 def staff_mfa(request: HttpRequest) -> HttpResponse:
     if not request.user.is_staff:
-        return redirect("localized-home", locale="fi")
+        return redirect("localized-home", locale="ru")
     device = get_or_create_staff_device(request.user)
     form = MFAForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         if rate_limited(
             "mfa", f"{request.user.pk}:{request.META.get('REMOTE_ADDR', '')}", limit=8
         ):
-            form.add_error(None, "Too many attempts. Try again later.")
+            form.add_error(None, "Слишком много попыток. Попробуйте позже.")
         elif valid_totp(device.secret, form.cleaned_data["code"]):
             if device.confirmed_at is None:
                 device.confirmed_at = timezone.now()
@@ -150,5 +150,5 @@ def staff_mfa(request: HttpRequest) -> HttpResponse:
                 destination = reverse("admin:index")
             return redirect(destination)
         else:
-            form.add_error("code", "Invalid code.")
+            form.add_error("code", "Неверный код.")
     return render(request, "accounts/staff_mfa.html", {"form": form, "device": device})
