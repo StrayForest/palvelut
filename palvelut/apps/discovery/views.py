@@ -11,6 +11,8 @@ from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.utils import translation
 
+from palvelut.apps.analytics.beta import signed_event_token
+from palvelut.apps.analytics.models import BetaFunnelEvent
 from palvelut.apps.discovery.models import ProviderReadDocument
 from palvelut.apps.providers.models import Provider, ServiceArea
 from palvelut.apps.publishing.models import ProviderSlug
@@ -175,9 +177,7 @@ def _filtered_documents(state: SearchState) -> QuerySet[ProviderReadDocument]:
 
     service_area_filters: dict[str, object] = {}
     if state.municipality is not None:
-        service_area_filters["provider__service_areas__municipality"] = (
-            state.municipality
-        )
+        service_area_filters["provider__service_areas__municipality"] = state.municipality
     if state.mode:
         service_area_filters["provider__service_areas__mode"] = state.mode
     if service_area_filters:
@@ -235,6 +235,8 @@ def _base_context(locale: str, path_suffix: str = "") -> dict[str, object]:
         "robots_meta": "index,follow",
         "meta_description": "Find verified service providers and contact them directly.",
         "structured_data_json": "",
+        "google_site_verification": settings.GOOGLE_SITE_VERIFICATION,
+        "bing_site_verification": settings.BING_SITE_VERIFICATION,
     }
 
 
@@ -249,6 +251,9 @@ def home(request: HttpRequest, locale: str) -> HttpResponse:
     _require_locale(locale)
     context = _base_context(locale)
     context["launch_cities"] = LAUNCH_CITIES
+    context["analytics_token"] = signed_event_token(
+        BetaFunnelEvent.Kind.DISCOVERY_VIEW
+    )
     with translation.override(locale):
         return render(request, "discovery/home.html", context)
 
@@ -256,15 +261,33 @@ def home(request: HttpRequest, locale: str) -> HttpResponse:
 def search(request: HttpRequest, locale: str) -> HttpResponse:
     _require_locale(locale)
     state = _search_state(request, locale)
+    documents = _filtered_documents(state)
+    has_search = bool(
+        state.query
+        or state.category
+        or state.municipality
+        or state.language_code
+        or state.mode
+        or state.invalid_explicit_filter
+    )
+    analytics_token = (
+        signed_event_token(
+            BetaFunnelEvent.Kind.SEARCH,
+            search_had_results=documents.exists(),
+        )
+        if has_search
+        else signed_event_token(BetaFunnelEvent.Kind.DISCOVERY_VIEW)
+    )
     with translation.override(locale):
         context = _base_context(locale, "search/")
         context.update(
             {
                 "robots_meta": "noindex,follow",
                 "state": state,
-                "documents": _filtered_documents(state),
+                "documents": documents,
                 "empty_alternatives": _empty_alternatives(request),
                 "service_modes": ServiceArea.Mode.choices,
+                "analytics_token": analytics_token,
             }
         )
         return render(request, "discovery/results.html", context)
@@ -300,6 +323,9 @@ def city_category(
                 "documents": documents,
                 "empty_alternatives": [],
                 "service_modes": ServiceArea.Mode.choices,
+                "analytics_token": signed_event_token(
+                    BetaFunnelEvent.Kind.DISCOVERY_VIEW
+                ),
             }
         )
         return render(request, "discovery/results.html", context)
@@ -330,9 +356,7 @@ def provider_profile(request: HttpRequest, locale: str, slug: str) -> HttpRespon
     )
     if document is None:
         raise Http404("Provider not found")
-    display_name = (
-        document.document.get("display_name") or document.provider.display_name
-    )
+    display_name = document.document.get("display_name") or document.provider.display_name
     profile_url = f"{settings.PUBLIC_BASE_URL}/{locale}/professionals/{slug}/"
     structured_data = {
         "@context": "https://schema.org",
@@ -348,6 +372,10 @@ def provider_profile(request: HttpRequest, locale: str, slug: str) -> HttpRespon
                 "meta_description": document.document.get("about")
                 or f"Contact {display_name} directly through Finrix Palvelut.",
                 "structured_data_json": _safe_json(structured_data),
+                "analytics_token": signed_event_token(
+                    BetaFunnelEvent.Kind.DISCOVERY_VIEW,
+                    provider_id=document.provider_id,
+                ),
             }
         )
         return render(request, "discovery/provider_profile.html", context)
