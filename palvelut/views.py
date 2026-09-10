@@ -1,6 +1,12 @@
+from django.conf import settings
 from django.core.cache import cache
 from django.db import connection
 from django.http import JsonResponse
+from django.shortcuts import redirect
+
+
+def public_mount_root(request):
+    return redirect("localized-home", locale=settings.LANGUAGE_CODE)
 
 
 def _health_response(status: str, *, http_status: int = 200) -> JsonResponse:
