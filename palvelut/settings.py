@@ -37,6 +37,8 @@ def _public_base_url() -> str:
 
 PUBLIC_BASE_URL = _public_base_url()
 PUBLIC_MOUNT_PATH = "/palvelut/"
+GOOGLE_SITE_VERIFICATION = os.getenv("GOOGLE_SITE_VERIFICATION", "").strip()
+BING_SITE_VERIFICATION = os.getenv("BING_SITE_VERIFICATION", "").strip()
 
 
 def _validate_environment() -> None:
