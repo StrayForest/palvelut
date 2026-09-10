@@ -2,12 +2,6 @@
 
 Depends: P5. Read: `docs/01-product.md`, `docs/03-experience.md`, `docs/04-design.md`, `docs/06-quality.md`.
 
-## Readiness
-
-- Connect Search Console/Bing, production monitoring and the funnel/dashboard used for the beta decision; freeze metric, schema and bot-rule versions and reconcile raw events to aggregates before launch.
-
-Do not start provider recruitment for the launch-density target until all Readiness items above are complete and archived.
-
 ## Operate
 
 - Manually recruit/onboard 50 providers and meet every pre-launch density gate.
