@@ -2,10 +2,10 @@ const { test, expect } = require("@playwright/test");
 const AxeBuilder = require("@axe-core/playwright").default;
 
 const smokeRoutes = [
-  "/palvelut/en/",
-  "/palvelut/en/search/",
-  "/palvelut/en/trust/",
-  "/palvelut/en/legal/privacy/",
+  "/palvelut/ru/",
+  "/palvelut/ru/search/",
+  "/palvelut/ru/trust/",
+  "/palvelut/ru/legal/privacy/",
 ];
 
 for (const route of smokeRoutes) {
@@ -28,11 +28,11 @@ for (const route of smokeRoutes) {
 }
 
 test("keyboard smoke follows the public search form in DOM order", async ({ page }) => {
-  await page.goto("/palvelut/en/");
+  await page.goto("/palvelut/ru/");
 
-  const service = page.getByRole("textbox", { name: "What service?" });
-  const city = page.getByRole("combobox", { name: "Where?" });
-  const search = page.getByRole("button", { name: "Search" });
+  const service = page.getByRole("textbox", { name: "Какая услуга нужна?" });
+  const city = page.getByRole("combobox", { name: "Где?" });
+  const search = page.getByRole("button", { name: "Найти специалиста" });
 
   await service.focus();
   await expect(service).toBeFocused();
@@ -44,11 +44,11 @@ test("keyboard smoke follows the public search form in DOM order", async ({ page
   await expect(search).toBeFocused();
 
   await service.fill("accountant");
-  await city.selectOption({ label: "Helsinki" });
+  await city.selectOption({ label: "Хельсинки" });
   await search.focus();
   await page.keyboard.press("Enter");
 
-  await expect(page).toHaveURL(/\/palvelut\/en\/search\/\?.*q=accountant/);
+  await expect(page).toHaveURL(/\/palvelut\/ru\/search\/\?.*q=accountant/);
   await expect(page.getByRole("main")).toHaveCount(1);
   await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
 });
