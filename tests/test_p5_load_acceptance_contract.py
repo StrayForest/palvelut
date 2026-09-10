@@ -29,6 +29,10 @@ def test_load_probe_enforces_server_side_slos_and_overload() -> None:
 
     assert '"--normal-concurrency", type=int, default=8' in script
     assert '"--overload-concurrency", type=int, default=128' in script
+    assert 'warm_path = "/ru/"' in script
+    assert 'search_path = "/ru/search/?q=Performance"' in script
+    assert 'warm_path = "/en/"' not in script
+    assert 'search_path = "/en/search/?q=Performance"' not in script
     assert '"warm_p95_ms": 300' in script
     assert '"cold_p95_ms": 800' in script
     assert '"normal_server_error_rate": 0.001' in script
