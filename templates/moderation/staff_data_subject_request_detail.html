@@ -1,34 +1,33 @@
 {% extends "base.html" %}
-{% load i18n %}
-
-{% block title %}{% translate "Data request" %} · Finrix Palvelut{% endblock %}
-
+{% block title %}Запрос о данных · Finrix Palvelut{% endblock %}
 {% block content %}
-<h1>{% translate "Data request" %}</h1>
-<dl>
-  <dt>{% translate "Account" %}</dt><dd>{{ data_request.account.get_username }}</dd>
-  <dt>{% translate "Type" %}</dt><dd>{{ data_request.get_kind_display }}</dd>
-  <dt>{% translate "Status" %}</dt><dd>{{ data_request.get_status_display }}</dd>
-  <dt>{% translate "Requested" %}</dt><dd>{{ data_request.created_at }}</dd>
-  <dt>{% translate "Request note" %}</dt><dd>{{ data_request.request_note|default:"—" }}</dd>
-</dl>
+<section class="mx-auto max-w-4xl py-8">
+  <h1 class="text-3xl font-bold tracking-tight">Запрос о данных</h1>
+  <dl class="mt-6 grid gap-2">
+    <dt class="font-semibold">Аккаунт</dt><dd>{{ data_request.account.get_username }}</dd>
+    <dt class="font-semibold">Тип</dt><dd>{% if data_request.kind == 'access' %}Доступ к данным{% elif data_request.kind == 'export' %}Экспорт данных{% elif data_request.kind == 'delete' %}Удаление данных{% else %}{{ data_request.kind }}{% endif %}</dd>
+    <dt class="font-semibold">Статус</dt><dd>{% if data_request.status == 'open' %}Открыт{% elif data_request.status == 'in_progress' %}В обработке{% elif data_request.status == 'completed' %}Выполнен{% elif data_request.status == 'rejected' %}Отклонён{% else %}{{ data_request.status }}{% endif %}</dd>
+    <dt class="font-semibold">Создан</dt><dd>{{ data_request.created_at }}</dd>
+    <dt class="font-semibold">Комментарий заявителя</dt><dd>{{ data_request.request_note|default:"—" }}</dd>
+  </dl>
 
-<p>{% translate "Access/export/delete outcomes must be verified against retention and legal obligations. Marking a request completed records the workflow outcome; it does not automatically delete an account." %}</p>
+  <p class="mt-6">Результат запроса на доступ, экспорт или удаление должен учитывать правила хранения данных и юридические обязанности. Отметка «выполнен» фиксирует результат процесса и сама по себе не удаляет аккаунт автоматически.</p>
 
-{% if data_request.status == "open" or data_request.status == "in_progress" %}
-<form method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">{% translate "Record action" %}</button>
-</form>
-{% endif %}
+  {% if data_request.status == "open" or data_request.status == "in_progress" %}
+  <form method="post" class="mt-6 space-y-4">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="rounded bg-slate-900 px-4 py-2 text-white">Записать действие</button>
+  </form>
+  {% endif %}
 
-<h2>{% translate "Audit trail" %}</h2>
-<ul>
-  {% for event in events %}
-    <li>{{ event.created_at }} — {{ event.action }} — {{ event.actor.get_username }} — {{ event.note }}</li>
-  {% empty %}
-    <li>{% translate "No events." %}</li>
-  {% endfor %}
-</ul>
+  <h2 class="mt-8 text-xl font-semibold">История обработки</h2>
+  <ul class="mt-3 space-y-2">
+    {% for event in events %}
+      <li>{{ event.created_at }} — {% if event.action == 'created' %}Запрос создан{% elif event.action == 'processing_started' %}Обработка начата{% elif event.action == 'completed' %}Выполнено{% elif event.action == 'rejected' %}Отклонено{% else %}Служебное действие{% endif %} — {{ event.actor.get_username }}{% if event.note %} — {{ event.note }}{% endif %}</li>
+    {% empty %}
+      <li>Событий нет.</li>
+    {% endfor %}
+  </ul>
+</section>
 {% endblock %}
