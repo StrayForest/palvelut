@@ -105,6 +105,8 @@ def _municipality_for_query(query: str) -> Municipality | None:
     if not query:
         return None
     normalized = " ".join(query.split())
+    aliases = {"хельсинки": "Helsinki", "эспоо": "Espoo", "вантаа": "Vantaa"}
+    normalized = aliases.get(normalized.casefold(), normalized)
     return (
         Municipality.objects.filter(
             region__country__code="FI",
@@ -118,8 +120,15 @@ def _municipality_for_query(query: str) -> Municipality | None:
 def _language_code_for_query(query: str) -> str:
     if not query:
         return ""
+    normalized = query.strip().casefold()
+    aliases = {
+        "русский": "ru",
+        "финский": "fi",
+        "английский": "en",
+    }
+    normalized = aliases.get(normalized, normalized)
     return (
-        Language.objects.filter(code__iexact=query.strip())
+        Language.objects.filter(code__iexact=normalized)
         .values_list("code", flat=True)
         .first()
         or ""
@@ -128,6 +137,13 @@ def _language_code_for_query(query: str) -> str:
 
 def _mode_for_query(query: str) -> str:
     normalized = query.strip().casefold()
+    aliases = {
+        "на месте": ServiceArea.Mode.ONSITE,
+        "с выездом": ServiceArea.Mode.TRAVEL,
+        "удалённо": ServiceArea.Mode.REMOTE,
+        "удаленно": ServiceArea.Mode.REMOTE,
+    }
+    normalized = aliases.get(normalized, normalized)
     valid_modes = {choice for choice, _label in ServiceArea.Mode.choices}
     return normalized if normalized in valid_modes else ""
 
@@ -198,12 +214,12 @@ def _filtered_documents(state: SearchState) -> QuerySet[ProviderReadDocument]:
 def _empty_alternatives(request: HttpRequest) -> list[dict[str, str]]:
     alternatives: list[dict[str, str]] = []
     labels = (
-        ("mode", "Show all service modes"),
-        ("service_mode", "Show all service modes"),
-        ("language", "Show all languages"),
-        ("city", "Search all cities"),
-        ("category", "Search all categories"),
-        ("q", "Browse all services"),
+        ("mode", "Показать все форматы работы"),
+        ("service_mode", "Показать все форматы работы"),
+        ("language", "Показать специалистов на любом языке"),
+        ("city", "Искать во всех городах"),
+        ("category", "Искать во всех категориях"),
+        ("q", "Показать все услуги"),
     )
     seen_labels: set[str] = set()
     for key, label in labels:
@@ -222,23 +238,14 @@ def _empty_alternatives(request: HttpRequest) -> list[dict[str, str]]:
     return alternatives
 
 
-def _localized_urls(path_suffix: str) -> tuple[list[tuple[str, str]], str]:
-    links = [
-        (code, f"{settings.PUBLIC_BASE_URL}/{code}/{path_suffix}")
-        for code, _name in settings.LANGUAGES
-    ]
-    return links, f"{settings.PUBLIC_BASE_URL}/{settings.LANGUAGE_CODE}/{path_suffix}"
-
-
 def _base_context(locale: str, path_suffix: str = "") -> dict[str, object]:
-    links, x_default = _localized_urls(path_suffix)
     return {
         "locale": locale,
         "canonical_url": f"{settings.PUBLIC_BASE_URL}/{locale}/{path_suffix}",
-        "hreflang_links": links,
-        "x_default_url": x_default,
         "robots_meta": "index,follow",
-        "meta_description": "Find verified service providers and contact them directly.",
+        "meta_description": (
+            "Найдите русскоязычного специалиста в Финляндии и свяжитесь напрямую."
+        ),
         "structured_data_json": "",
         "google_site_verification": settings.GOOGLE_SITE_VERIFICATION,
         "bing_site_verification": settings.BING_SITE_VERIFICATION,
@@ -320,7 +327,8 @@ def city_category(
                     "index,follow" if documents.count() >= 3 else "noindex,follow"
                 ),
                 "meta_description": (
-                    f"Find {category_obj.name} professionals in {municipality.name}."
+                    f"Найдите специалистов категории {category_obj.name} "
+                    f"в городе {municipality.name}."
                 ),
                 "state": state,
                 "documents": documents,
@@ -373,7 +381,7 @@ def provider_profile(request: HttpRequest, locale: str, slug: str) -> HttpRespon
             {
                 "document": document,
                 "meta_description": document.document.get("about")
-                or f"Contact {display_name} directly through Finrix Palvelut.",
+                or f"Свяжитесь со специалистом {display_name} через Finrix Palvelut.",
                 "structured_data_json": _safe_json(structured_data),
                 "analytics_token": signed_event_token(
                     BETA_DISCOVERY_KIND,
@@ -399,9 +407,9 @@ def robots_txt(request: HttpRequest) -> HttpResponse:
 
 def sitemap_xml(request: HttpRequest) -> HttpResponse:
     documents = list(_public_documents())
-    entries: dict[str, str] = {}
-    for code, _name in settings.LANGUAGES:
-        entries[f"{settings.PUBLIC_BASE_URL}/{code}/"] = ""
+    entries: dict[str, str] = {
+        f"{settings.PUBLIC_BASE_URL}/ru/": "",
+    }
 
     landing_providers: dict[tuple[str, str], set[object]] = {}
     landing_lastmod: dict[tuple[str, str], str] = {}
@@ -412,10 +420,9 @@ def sitemap_xml(request: HttpRequest) -> HttpResponse:
         )
         if current_slug:
             lastmod = document.generated_at.date().isoformat()
-            for code, _name in settings.LANGUAGES:
-                entries[
-                    f"{settings.PUBLIC_BASE_URL}/{code}/professionals/{current_slug}/"
-                ] = lastmod
+            entries[
+                f"{settings.PUBLIC_BASE_URL}/ru/professionals/{current_slug}/"
+            ] = lastmod
         categories = {
             service.category.slug
             for service in document.provider.services.all()
@@ -437,10 +444,9 @@ def sitemap_xml(request: HttpRequest) -> HttpResponse:
     for (city_slug, category_slug), provider_ids in landing_providers.items():
         if len(provider_ids) < 3:
             continue
-        for code, _name in settings.LANGUAGES:
-            entries[
-                f"{settings.PUBLIC_BASE_URL}/{code}/{city_slug}/{category_slug}/"
-            ] = landing_lastmod[(city_slug, category_slug)]
+        entries[
+            f"{settings.PUBLIC_BASE_URL}/ru/{city_slug}/{category_slug}/"
+        ] = landing_lastmod[(city_slug, category_slug)]
 
     urls = []
     for location, lastmod in sorted(entries.items()):
