@@ -1,12 +1,13 @@
 {% extends "base.html" %}
+{% block title %}Подтверждение входа · Finrix Palvelut{% endblock %}
 {% block content %}
-<main class="mx-auto max-w-lg px-4 py-10">
-  <h1 class="text-2xl font-semibold">Staff MFA</h1>
-  {% if not device.confirmed_at %}<p class="mt-4">Add this TOTP secret to your authenticator app: <code>{{ device.secret }}</code></p>{% endif %}
-  <form method="post" class="mt-6 space-y-4">
+<section class="mx-auto max-w-lg py-8">
+  <h1 class="text-3xl font-bold tracking-tight">Подтверждение входа сотрудника</h1>
+  {% if not device.confirmed_at %}<p class="mt-4 text-[#5E6A65]">Добавьте этот секрет TOTP в приложение-аутентификатор: <code>{{ device.secret }}</code></p>{% endif %}
+  <form method="post" class="mt-6 space-y-4 rounded-2xl border border-[#DDE3DF] bg-white p-5">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit">Verify</button>
+    <button class="min-h-11 rounded-xl bg-[#12664F] px-5 py-3 font-semibold text-white" type="submit">Подтвердить</button>
   </form>
-</main>
+</section>
 {% endblock %}
