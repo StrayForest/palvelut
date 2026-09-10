@@ -1,6 +1,7 @@
 import uuid
 from datetime import timedelta
 
+from django.core.cache import cache
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -19,6 +20,9 @@ from palvelut.apps.providers.models import Provider
 
 @override_settings(ENVIRONMENT="test")
 class BetaFunnelAcceptanceTests(TestCase):
+    def setUp(self):
+        cache.clear()
+
     def test_collection_is_anonymous_versioned_and_bot_filtered(self):
         token = signed_event_token(BetaFunnelEvent.Kind.DISCOVERY_VIEW)
         response = self.client.get(
@@ -46,8 +50,7 @@ class BetaFunnelAcceptanceTests(TestCase):
 
         field_names = {field.name for field in BetaFunnelEvent._meta.fields}
         self.assertFalse(
-            {"ip", "ip_address", "user_agent", "account", "user", "query"}
-            & field_names
+            {"ip", "ip_address", "user_agent", "account", "user", "query"} & field_names
         )
 
     def test_search_payload_records_only_result_state_not_query_text(self):
@@ -70,9 +73,13 @@ class BetaFunnelAcceptanceTests(TestCase):
         GOOGLE_SITE_VERIFICATION="google-proof",
         BING_SITE_VERIFICATION="bing-proof",
     )
-    def test_home_exposes_search_engine_verification_without_changing_cache_contract(self):
+    def test_home_exposes_search_engine_verification_without_changing_cache_contract(
+        self,
+    ):
         response = self.client.get(reverse("localized-home", kwargs={"locale": "en"}))
-        self.assertContains(response, 'name="google-site-verification" content="google-proof"')
+        self.assertContains(
+            response, 'name="google-site-verification" content="google-proof"'
+        )
         self.assertContains(response, 'name="msvalidate.01" content="bing-proof"')
         self.assertContains(response, reverse("beta-analytics-collect"))
         self.assertIn("public", response["Cache-Control"])
