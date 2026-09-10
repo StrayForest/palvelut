@@ -21,6 +21,8 @@ class EnvExampleContractTests(SimpleTestCase):
             "DJANGO_ALLOWED_HOSTS",
             "PUBLIC_BASE_URL",
             "SYNTHETIC_MONITOR_TOKEN",
+            "GOOGLE_SITE_VERIFICATION",
+            "BING_SITE_VERIFICATION",
             "POSTGRES_DB",
             "POSTGRES_USER",
             "POSTGRES_PASSWORD",
@@ -48,6 +50,9 @@ class EnvExampleContractTests(SimpleTestCase):
             "S3_BUCKET_NAME",
         }:
             self.assertTrue(values[key].startswith("replace-me-"), key)
+
+        for key in {"GOOGLE_SITE_VERIFICATION", "BING_SITE_VERIFICATION"}:
+            self.assertEqual(values[key], "", key)
 
         content = path.read_text(encoding="utf-8")
         self.assertNotIn("palvelut-local-only", content)
