@@ -1,0 +1,50 @@
+name: P6 format helper
+
+on:
+  pull_request:
+    paths:
+      - "palvelut/apps/accounts/forms.py"
+      - "palvelut/apps/discovery/views.py"
+      - "palvelut/apps/moderation/forms.py"
+      - "palvelut/apps/providers/claim_forms.py"
+      - "palvelut/apps/providers/workspace_forms.py"
+      - "tests/test_i18n_base_layout.py"
+      - ".github/workflows/p6-format-helper.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Install exact Ruff version
+        run: python3 -m pip install --disable-pip-version-check --no-input "ruff==0.12.12"
+      - name: Format affected Python files
+        run: |
+          ruff format \
+            palvelut/apps/accounts/forms.py \
+            palvelut/apps/discovery/views.py \
+            palvelut/apps/moderation/forms.py \
+            palvelut/apps/providers/claim_forms.py \
+            palvelut/apps/providers/workspace_forms.py \
+            tests/test_i18n_base_layout.py
+          mkdir -p p6-formatted
+          tar -czf p6-formatted/formatted-files.tar.gz \
+            palvelut/apps/accounts/forms.py \
+            palvelut/apps/discovery/views.py \
+            palvelut/apps/moderation/forms.py \
+            palvelut/apps/providers/claim_forms.py \
+            palvelut/apps/providers/workspace_forms.py \
+            tests/test_i18n_base_layout.py
+          git diff --check
+          git diff > p6-formatted/ruff-format.patch
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: p6-formatted-${{ github.run_id }}-${{ github.run_attempt }}
+          path: p6-formatted/
+          if-no-files-found: error
+          retention-days: 1
