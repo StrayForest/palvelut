@@ -57,24 +57,24 @@ from palvelut.apps.providers.workspace_views import (
 )
 from palvelut.apps.verification.views import trust
 from palvelut.observability import metrics
-from palvelut.views import health_live, health_ready, public_mount_root
+from palvelut.views import health_live, health_ready
 
 cached_home = public_read_through_cache(
-    namespace="home-v1",
+    namespace="home-v2-ru",
     application_ttl=3600,
     shared_max_age=3600,
     stale_while_revalidate=3600,
 )(home)
 cached_search = track_provider_events("impression")(
     public_read_through_cache(
-        namespace="search-v1",
+        namespace="search-v2-ru",
         application_ttl=120,
         shared_max_age=None,
     )(search)
 )
 cached_profile = track_provider_events("profile_view")(
     public_read_through_cache(
-        namespace="profile-v1",
+        namespace="profile-v2-ru",
         application_ttl=300,
         shared_max_age=300,
         stale_while_revalidate=86400,
@@ -82,14 +82,14 @@ cached_profile = track_provider_events("profile_view")(
 )
 cached_city_category = track_provider_events("impression")(
     public_read_through_cache(
-        namespace="city-category-v1",
+        namespace="city-category-v2-ru",
         application_ttl=300,
         shared_max_age=300,
         stale_while_revalidate=86400,
     )(city_category)
 )
 cached_trust = public_read_through_cache(
-    namespace="trust-v1",
+    namespace="trust-v2-ru",
     application_ttl=3600,
     shared_max_age=3600,
     stale_while_revalidate=86400,
@@ -212,37 +212,32 @@ urlpatterns = [
         name="staff-data-subject-request-detail",
     ),
     path("palvelut/staff/", admin.site.urls),
-    path("palvelut/", public_mount_root, name="public-mount-root"),
-    path("palvelut/<str:locale>/", cached_home, name="localized-home"),
-    path("palvelut/<str:locale>/search/", cached_search, name="discovery-search"),
-    path("palvelut/<str:locale>/trust/", cached_trust, name="trust"),
+    path("palvelut/", cached_home, name="home"),
+    path("palvelut/search/", cached_search, name="discovery-search"),
+    path("palvelut/trust/", cached_trust, name="trust"),
+    path("palvelut/for-professionals/", for_professionals, name="for-professionals"),
     path(
-        "palvelut/<str:locale>/for-professionals/",
-        for_professionals,
-        name="for-professionals",
-    ),
-    path(
-        "palvelut/<str:locale>/legal/<str:document>/",
+        "palvelut/legal/<str:document>/",
         legal_document,
         name="legal-document",
     ),
     path(
-        "palvelut/<str:locale>/report/<slug:slug>/",
+        "palvelut/report/<slug:slug>/",
         report_provider,
         name="content-report-provider",
     ),
     path(
-        "palvelut/<str:locale>/professionals/<slug:slug>/",
+        "palvelut/professionals/<slug:slug>/",
         cached_profile,
         name="provider-profile",
     ),
     path(
-        "palvelut/<str:locale>/go/<uuid:provider_id>/<str:channel>/",
+        "palvelut/go/<uuid:provider_id>/<str:channel>/",
         contact_redirect,
         name="contact-redirect",
     ),
     path(
-        "palvelut/<str:locale>/<slug:city>/<slug:category>/",
+        "palvelut/<slug:city>/<slug:category>/",
         cached_city_category,
         name="city-category",
     ),
