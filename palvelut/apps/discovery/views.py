@@ -177,7 +177,9 @@ def _filtered_documents(state: SearchState) -> QuerySet[ProviderReadDocument]:
 
     service_area_filters: dict[str, object] = {}
     if state.municipality is not None:
-        service_area_filters["provider__service_areas__municipality"] = state.municipality
+        service_area_filters["provider__service_areas__municipality"] = (
+            state.municipality
+        )
     if state.mode:
         service_area_filters["provider__service_areas__mode"] = state.mode
     if service_area_filters:
@@ -251,9 +253,7 @@ def home(request: HttpRequest, locale: str) -> HttpResponse:
     _require_locale(locale)
     context = _base_context(locale)
     context["launch_cities"] = LAUNCH_CITIES
-    context["analytics_token"] = signed_event_token(
-        BetaFunnelEvent.Kind.DISCOVERY_VIEW
-    )
+    context["analytics_token"] = signed_event_token(BetaFunnelEvent.Kind.DISCOVERY_VIEW)
     with translation.override(locale):
         return render(request, "discovery/home.html", context)
 
@@ -356,7 +356,9 @@ def provider_profile(request: HttpRequest, locale: str, slug: str) -> HttpRespon
     )
     if document is None:
         raise Http404("Provider not found")
-    display_name = document.document.get("display_name") or document.provider.display_name
+    display_name = (
+        document.document.get("display_name") or document.provider.display_name
+    )
     profile_url = f"{settings.PUBLIC_BASE_URL}/{locale}/professionals/{slug}/"
     structured_data = {
         "@context": "https://schema.org",
