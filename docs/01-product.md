@@ -18,7 +18,7 @@ The product shortens `need → compare → direct contact`. It does not particip
 
 - Geography: Helsinki, Espoo, Vantaa.
 - Supply target: 8 high-intent categories first—accounting, legal, car repair, renovation, electrical, plumbing, psychology, massage/physiotherapy.
-- Demand: Russian-speaking residents; Finnish-speaking relatives/employers may use FI pages later.
+- Demand: Russian-speaking residents. The MVP product UI is Russian-only.
 - Supply: owner-confirmed solo professionals and companies legally offering services in Finland under the eligibility contract below.
 
 ## Provider eligibility
@@ -34,7 +34,7 @@ The product shortens `need → compare → direct contact`. It does not particip
 
 ### User
 
-- search by service, city, language and service mode;
+- search by service, city, provider spoken language and service mode;
 - compare clear prices, areas, availability, photos and exact verified facts;
 - call, message or open the provider's own booking site;
 - report stale, misleading or illegal content without registration.
@@ -56,11 +56,11 @@ The product shortens `need → compare → direct contact`. It does not particip
 
 ## MVP includes
 
-Anonymous discovery, public provider pages, direct tracked contacts, provider onboarding/editing, staff moderation, factual verification, media, i18n-ready URLs, SEO, accessibility, metrics, backups and incident-ready operations.
+Anonymous discovery, public provider pages, direct tracked contacts, provider onboarding/editing, staff moderation, factual verification, media, Russian-only UI under the stable `/palvelut/ru/` public prefix, SEO, accessibility, metrics, backups and incident-ready operations.
 
 ## Explicitly deferred
 
-Reviews/ratings, user accounts, favourites, chat, leads, requests, quotes, booking, payments, subscriptions, native app, national rollout and automated AI moderation.
+FI/EN UI localization, UI language switching, reviews/ratings, user accounts, favourites, chat, leads, requests, quotes, booking, payments, subscriptions, native app, national rollout and automated AI moderation.
 
 ## Critical risks
 
@@ -71,7 +71,7 @@ Reviews/ratings, user accounts, favourites, chat, leads, requests, quotes, booki
 | Weak attribution | Track aggregate contact clicks and ask providers about genuine enquiries. |
 | Commodity directory | Win on language + verified facts + local density + Finrix distribution. |
 | Trust liability | Describe exact checks; never endorse quality or licensing implicitly. |
-| Small ceiling | Prove the niche first; keep locale/taxonomy architecture expandable. |
+| Small ceiling | Prove the Russian-speaking niche first; adding a new UI language later requires a new product decision and migration plan. |
 
 ## Beta gates
 
