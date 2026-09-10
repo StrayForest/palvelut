@@ -20,6 +20,9 @@ from palvelut.apps.providers.models import Provider
 BETA_SCHEMA_VERSION = "p6-beta-schema-v1"
 BETA_METRIC_VERSION = "p6-beta-metrics-v1"
 BETA_BOT_RULE_VERSION = "p6-beta-bots-v1"
+BETA_DISCOVERY_KIND = "discovery_view"
+BETA_SEARCH_KIND = "search"
+BETA_CONTACT_KIND = "contact"
 BETA_SESSION_COOKIE = "palvelut_beta_session"
 BETA_SESSION_SECONDS = 30 * 60
 BETA_WINDOW_DAYS = 30
@@ -93,10 +96,7 @@ def collect_beta_event(request: HttpRequest, token: str) -> HttpResponse:
         return response
 
     kind = payload.get("kind")
-    if kind not in {
-        BetaFunnelEvent.Kind.DISCOVERY_VIEW,
-        BetaFunnelEvent.Kind.SEARCH,
-    }:
+    if kind not in {BETA_DISCOVERY_KIND, BETA_SEARCH_KIND}:
         return response
 
     provider = None
@@ -107,7 +107,7 @@ def collect_beta_event(request: HttpRequest, token: str) -> HttpResponse:
             return response
 
     search_had_results = payload.get("search_had_results")
-    if kind == BetaFunnelEvent.Kind.SEARCH:
+    if kind == BETA_SEARCH_KIND:
         if not isinstance(search_had_results, bool):
             return response
     else:
@@ -141,7 +141,7 @@ def record_beta_contact(
     cutoff = timezone.now() - timedelta(seconds=BETA_SESSION_SECONDS)
     duplicate = BetaFunnelEvent.objects.filter(
         session_id=session_id,
-        kind=BetaFunnelEvent.Kind.CONTACT,
+        kind=BETA_CONTACT_KIND,
         provider=provider,
         channel=channel,
         occurred_at__gte=cutoff,
@@ -152,7 +152,7 @@ def record_beta_contact(
     if not duplicate:
         BetaFunnelEvent.objects.create(
             session_id=session_id,
-            kind=BetaFunnelEvent.Kind.CONTACT,
+            kind=BETA_CONTACT_KIND,
             provider=provider,
             channel=channel,
             country_code=_country_code(request),
@@ -202,12 +202,9 @@ def reconcile_beta_snapshot(*, window_end=None) -> BetaDecisionSnapshot:
     for row in rows:
         session_id = row["session_id"]
         by_session[session_id].append(row)
-        if row["kind"] in {
-            BetaFunnelEvent.Kind.DISCOVERY_VIEW,
-            BetaFunnelEvent.Kind.SEARCH,
-        }:
+        if row["kind"] in {BETA_DISCOVERY_KIND, BETA_SEARCH_KIND}:
             discovery_sessions.add(session_id)
-        if row["kind"] == BetaFunnelEvent.Kind.SEARCH:
+        if row["kind"] == BETA_SEARCH_KIND:
             search_sessions.add(session_id)
             search_events += 1
             if row["search_had_results"] is False:
@@ -229,12 +226,12 @@ def reconcile_beta_snapshot(*, window_end=None) -> BetaDecisionSnapshot:
             (
                 event["occurred_at"]
                 for event in events
-                if event["kind"] == BetaFunnelEvent.Kind.SEARCH
+                if event["kind"] == BETA_SEARCH_KIND
             ),
             None,
         )
         if first_search is not None and any(
-            event["kind"] == BetaFunnelEvent.Kind.CONTACT
+            event["kind"] == BETA_CONTACT_KIND
             and event["occurred_at"] >= first_search
             for event in events
         ):
