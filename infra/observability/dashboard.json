@@ -10,6 +10,11 @@
     {"title": "Queue age / failures", "targets": [{"expr": "palvelut_queue_oldest_age_seconds"}, {"expr": "rate(palvelut_queue_failures_total[5m])"}]},
     {"title": "Email delivery failures", "targets": [{"expr": "rate(palvelut_email_delivery_failures_total[5m])"}]},
     {"title": "Media failures", "targets": [{"expr": "rate(palvelut_media_failures_total[5m])"}]},
-    {"title": "Backups", "targets": [{"expr": "palvelut_backup_age_seconds"}, {"expr": "increase(palvelut_backup_failures_total[24h])"}]}
+    {"title": "Backups", "targets": [{"expr": "palvelut_backup_age_seconds"}, {"expr": "increase(palvelut_backup_failures_total[24h])"}]},
+    {"title": "Beta FI discovery sessions — 30d", "targets": [{"expr": "palvelut_beta_finland_discovery_sessions"}]},
+    {"title": "Beta search sessions — 30d", "targets": [{"expr": "palvelut_beta_search_sessions"}]},
+    {"title": "Beta search → contact conversion", "targets": [{"expr": "palvelut_beta_contact_conversion_ratio"}]},
+    {"title": "Beta zero-result ratio", "targets": [{"expr": "palvelut_beta_zero_result_ratio"}]},
+    {"title": "Beta reconciled raw events — 30d", "targets": [{"expr": "palvelut_beta_raw_events"}]}
   ]
 }
