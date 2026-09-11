@@ -1,23 +1,23 @@
 {% extends "base.html" %}
-{% block title %}Content case · Finrix Palvelut{% endblock %}
+{% block title %}Обращение по карточке · Finrix Palvelut{% endblock %}
 {% block content %}
 <section class="mx-auto max-w-3xl px-4 py-10">
-  <h1 class="text-3xl font-bold">Content case</h1>
-  <p class="mt-3"><strong>Status:</strong> {{ case.get_status_display }}</p>
+  <h1 class="text-3xl font-bold">Обращение по карточке</h1>
+  <p class="mt-3"><strong>Статус:</strong> {% if case.status == 'open' %}Открыто{% elif case.status == 'resolved' %}Решено{% elif case.status == 'dismissed' %}Отклонено{% else %}{{ case.status }}{% endif %}</p>
   <div class="mt-8 space-y-4">
     {% for event in events %}
       <article class="rounded border p-4">
-        <strong>{{ event.event_type }}</strong>
+        <strong>{% if event.event_type == 'provider.notice' %}Уведомление от Finrix{% elif event.event_type == 'provider.appeal' %}Ваше обращение{% elif event.event_type == 'case.resolved' %}Обращение решено{% elif event.event_type == 'case.dismissed' %}Обращение отклонено{% else %}Обновление по обращению{% endif %}</strong>
         <p class="mt-2 whitespace-pre-wrap">{{ event.note }}</p>
         <p class="mt-2 text-sm text-slate-600">{{ event.created_at }}</p>
       </article>
-    {% empty %}<p>No provider-visible updates yet.</p>{% endfor %}
+    {% empty %}<p>Пока нет обновлений, доступных специалисту.</p>{% endfor %}
   </div>
-  <h2 class="mt-10 text-xl font-semibold">Appeal or respond</h2>
+  <h2 class="mt-10 text-xl font-semibold">Ответить или обратиться</h2>
   <form method="post" class="mt-4 space-y-4">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit" class="rounded bg-slate-900 px-4 py-2 text-white">Submit response</button>
+    <button type="submit" class="rounded bg-slate-900 px-4 py-2 text-white">Отправить ответ</button>
   </form>
 </section>
 {% endblock %}

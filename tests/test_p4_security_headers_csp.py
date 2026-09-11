@@ -6,7 +6,7 @@ from django.test import Client, RequestFactory, SimpleTestCase
 
 class P4SecurityHeadersTests(SimpleTestCase):
     def test_public_response_has_restrictive_security_headers(self):
-        response = Client().get("/palvelut/en/legal/privacy/", HTTP_HOST="localhost")
+        response = Client().get("/palvelut/ru/legal/privacy/", HTTP_HOST="localhost")
 
         self.assertEqual(response.status_code, 200)
         csp = response.headers["Content-Security-Policy"]
@@ -29,13 +29,13 @@ class P4SecurityHeadersTests(SimpleTestCase):
         )
 
     def test_structured_data_nonce_matches_csp_nonce(self):
-        response = Client().get("/palvelut/en/legal/privacy/", HTTP_HOST="localhost")
+        response = Client().get("/palvelut/ru/legal/privacy/", HTTP_HOST="localhost")
         csp = response.headers["Content-Security-Policy"]
         match = re.search(r"'nonce-([^']+)'", csp)
         self.assertIsNotNone(match)
         nonce = match.group(1)
 
-        request = RequestFactory().get("/palvelut/en/")
+        request = RequestFactory().get("/palvelut/ru/")
         request.csp_nonce = nonce
         html = render_to_string(
             "base.html",

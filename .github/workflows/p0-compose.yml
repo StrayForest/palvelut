@@ -187,7 +187,7 @@ jobs:
             done
 
             if test "$all_running" = "1" \
-              && curl -fsS http://127.0.0.1:8000/palvelut/en/ >/dev/null; then
+              && curl -fsS http://127.0.0.1:8000/palvelut/ru/ >/dev/null; then
               ready=1
               break
             fi

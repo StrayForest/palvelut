@@ -61,7 +61,7 @@ class DiscoveryPerformanceAcceptanceTests(TestCase):
 
     def test_beta_sized_discovery_stays_within_latency_budgets(self) -> None:
         self.assertEqual(ProviderReadDocument.objects.count(), BETA_PROVIDER_COUNT)
-        path = "/palvelut/en/search/?q=Performance"
+        path = "/palvelut/ru/search/?q=Performance"
 
         # Prime Django/template imports before collecting timings.
         cache.clear()

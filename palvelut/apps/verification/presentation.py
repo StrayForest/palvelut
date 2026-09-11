@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from django.utils import timezone
-from django.utils.translation import gettext
 
 from palvelut.apps.providers.models import Provider
 
@@ -12,9 +11,10 @@ from .models import VerificationCheck
 from .registry import get_registry_check_type
 
 
-TRUST_EXPLANATION = gettext(
-    "Verification labels show only the fact checked, official source and check date. "
-    "They do not rate service quality or imply an unchecked licence."
+TRUST_EXPLANATION = (
+    "Метки проверки показывают только конкретный проверенный факт, официальный источник "
+    "и дату проверки. Они не оценивают качество услуг и не подтверждают лицензии или "
+    "профессиональные права, которые прямо не указаны в метке."
 )
 
 
@@ -29,15 +29,15 @@ class PublicVerificationFact:
 
     @property
     def label(self) -> str:
-        return f"{self.fact} in {self.source} · checked {self.checked_date}"
+        return f"{self.fact} · источник: {self.source} · проверено {self.checked_date}"
 
 
 def _public_fact_name(kind: str) -> str:
     if kind == "business_identity":
-        return "Y-tunnus found"
+        return "Y-tunnus найден"
     if kind == "professional_right":
-        return "Professional right found"
-    return kind.replace("_", " ").capitalize()
+        return "Профессиональное право найдено"
+    return "Проверенный факт"
 
 
 def public_verification_facts(

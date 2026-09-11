@@ -1,10 +1,10 @@
 const { test, expect } = require("@playwright/test");
 
 const publicRoutes = [
-  "/palvelut/en/",
-  "/palvelut/en/search/",
-  "/palvelut/en/trust/",
-  "/palvelut/en/legal/privacy/",
+  "/palvelut/ru/",
+  "/palvelut/ru/search/",
+  "/palvelut/ru/trust/",
+  "/palvelut/ru/legal/privacy/",
 ];
 
 for (const route of publicRoutes) {
@@ -13,7 +13,7 @@ for (const route of publicRoutes) {
     expect(response).not.toBeNull();
     expect(response.status()).toBe(200);
 
-    await expect(page.locator("html")).toHaveAttribute("lang", "en");
+    await expect(page.locator("html")).toHaveAttribute("lang", "ru");
     await expect(page.locator("main")).toHaveCount(1);
     await expect(page.locator("h1")).toHaveCount(1);
     await expect(
@@ -68,10 +68,10 @@ for (const route of publicRoutes) {
 }
 
 test("keyboard-only navigation reaches the skip link and main content", async ({ page }) => {
-  await page.goto("/palvelut/en/");
+  await page.goto("/palvelut/ru/");
 
   await page.keyboard.press("Tab");
-  const skipLink = page.getByRole("link", { name: "Skip to main content" });
+  const skipLink = page.getByRole("link", { name: "Перейти к содержанию" });
   await expect(skipLink).toBeFocused();
 
   await page.keyboard.press("Enter");
@@ -83,7 +83,7 @@ test("keyboard-only navigation reaches the skip link and main content", async ({
 
 test("public home remains usable at 200 percent text zoom without horizontal clipping", async ({ page }) => {
   await page.setViewportSize({ width: 640, height: 900 });
-  await page.goto("/palvelut/en/");
+  await page.goto("/palvelut/ru/");
   await page.evaluate(() => {
     document.documentElement.style.fontSize = "200%";
   });
@@ -93,14 +93,14 @@ test("public home remains usable at 200 percent text zoom without horizontal cli
     clientWidth: document.documentElement.clientWidth,
   }));
   expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
-  await expect(page.getByRole("button", { name: "Search" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Найти специалиста" })).toBeVisible();
 });
 
 test("reduced-motion preference does not block public navigation", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/palvelut/en/");
+  await page.goto("/palvelut/ru/");
 
-  await page.getByRole("link", { name: "Privacy" }).click();
-  await expect(page).toHaveURL(/\/palvelut\/en\/legal\/privacy\/$/);
+  await page.getByRole("link", { name: "Конфиденциальность" }).click();
+  await expect(page).toHaveURL(/\/palvelut\/ru\/legal\/privacy\/$/);
   await expect(page.locator("h1")).toBeVisible();
 });

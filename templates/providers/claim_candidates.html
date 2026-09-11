@@ -1,14 +1,17 @@
 {% extends "base.html" %}
+{% block title %}Подтвердить существующую карточку · Finrix Palvelut{% endblock %}
 {% block content %}
-<main class="mx-auto max-w-3xl px-4 py-10">
-  <h1 class="text-2xl font-semibold">Claim an existing profile</h1>
-  <p class="mt-2">A claim requires independent evidence that you control the business. Your account email alone is not sufficient.</p>
+<section class="mx-auto max-w-3xl py-8">
+  <p class="text-sm font-semibold uppercase tracking-wide text-[#5E6A65]">Для специалистов</p>
+  <h1 class="mt-3 text-3xl font-bold tracking-tight">Подтвердить существующую карточку</h1>
+  <p class="mt-3 text-[#5E6A65]">Если карточка уже была подготовлена Finrix, выберите её и подтвердите, что имеете право управлять данными специалиста или компании. Одной электронной почты аккаунта для этого недостаточно.</p>
   <ul class="mt-6 space-y-3">
     {% for provider in providers %}
-      <li><a href="{% url 'account-claim-provider' provider.id %}">{{ provider.display_name }}</a></li>
+      <li class="rounded-xl border border-[#DDE3DF] bg-white p-4"><a class="font-semibold text-[#12664F] underline underline-offset-4" href="{% url 'account-claim-provider' provider.id %}">{{ provider.display_name }}</a></li>
     {% empty %}
-      <li>No claimable profiles are available.</li>
+      <li class="rounded-xl border border-[#DDE3DF] bg-white p-4 text-[#5E6A65]">Сейчас нет карточек, доступных для подтверждения. Вы можете создать новую карточку.</li>
     {% endfor %}
   </ul>
-</main>
+  <a class="mt-6 inline-flex min-h-11 items-center rounded-xl bg-[#12664F] px-5 py-3 font-semibold text-white" href="{% url 'account-provider-start' %}">Создать новую карточку</a>
+</section>
 {% endblock %}

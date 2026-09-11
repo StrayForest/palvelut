@@ -1,23 +1,22 @@
 {% extends "base.html" %}
-{% load i18n %}
-
-{% block title %}{% translate "Data requests" %} · Finrix Palvelut{% endblock %}
-
+{% block title %}Запросы о персональных данных · Finrix Palvelut{% endblock %}
 {% block content %}
-<h1>{% translate "Data requests" %}</h1>
-<p>{% translate "Submit a request to access, export or delete data associated with your provider account. Requests are reviewed by staff and the outcome is recorded." %}</p>
-<form method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">{% translate "Submit request" %}</button>
-</form>
+<section class="mx-auto max-w-3xl py-8">
+  <h1 class="text-3xl font-bold tracking-tight">Запросы о персональных данных</h1>
+  <p class="mt-3 text-[#5E6A65]">Отправьте запрос на доступ, экспорт или удаление данных, связанных с вашим аккаунтом специалиста. Запрос проверяется сотрудником, а результат обработки фиксируется.</p>
+  <form method="post" class="mt-6 space-y-4 rounded-2xl border border-[#DDE3DF] bg-white p-5">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="rounded-xl bg-[#12664F] px-4 py-2 font-semibold text-white">Отправить запрос</button>
+  </form>
 
-<h2>{% translate "Your requests" %}</h2>
-<ul>
-  {% for row in requests %}
-    <li>{{ row.get_kind_display }} — {{ row.get_status_display }} — {{ row.created_at }}</li>
-  {% empty %}
-    <li>{% translate "No data requests yet." %}</li>
-  {% endfor %}
-</ul>
+  <h2 class="mt-8 text-xl font-semibold">Ваши запросы</h2>
+  <ul class="mt-3 space-y-2">
+    {% for row in requests %}
+      <li>{% if row.kind == 'access' %}Доступ к данным{% elif row.kind == 'export' %}Экспорт данных{% elif row.kind == 'delete' %}Удаление данных{% else %}{{ row.kind }}{% endif %} — {% if row.status == 'open' %}Открыт{% elif row.status == 'in_progress' %}В обработке{% elif row.status == 'completed' %}Выполнен{% elif row.status == 'rejected' %}Отклонён{% else %}{{ row.status }}{% endif %} — {{ row.created_at }}</li>
+    {% empty %}
+      <li>Запросов пока нет.</li>
+    {% endfor %}
+  </ul>
+</section>
 {% endblock %}

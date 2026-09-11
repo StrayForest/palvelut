@@ -71,7 +71,9 @@ class ProviderAccountSecurityTests(TestCase):
             reverse("account-login"),
             {"username": user.email, "password": TEST_PASSWORD},
         )
-        self.assertContains(blocked, "Too many attempts", status_code=200)
+        self.assertContains(
+            blocked, "Слишком много попыток. Попробуйте позже.", status_code=200
+        )
         self.assertNotIn("_auth_user_id", self.client.session)
 
         cache.clear()
@@ -108,7 +110,9 @@ class ProviderAccountSecurityTests(TestCase):
             {"username": user.email, "password": TEST_PASSWORD},
             REMOTE_ADDR="203.0.113.21",
         )
-        self.assertContains(blocked, "Too many attempts", status_code=200)
+        self.assertContains(
+            blocked, "Слишком много попыток. Попробуйте позже.", status_code=200
+        )
         self.assertNotIn("_auth_user_id", self.client.session)
 
     def test_password_reset_does_not_reveal_account_and_is_rate_limited(self):
@@ -177,14 +181,16 @@ class ProviderAccountSecurityTests(TestCase):
                 {"code": "000000"},
                 REMOTE_ADDR="203.0.113.22",
             )
-            self.assertContains(response, "Invalid code", status_code=200)
+            self.assertContains(response, "Неверный код.", status_code=200)
 
         blocked = self.client.post(
             reverse("staff-mfa"),
             {"code": totp_code(device.secret)},
             REMOTE_ADDR="203.0.113.22",
         )
-        self.assertContains(blocked, "Too many attempts", status_code=200)
+        self.assertContains(
+            blocked, "Слишком много попыток. Попробуйте позже.", status_code=200
+        )
         self.assertFalse(self.client.session.get("staff_mfa_verified", False))
 
     def test_nonstaff_cannot_enter_staff_mfa(self):
@@ -196,6 +202,6 @@ class ProviderAccountSecurityTests(TestCase):
         self.client.force_login(provider)
         response = self.client.get(reverse("staff-mfa"))
         self.assertRedirects(
-            response, reverse("localized-home", kwargs={"locale": "fi"})
+            response, reverse("localized-home", kwargs={"locale": "ru"})
         )
         self.assertFalse(StaffMFADevice.objects.filter(user=provider).exists())

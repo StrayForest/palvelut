@@ -1,41 +1,44 @@
 {% extends "base.html" %}
-{% load i18n %}
-{% block title %}{% translate "Provider workspace" %} · Finrix Palvelut{% endblock %}
+{% block title %}Кабинет специалиста · Finrix Palvelut{% endblock %}
 {% block content %}
 <section id="provider-workspace">
   <div class="flex flex-wrap items-start justify-between gap-4">
     <div>
-      <p class="text-sm font-semibold uppercase tracking-wide text-[#5E6A65]">{% translate "For professionals" %}</p>
-      <h1 class="mt-2 text-3xl font-bold tracking-tight">{% translate "Provider workspace" %}</h1>
-      <p class="mt-2 text-[#5E6A65]">{% translate "Your provider status and next required action are shown first." %}</p>
+      <p class="text-sm font-semibold uppercase tracking-wide text-[#5E6A65]">Для специалистов</p>
+      <h1 class="mt-2 text-3xl font-bold tracking-tight">Кабинет специалиста</h1>
+      <p class="mt-2 text-[#5E6A65]">Здесь показаны текущий статус карточки и следующее действие.</p>
     </div>
-    <a class="inline-flex min-h-11 items-center rounded-xl border border-[#DDE3DF] bg-white px-4 py-2 font-semibold text-[#17211D] hover:border-[#12664F] focus:outline-none focus:ring-2 focus:ring-[#12664F] focus:ring-offset-2" href="{% url 'account-provider-start' %}">{% translate "Start another provider profile" %}</a>
+    <a class="inline-flex min-h-11 items-center rounded-xl border border-[#DDE3DF] bg-white px-4 py-2 font-semibold text-[#17211D] hover:border-[#12664F] focus:outline-none focus:ring-2 focus:ring-[#12664F] focus:ring-offset-2" href="{% url 'account-provider-start' %}">Создать ещё одну карточку</a>
   </div>
 
-  {% if request.GET.submitted %}<p class="mt-4 rounded-xl border border-[#DDE3DF] bg-white p-4" role="status">{% translate "Profile submitted for review." %}</p>{% endif %}
+  {% if request.GET.submitted %}<p class="mt-4 rounded-xl border border-[#DDE3DF] bg-white p-4" role="status">Карточка отправлена на проверку.</p>{% endif %}
 
   {% if ownership_claims %}
     <section class="mt-6" aria-labelledby="ownership-title">
-      <h2 class="text-xl font-semibold" id="ownership-title">{% translate "Ownership review" %}</h2>
+      <h2 class="text-xl font-semibold" id="ownership-title">Проверка права на карточку</h2>
       <div class="mt-3 grid gap-4">
         {% for provider in ownership_claims %}
           <article class="rounded-2xl border border-[#DDE3DF] bg-white p-5" data-workspace-status="ownership-{{ provider.claim_status }}">
             <div class="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <h3 class="text-lg font-semibold">{{ provider.display_name }}</h3>
-                <p class="mt-2 text-sm font-semibold uppercase tracking-wide text-[#5E6A65]">{% translate "Current status" %}</p>
-                <p class="mt-1 text-sm text-[#17211D]">{% translate "Ownership claim:" %} {{ provider.get_claim_status_display }}</p>
+                <p class="mt-2 text-sm font-semibold uppercase tracking-wide text-[#5E6A65]">Текущий статус</p>
+                <p class="mt-1 text-sm text-[#17211D]">
+                  {% if provider.claim_status == 'pending' %}Подтверждение отправлено на проверку.
+                  {% elif provider.claim_status == 'rejected' %}Подтверждение отклонено — нужны исправления.
+                  {% else %}Право на карточку ещё не подтверждено.{% endif %}
+                </p>
               </div>
               {% if provider.claim_status == 'rejected' %}
-                <a class="inline-flex min-h-11 items-center rounded-xl bg-[#12664F] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0B4F3C] focus:outline-none focus:ring-2 focus:ring-[#12664F] focus:ring-offset-2" href="{% url 'account-claim-provider' provider.id %}">{% translate "Update ownership evidence" %}</a>
+                <a class="inline-flex min-h-11 items-center rounded-xl bg-[#12664F] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0B4F3C] focus:outline-none focus:ring-2 focus:ring-[#12664F] focus:ring-offset-2" href="{% url 'account-claim-provider' provider.id %}">Исправить подтверждение</a>
               {% endif %}
             </div>
             <div class="mt-4 rounded-xl bg-[#F6F7F4] p-4" data-next-action>
-              <p class="text-sm font-semibold text-[#17211D]">{% translate "Next action" %}</p>
+              <p class="text-sm font-semibold text-[#17211D]">Следующее действие</p>
               {% if provider.claim_status == 'pending' %}
-                <p class="mt-1 text-sm text-[#5E6A65]">{% translate "Wait for Finrix staff to review ownership. Nothing is public yet and no further action is required from you now." %}</p>
+                <p class="mt-1 text-sm text-[#5E6A65]">Дождитесь ручной проверки Finrix. Карточка пока не опубликована, дополнительных действий сейчас не требуется.</p>
               {% else %}
-                <p class="mt-1 text-sm text-[#5E6A65]">{% translate "Update the ownership evidence and submit it again for review." %}</p>
+                <p class="mt-1 text-sm text-[#5E6A65]">Исправьте подтверждение права управлять карточкой и отправьте его повторно.</p>
               {% endif %}
             </div>
           </article>
@@ -46,15 +49,15 @@
 
   {% if not dashboard_rows and not ownership_claims %}
     <section class="mt-6 rounded-2xl border border-[#DDE3DF] bg-white p-6" id="workspace-empty-state" data-workspace-status="not-started">
-      <p class="text-sm font-semibold uppercase tracking-wide text-[#5E6A65]">{% translate "Current status" %}</p>
-      <h2 class="mt-2 text-xl font-semibold">{% translate "No provider profile yet" %}</h2>
+      <p class="text-sm font-semibold uppercase tracking-wide text-[#5E6A65]">Текущий статус</p>
+      <h2 class="mt-2 text-xl font-semibold">У вас пока нет карточки специалиста</h2>
       <div class="mt-4 rounded-xl bg-[#F6F7F4] p-4" data-next-action>
-        <p class="text-sm font-semibold">{% translate "Next action" %}</p>
-        <p class="mt-1 text-sm text-[#5E6A65]">{% translate "Start a new private provider profile or claim an existing Finrix draft. Ownership must be approved before profile editing starts." %}</p>
+        <p class="text-sm font-semibold">Следующее действие</p>
+        <p class="mt-1 text-sm text-[#5E6A65]">Создайте новую приватную карточку или подтвердите уже подготовленную Finrix. Редактирование откроется после подтверждения права управлять карточкой.</p>
       </div>
       <div class="mt-5 flex flex-wrap gap-3">
-        <a class="inline-flex min-h-11 items-center rounded-xl bg-[#12664F] px-4 py-2 font-semibold text-white hover:bg-[#0B4F3C] focus:outline-none focus:ring-2 focus:ring-[#12664F] focus:ring-offset-2" href="{% url 'account-provider-start' %}">{% translate "Start new provider profile" %}</a>
-        <a class="inline-flex min-h-11 items-center rounded-xl border border-[#DDE3DF] px-4 py-2 font-semibold hover:border-[#12664F] focus:outline-none focus:ring-2 focus:ring-[#12664F] focus:ring-offset-2" href="{% url 'account-claim-list' %}">{% translate "Claim existing provider" %}</a>
+        <a class="inline-flex min-h-11 items-center rounded-xl bg-[#12664F] px-4 py-2 font-semibold text-white hover:bg-[#0B4F3C] focus:outline-none focus:ring-2 focus:ring-[#12664F] focus:ring-offset-2" href="{% url 'account-provider-start' %}">Создать новую карточку</a>
+        <a class="inline-flex min-h-11 items-center rounded-xl border border-[#DDE3DF] px-4 py-2 font-semibold hover:border-[#12664F] focus:outline-none focus:ring-2 focus:ring-[#12664F] focus:ring-offset-2" href="{% url 'account-claim-list' %}">Подтвердить существующую</a>
       </div>
     </section>
   {% endif %}
@@ -66,33 +69,39 @@
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 id="provider-{{ provider.id }}" class="text-xl font-semibold">{{ provider.display_name }}</h2>
-            <p class="mt-2 text-sm font-semibold uppercase tracking-wide text-[#5E6A65]">{% translate "Current status" %}</p>
-            <p class="mt-1 text-sm text-[#5E6A65]">{% translate "Profile status:" %} {{ provider.get_lifecycle_display }}{% if row.revision %} · {% translate "Revision:" %} {{ row.revision.get_status_display }}{% endif %}</p>
+            <p class="mt-2 text-sm font-semibold uppercase tracking-wide text-[#5E6A65]">Текущий статус</p>
+            <p class="mt-1 text-sm text-[#5E6A65]">
+              {% if provider.lifecycle == 'published' %}Карточка опубликована.
+              {% elif provider.lifecycle == 'pending' %}Карточка на проверке.
+              {% elif provider.lifecycle == 'changes_requested' %}Нужны исправления.
+              {% elif provider.lifecycle == 'suspended' %}Карточка приостановлена.
+              {% else %}Карточка заполняется.{% endif %}
+            </p>
           </div>
         </div>
 
         <div class="mt-4 rounded-xl bg-[#F6F7F4] p-4" data-next-action>
-          <p class="text-sm font-semibold">{% translate "Next action" %}</p>
+          <p class="text-sm font-semibold">Следующее действие</p>
           {% if row.revision and row.revision.status == 'pending' %}
-            <p class="mt-1 text-sm text-[#5E6A65]">{% translate "Wait for profile review. Your last submitted revision is pending." %}</p>
+            <p class="mt-1 text-sm text-[#5E6A65]">Дождитесь проверки. Последняя версия карточки уже отправлена на модерацию.</p>
           {% elif row.revision and row.revision.status == 'changes_requested' %}
-            <p class="mt-1 text-sm text-[#5E6A65]">{% translate "Review the requested corrections, update the profile and submit it again." %}</p>
-            <a class="mt-3 inline-flex min-h-11 items-center rounded-xl bg-[#12664F] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0B4F3C]" href="{% url 'provider-workspace-edit' provider.id %}">{% translate "Update profile" %}</a>
+            <p class="mt-1 text-sm text-[#5E6A65]">Посмотрите замечания, исправьте карточку и отправьте её повторно.</p>
+            <a class="mt-3 inline-flex min-h-11 items-center rounded-xl bg-[#12664F] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0B4F3C]" href="{% url 'provider-workspace-edit' provider.id %}">Исправить карточку</a>
           {% elif row.completed < row.total %}
-            <p class="mt-1 text-sm text-[#5E6A65]">{% translate "Complete the missing profile details before submitting for review." %}</p>
-            <a class="mt-3 inline-flex min-h-11 items-center rounded-xl bg-[#12664F] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0B4F3C]" href="{% url 'provider-workspace-edit' provider.id %}">{% translate "Continue profile" %}</a>
+            <p class="mt-1 text-sm text-[#5E6A65]">Заполните недостающие данные перед отправкой на проверку.</p>
+            <a class="mt-3 inline-flex min-h-11 items-center rounded-xl bg-[#12664F] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0B4F3C]" href="{% url 'provider-workspace-edit' provider.id %}">Продолжить заполнение</a>
           {% else %}
-            <p class="mt-1 text-sm text-[#5E6A65]">{% translate "Review the profile preview and submit the current revision when it is ready." %}</p>
+            <p class="mt-1 text-sm text-[#5E6A65]">Проверьте, как карточка будет выглядеть для посетителей, и отправьте текущую версию на модерацию.</p>
             <div class="mt-3 flex flex-wrap gap-3">
-              <a class="inline-flex min-h-11 items-center rounded-xl border border-[#DDE3DF] px-4 py-2 text-sm font-semibold hover:border-[#12664F]" href="{% url 'provider-workspace-preview' provider.id %}">{% translate "Preview profile" %}</a>
-              <a class="inline-flex min-h-11 items-center rounded-xl bg-[#12664F] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0B4F3C]" href="{% url 'provider-workspace-edit' provider.id %}">{% translate "Edit profile" %}</a>
+              <a class="inline-flex min-h-11 items-center rounded-xl border border-[#DDE3DF] px-4 py-2 text-sm font-semibold hover:border-[#12664F]" href="{% url 'provider-workspace-preview' provider.id %}">Предпросмотр</a>
+              <a class="inline-flex min-h-11 items-center rounded-xl bg-[#12664F] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0B4F3C]" href="{% url 'provider-workspace-edit' provider.id %}">Редактировать</a>
             </div>
           {% endif %}
         </div>
 
         <div class="mt-5">
-          <h3 class="font-semibold">{% translate "Profile checklist" %}</h3>
-          <p class="mt-1 text-sm text-[#5E6A65]">{{ row.completed }}/{{ row.total }} {% translate "complete" %}</p>
+          <h3 class="font-semibold">Заполнение карточки</h3>
+          <p class="mt-1 text-sm text-[#5E6A65]">Готово: {{ row.completed }} из {{ row.total }}</p>
           <ul class="mt-3 grid gap-2 sm:grid-cols-2">
             {% for label,complete in row.checklist %}
               <li class="text-sm">{% if complete %}✓{% else %}○{% endif %} {{ label }}</li>
@@ -101,25 +110,25 @@
         </div>
 
         <details class="mt-5 border-t border-[#DDE3DF] pt-5">
-          <summary class="cursor-pointer font-semibold">{% translate "Aggregate analytics" %}</summary>
+          <summary class="cursor-pointer font-semibold">Статистика карточки</summary>
           <dl class="mt-3 grid gap-4 sm:grid-cols-3">
             <div>
-              <dt class="text-sm font-semibold text-[#17211D]">{% translate "Impressions" %}</dt>
+              <dt class="text-sm font-semibold text-[#17211D]">Показы в каталоге</dt>
               <dd class="mt-1 text-2xl font-semibold">{{ row.impressions }}</dd>
-              <p class="mt-1 text-xs text-[#5E6A65]">{% translate "times this provider appears in anonymous public discovery results." %}</p>
+              <p class="mt-1 text-xs text-[#5E6A65]">Сколько раз карточка появилась в обезличенных публичных результатах поиска.</p>
             </div>
             <div>
-              <dt class="text-sm font-semibold text-[#17211D]">{% translate "Profile views" %}</dt>
+              <dt class="text-sm font-semibold text-[#17211D]">Просмотры карточки</dt>
               <dd class="mt-1 text-2xl font-semibold">{{ row.profile_views }}</dd>
-              <p class="mt-1 text-xs text-[#5E6A65]">{% translate "anonymous public opens of this provider profile." %}</p>
+              <p class="mt-1 text-xs text-[#5E6A65]">Сколько раз посетители открыли эту карточку в публичном каталоге.</p>
             </div>
             <div>
-              <dt class="text-sm font-semibold text-[#17211D]">{% translate "Contact clicks" %}</dt>
+              <dt class="text-sm font-semibold text-[#17211D]">Переходы к контактам</dt>
               <dd class="mt-1 text-2xl font-semibold">{{ row.contact_clicks }}</dd>
-              <p class="mt-1 text-xs text-[#5E6A65]">{% translate "tracked clicks from this provider profile to a public contact channel." %}</p>
+              <p class="mt-1 text-xs text-[#5E6A65]">Сколько раз посетители перешли из карточки к публичному способу связи.</p>
             </div>
           </dl>
-          <p class="mt-3 text-xs text-[#5E6A65]">{% translate "Anonymous provider-level totals only. No visitor identity, IP address, search text, or cross-site identifier is stored or shown." %}</p>
+          <p class="mt-3 text-xs text-[#5E6A65]">Показываются только обезличенные суммарные данные по карточке. Мы не показываем и не сохраняем здесь личность посетителя, IP-адрес, текст поиска или межсайтовый идентификатор.</p>
         </details>
       </section>
       {% endwith %}

@@ -1,5 +1,7 @@
-# Locale catalogs
+# UI language contract
 
-Supported UI locales are `ru`, `fi`, and `en`.
+The product and staff UI are Russian-only for the MVP.
 
-Django message catalogs live under `locale/<language>/LC_MESSAGES/` as copy is added. English source strings remain the technical source language; user-facing strings must use Django i18n tags/functions rather than hard-coded locale branching.
+Do not add Finnish or English UI locales, locale switching, or FI/EN translation catalogs. `/palvelut/ru/` is the only supported public UI prefix. Django i18n remains enabled only so framework-provided messages can use the Russian locale.
+
+Provider spoken languages are domain data, not UI locales, and may include Russian, Finnish, English, or other supported service languages.

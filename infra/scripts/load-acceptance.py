@@ -95,8 +95,8 @@ def main() -> int:
 
     random.seed(0)
     base = args.base_url.rstrip("/")
-    warm_path = "/en/"
-    search_path = "/en/search/?q=Performance"
+    warm_path = "/ru/"
+    search_path = "/ru/search/?q=Performance"
 
     for _ in range(10):
         warmup = request(base, warm_path, args.timeout)

@@ -34,7 +34,7 @@ def for_professionals(request: HttpRequest, locale: str) -> HttpResponse:
             f"{settings.PUBLIC_BASE_URL}/{settings.LANGUAGE_CODE}/for-professionals/"
         ),
         "robots_meta": "index,follow",
-        "meta_description": "Create or claim a provider profile for Finrix Palvelut.",
+        "meta_description": "Создайте новую карточку специалиста или подтвердите существующую в Finrix Palvelut.",
     }
     with translation.override(locale):
         return render(request, "providers/for_professionals.html", context)

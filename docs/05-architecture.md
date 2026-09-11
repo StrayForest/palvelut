@@ -21,7 +21,7 @@ Lock exact runtime packages with `uv`. Pin container images by immutable digest 
 
 ## Public mount
 
-Canonical base URL is `https://finrix.fi/palvelut`. Django's root URLconf owns `/palvelut/`, and Nginx preserves the prefix instead of rewriting it. A validated `PUBLIC_BASE_URL` drives absolute canonical/hreflang URLs; static paths, redirects and cookie paths are prefix-aware and tested. Requests outside the configured host/prefix fail closed. Local development uses `http://localhost:8000/palvelut/{locale}/`.
+Canonical base URL is `https://finrix.fi/palvelut`. Django's root URLconf owns `/palvelut/`, and Nginx preserves the prefix instead of rewriting it. `/palvelut/ru/` is the sole supported public UI prefix for the MVP; `/fi/` and `/en/` are not product routes. A validated `PUBLIC_BASE_URL` drives absolute canonical URLs; static paths, redirects and cookie paths are prefix-aware and tested. Requests outside the configured host/prefix fail closed. Local development uses `http://localhost:8000/palvelut/ru/`.
 
 ## Shape
 
@@ -44,14 +44,14 @@ One repository and deployable application; web and worker are separate processes
 | Module | Owns |
 |---|---|
 | `accounts` | provider/staff identity, sessions, roles |
-| `taxonomy` | countries, categories, municipalities, regions, languages |
+| `taxonomy` | countries, categories, municipalities, regions, provider spoken languages |
 | `providers` | provider identity, services, areas, contacts, media |
 | `publishing` | drafts, immutable revisions, lifecycle and slugs |
 | `verification` | checks, evidence metadata, expiry |
 | `moderation` | cases, reports, decisions and audit events |
 | `discovery` | search document, ranking and public read models |
 | `analytics` | event ingestion, daily aggregates, provider dashboards |
-| `content` | legal/trust/SEO copy and translations |
+| `content` | legal/trust/SEO copy for the Russian UI |
 
 Modules may read public selectors from another module. Writes cross boundaries through service functions inside transactions. Async work starts only after transaction commit.
 
@@ -76,8 +76,8 @@ Provider ──< AnalyticsEvent -> DailyProviderMetric
 
 ## Search and ranking
 
-- Normalize Unicode, case, Finnish/Russian aliases and category synonyms at write time.
-- Exact filters use relational indexes. Localized copy uses separate Russian/Finnish/English weighted vectors; names and aliases use the `simple` configuration plus trigram fallback.
+- Normalize Unicode, case, Russian category labels/synonyms and relevant Finnish names/aliases at write time.
+- Exact filters use relational indexes. Launch UI copy/search synonyms are Russian; provider spoken languages are separate filter data and must not be confused with UI locale.
 - Generate a denormalized search document on publish, not per request.
 - Query with bounded page size and keyset pagination; no unbounded counts.
 - Ranking inputs are testable and visible; never infer protected traits.
@@ -86,7 +86,7 @@ External search is introduced only when PostgreSQL fails a recorded relevance or
 
 ## Contact analytics
 
-Public buttons point to an opaque internal route such as `/palvelut/{locale}/go/{provider}/{channel}`. The server resolves only a stored structured target, records a minimal event, and returns `302`. It never accepts a destination URL from the request. Phone/email values are excluded from logs.
+Public buttons point to an opaque internal route such as `/palvelut/ru/go/{provider}/{channel}`. The server resolves only a stored structured target, records a minimal event, and returns `302`. It never accepts a destination URL from the request. Phone/email values are excluded from logs.
 
 ## Cache contract
 

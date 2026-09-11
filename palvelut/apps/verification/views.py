@@ -20,6 +20,8 @@ def trust(request: HttpRequest, locale: str) -> HttpResponse:
                 "trust_explanation": TRUST_EXPLANATION,
                 "canonical_url": f"{settings.PUBLIC_BASE_URL}/{locale}/trust/",
                 "robots_meta": "index,follow",
-                "meta_description": "How Finrix Palvelut verification facts are checked and displayed.",
+                "meta_description": (
+                    "Как Finrix Palvelut проверяет факты о специалистах и показывает результаты проверки."
+                ),
             },
         )

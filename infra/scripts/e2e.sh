@@ -13,7 +13,7 @@ rm -rf playwright-report test-results
 mkdir -p playwright-report test-results
 
 "${COMPOSE[@]}" build web e2e
-"${COMPOSE[@]}" up -d postgres valkey web nginx
+"${COMPOSE[@]}" up -d postgres valkey mailpit web nginx
 
 ready=0
 for _ in $(seq 1 30); do
@@ -28,7 +28,7 @@ for _ in $(seq 1 30); do
 done
 
 if test "$ready" != "1"; then
-  "${COMPOSE[@]}" logs --no-color web nginx
+  "${COMPOSE[@]}" logs --no-color web nginx mailpit
   exit 1
 fi
 

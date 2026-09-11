@@ -61,7 +61,7 @@ class MakeContractTests(unittest.TestCase):
             "nginx",
         ):
             self.assertIn(service, self.workflow)
-        self.assertIn("http://127.0.0.1:8000/palvelut/en/", self.workflow)
+        self.assertIn("http://127.0.0.1:8000/palvelut/ru/", self.workflow)
 
     def test_ci_uses_fresh_isolated_postgres_and_valkey(self) -> None:
         self.assertIn(
