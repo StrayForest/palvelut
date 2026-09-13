@@ -59,3 +59,56 @@ class VerificationResendTests(TestCase):
         self.assertIsNone(verification.verified_at)
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn("/palvelut/account/verify/", mail.outbox[0].body)
+
+    @override_settings(
+        EMAIL_DELIVERY_ENABLED=False,
+        ACCOUNT_EMAIL_VERIFICATION_REQUIRED=False,
+    )
+    def test_beta_registration_activates_account_without_sending_email(self) -> None:
+        response = self.client.post(
+            reverse("account-register"),
+            {
+                "email": "beta@example.com",
+                "password1": ORIGINAL_PASSWORD,
+                "password2": ORIGINAL_PASSWORD,
+            },
+            REMOTE_ADDR="203.0.113.31",
+        )
+
+        self.assertRedirects(response, reverse("account-login"))
+        user = get_user_model().objects.get(email="beta@example.com")
+        self.assertTrue(user.is_active)
+        self.assertTrue(user.check_password(ORIGINAL_PASSWORD))
+        self.assertFalse(EmailVerification.objects.filter(user=user).exists())
+        self.assertEqual(len(mail.outbox), 0)
+
+    @override_settings(
+        EMAIL_DELIVERY_ENABLED=False,
+        ACCOUNT_EMAIL_VERIFICATION_REQUIRED=False,
+    )
+    def test_beta_repeat_registration_activates_previous_inactive_account(self) -> None:
+        user = get_user_model().objects.create_user(
+            username="stuck@example.com",
+            email="stuck@example.com",
+            password=ORIGINAL_PASSWORD,
+            is_active=False,
+        )
+        original_password_hash = user.password
+
+        response = self.client.post(
+            reverse("account-register"),
+            {
+                "email": "stuck@example.com",
+                "password1": REPLACEMENT_PASSWORD,
+                "password2": REPLACEMENT_PASSWORD,
+            },
+            REMOTE_ADDR="203.0.113.32",
+        )
+
+        self.assertRedirects(response, reverse("account-login"))
+        user.refresh_from_db()
+        self.assertTrue(user.is_active)
+        self.assertEqual(user.password, original_password_hash)
+        self.assertTrue(user.check_password(ORIGINAL_PASSWORD))
+        self.assertFalse(user.check_password(REPLACEMENT_PASSWORD))
+        self.assertEqual(len(mail.outbox), 0)
