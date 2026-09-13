@@ -33,6 +33,11 @@ class EnvExampleContractTests(SimpleTestCase):
             "CELERY_RESULT_BACKEND",
             "EMAIL_HOST",
             "EMAIL_PORT",
+            "EMAIL_HOST_USER",
+            "EMAIL_HOST_PASSWORD",
+            "EMAIL_USE_TLS",
+            "EMAIL_USE_SSL",
+            "EMAIL_TIMEOUT",
             "DEFAULT_FROM_EMAIL",
             "S3_ENDPOINT_URL",
             "S3_ACCESS_KEY_ID",
@@ -51,7 +56,12 @@ class EnvExampleContractTests(SimpleTestCase):
         }:
             self.assertTrue(values[key].startswith("replace-me-"), key)
 
-        for key in {"GOOGLE_SITE_VERIFICATION", "BING_SITE_VERIFICATION"}:
+        for key in {
+            "GOOGLE_SITE_VERIFICATION",
+            "BING_SITE_VERIFICATION",
+            "EMAIL_HOST_USER",
+            "EMAIL_HOST_PASSWORD",
+        }:
             self.assertEqual(values[key], "", key)
 
         content = path.read_text(encoding="utf-8")
