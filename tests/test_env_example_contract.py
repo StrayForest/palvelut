@@ -31,6 +31,8 @@ class EnvExampleContractTests(SimpleTestCase):
             "VALKEY_URL",
             "CELERY_BROKER_URL",
             "CELERY_RESULT_BACKEND",
+            "EMAIL_DELIVERY_ENABLED",
+            "ACCOUNT_EMAIL_VERIFICATION_REQUIRED",
             "EMAIL_HOST",
             "EMAIL_PORT",
             "EMAIL_HOST_USER",
@@ -63,6 +65,9 @@ class EnvExampleContractTests(SimpleTestCase):
             "EMAIL_HOST_PASSWORD",
         }:
             self.assertEqual(values[key], "", key)
+
+        self.assertEqual(values["EMAIL_DELIVERY_ENABLED"], "0")
+        self.assertEqual(values["ACCOUNT_EMAIL_VERIFICATION_REQUIRED"], "0")
 
         content = path.read_text(encoding="utf-8")
         self.assertNotIn("palvelut-local-only", content)
