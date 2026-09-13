@@ -51,6 +51,12 @@ PUBLIC_BASE_URL = _public_base_url()
 PUBLIC_MOUNT_PATH = "/palvelut/"
 GOOGLE_SITE_VERIFICATION = os.getenv("GOOGLE_SITE_VERIFICATION", "").strip()
 BING_SITE_VERIFICATION = os.getenv("BING_SITE_VERIFICATION", "").strip()
+EMAIL_DELIVERY_ENABLED = _env_bool(
+    "EMAIL_DELIVERY_ENABLED", ENVIRONMENT in {"local", "test"}
+)
+ACCOUNT_EMAIL_VERIFICATION_REQUIRED = _env_bool(
+    "ACCOUNT_EMAIL_VERIFICATION_REQUIRED", EMAIL_DELIVERY_ENABLED
+)
 
 
 def _validate_environment() -> None:
@@ -69,26 +75,36 @@ def _validate_environment() -> None:
         errors.append("DJANGO_ALLOWED_HOSTS must be explicitly configured")
     if urlsplit(PUBLIC_BASE_URL).scheme != "https":
         errors.append("PUBLIC_BASE_URL must use https")
+    if ACCOUNT_EMAIL_VERIFICATION_REQUIRED and not EMAIL_DELIVERY_ENABLED:
+        errors.append(
+            "ACCOUNT_EMAIL_VERIFICATION_REQUIRED requires EMAIL_DELIVERY_ENABLED"
+        )
 
-    email_host = os.getenv("EMAIL_HOST", "").strip().lower()
-    email_user = os.getenv("EMAIL_HOST_USER", "").strip()
-    email_password = os.getenv("EMAIL_HOST_PASSWORD", "")
-    default_from_email = os.getenv("DEFAULT_FROM_EMAIL", "").strip().lower()
-    email_use_tls = _env_bool("EMAIL_USE_TLS", False)
-    email_use_ssl = _env_bool("EMAIL_USE_SSL", False)
+    if EMAIL_DELIVERY_ENABLED:
+        email_host = os.getenv("EMAIL_HOST", "").strip().lower()
+        email_user = os.getenv("EMAIL_HOST_USER", "").strip()
+        email_password = os.getenv("EMAIL_HOST_PASSWORD", "")
+        default_from_email = os.getenv("DEFAULT_FROM_EMAIL", "").strip().lower()
+        email_use_tls = _env_bool("EMAIL_USE_TLS", False)
+        email_use_ssl = _env_bool("EMAIL_USE_SSL", False)
 
-    if not email_host or email_host in {"mailpit", "localhost", "127.0.0.1", "::1"}:
-        errors.append("EMAIL_HOST must be an external SMTP host")
-    if not email_user:
-        errors.append("EMAIL_HOST_USER must be explicitly configured")
-    if not email_password:
-        errors.append("EMAIL_HOST_PASSWORD must be explicitly configured")
-    if not default_from_email or default_from_email.endswith(".invalid"):
-        errors.append("DEFAULT_FROM_EMAIL must be a deliverable sender address")
-    if email_use_tls and email_use_ssl:
-        errors.append("EMAIL_USE_TLS and EMAIL_USE_SSL cannot both be enabled")
-    if not email_use_tls and not email_use_ssl:
-        errors.append("production SMTP must enable EMAIL_USE_TLS or EMAIL_USE_SSL")
+        if not email_host or email_host in {
+            "mailpit",
+            "localhost",
+            "127.0.0.1",
+            "::1",
+        }:
+            errors.append("EMAIL_HOST must be an external SMTP host")
+        if not email_user:
+            errors.append("EMAIL_HOST_USER must be explicitly configured")
+        if not email_password:
+            errors.append("EMAIL_HOST_PASSWORD must be explicitly configured")
+        if not default_from_email or default_from_email.endswith(".invalid"):
+            errors.append("DEFAULT_FROM_EMAIL must be a deliverable sender address")
+        if email_use_tls and email_use_ssl:
+            errors.append("EMAIL_USE_TLS and EMAIL_USE_SSL cannot both be enabled")
+        if not email_use_tls and not email_use_ssl:
+            errors.append("production SMTP must enable EMAIL_USE_TLS or EMAIL_USE_SSL")
 
     if errors:
         raise RuntimeError(f"Unsafe {ENVIRONMENT} configuration: " + "; ".join(errors))
@@ -192,7 +208,11 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_BACKEND = (
+    "django.core.mail.backends.smtp.EmailBackend"
+    if EMAIL_DELIVERY_ENABLED
+    else "django.core.mail.backends.dummy.EmailBackend"
+)
 EMAIL_HOST = os.getenv("EMAIL_HOST", "mailpit")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", "1025"))
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
