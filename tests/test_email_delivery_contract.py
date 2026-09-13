@@ -32,7 +32,8 @@ def test_production_compose_passes_smtp_auth_and_transport_settings() -> None:
 
     assert "EMAIL_HOST_USER: ${EMAIL_HOST_USER:?set EMAIL_HOST_USER}" in compose
     assert (
-        "EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD:?set EMAIL_HOST_PASSWORD}" in compose
+        "EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD:?set EMAIL_HOST_PASSWORD}"
+        in compose
     )
     assert "EMAIL_USE_TLS: ${EMAIL_USE_TLS:-1}" in compose
     assert "EMAIL_USE_SSL: ${EMAIL_USE_SSL:-0}" in compose
