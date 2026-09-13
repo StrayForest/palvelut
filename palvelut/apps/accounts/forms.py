@@ -30,7 +30,10 @@ class ProviderRegistrationForm(UserCreationForm):
     def save(self, commit=True):
         existing = getattr(self, "existing_unverified_user", None)
         if existing is not None:
-            if not settings.ACCOUNT_EMAIL_VERIFICATION_REQUIRED and not existing.is_active:
+            if (
+                not settings.ACCOUNT_EMAIL_VERIFICATION_REQUIRED
+                and not existing.is_active
+            ):
                 existing.is_active = True
                 if commit:
                     existing.save(update_fields=["is_active"])
