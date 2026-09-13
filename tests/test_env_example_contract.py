@@ -31,8 +31,15 @@ class EnvExampleContractTests(SimpleTestCase):
             "VALKEY_URL",
             "CELERY_BROKER_URL",
             "CELERY_RESULT_BACKEND",
+            "EMAIL_DELIVERY_ENABLED",
+            "ACCOUNT_EMAIL_VERIFICATION_REQUIRED",
             "EMAIL_HOST",
             "EMAIL_PORT",
+            "EMAIL_HOST_USER",
+            "EMAIL_HOST_PASSWORD",
+            "EMAIL_USE_TLS",
+            "EMAIL_USE_SSL",
+            "EMAIL_TIMEOUT",
             "DEFAULT_FROM_EMAIL",
             "S3_ENDPOINT_URL",
             "S3_ACCESS_KEY_ID",
@@ -51,8 +58,16 @@ class EnvExampleContractTests(SimpleTestCase):
         }:
             self.assertTrue(values[key].startswith("replace-me-"), key)
 
-        for key in {"GOOGLE_SITE_VERIFICATION", "BING_SITE_VERIFICATION"}:
+        for key in {
+            "GOOGLE_SITE_VERIFICATION",
+            "BING_SITE_VERIFICATION",
+            "EMAIL_HOST_USER",
+            "EMAIL_HOST_PASSWORD",
+        }:
             self.assertEqual(values[key], "", key)
+
+        self.assertEqual(values["EMAIL_DELIVERY_ENABLED"], "0")
+        self.assertEqual(values["ACCOUNT_EMAIL_VERIFICATION_REQUIRED"], "0")
 
         content = path.read_text(encoding="utf-8")
         self.assertNotIn("palvelut-local-only", content)

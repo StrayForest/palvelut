@@ -19,9 +19,16 @@ x-app-environment: &app-environment
   VALKEY_URL: redis://valkey:6379/0
   CELERY_BROKER_URL: redis://valkey:6379/1
   CELERY_RESULT_BACKEND: redis://valkey:6379/2
-  EMAIL_HOST: ${EMAIL_HOST:?set EMAIL_HOST}
+  EMAIL_DELIVERY_ENABLED: ${EMAIL_DELIVERY_ENABLED:-0}
+  ACCOUNT_EMAIL_VERIFICATION_REQUIRED: ${ACCOUNT_EMAIL_VERIFICATION_REQUIRED:-0}
+  EMAIL_HOST: ${EMAIL_HOST:-}
   EMAIL_PORT: ${EMAIL_PORT:-587}
-  DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:?set DEFAULT_FROM_EMAIL}
+  EMAIL_HOST_USER: ${EMAIL_HOST_USER:-}
+  EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD:-}
+  EMAIL_USE_TLS: ${EMAIL_USE_TLS:-0}
+  EMAIL_USE_SSL: ${EMAIL_USE_SSL:-0}
+  EMAIL_TIMEOUT: ${EMAIL_TIMEOUT:-10}
+  DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-palvelut@local.invalid}
   S3_ENDPOINT_URL: ${S3_ENDPOINT_URL:?set S3_ENDPOINT_URL}
   S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:?set S3_ACCESS_KEY_ID}
   S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:?set S3_SECRET_ACCESS_KEY}
@@ -67,9 +74,9 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
-      interval: 5s
-      timeout: 3s
-      retries: 30
+    interval: 5s
+    timeout: 3s
+    retries: 30
     volumes:
       - postgres_data:/var/lib/postgresql
     networks: [backend]
@@ -80,9 +87,9 @@ services:
     command: ["valkey-server", "--appendonly", "yes", "--appendfsync", "everysec"]
     healthcheck:
       test: ["CMD", "valkey-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 30
+    interval: 5s
+    timeout: 3s
+    retries: 30
     volumes:
       - valkey_data:/data
     networks: [backend]

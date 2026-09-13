@@ -61,11 +61,18 @@ PY
 
 python manage.py makemigrations --check --dry-run
 
+export EMAIL_HOST_USER=ci-only-smtp-user
+export EMAIL_HOST_PASSWORD="$EMAIL_HOST_USER"
 PALVELUT_ENVIRONMENT=production \
 DJANGO_DEBUG=0 \
 DJANGO_SECRET_KEY=test-only-not-a-real-secret \
 DJANGO_ALLOWED_HOSTS=ci.example.invalid \
 PUBLIC_BASE_URL=https://ci.example.invalid/palvelut \
+EMAIL_HOST=smtp.example.com \
+EMAIL_PORT=587 \
+EMAIL_USE_TLS=1 \
+EMAIL_USE_SSL=0 \
+DEFAULT_FROM_EMAIL=ci@example.com \
 python manage.py check --deploy --fail-level ERROR
 
 python -m unittest discover -s tests -p 'test_*.py' -v

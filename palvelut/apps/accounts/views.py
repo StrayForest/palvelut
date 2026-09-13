@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import (
@@ -42,8 +43,11 @@ def register(request: HttpRequest) -> HttpResponse:
             form.add_error(None, "Слишком много попыток. Попробуйте позже.")
         else:
             user = form.save()
-            issue_email_verification(user, request)
-            return render(request, "accounts/check_email.html", status=201)
+            if settings.ACCOUNT_EMAIL_VERIFICATION_REQUIRED:
+                issue_email_verification(user, request)
+                return render(request, "accounts/check_email.html", status=201)
+            messages.success(request, "Аккаунт создан. Теперь можно войти.")
+            return redirect("account-login")
     return render(request, "accounts/register.html", {"form": form})
 
 
