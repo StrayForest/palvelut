@@ -11,7 +11,7 @@ RUN npm install --ignore-scripts \
     && cp node_modules/alpinejs/dist/cdn.min.js /frontend-dist/vendor/alpine.min.js \
     && npx @tailwindcss/cli -i ./app.css -o /frontend-dist/css/app.css --minify
 
-# Python 3.13 slim, resolved 2026-09-03; immutable digest is authoritative.
+# Python 3.13 slim, resolved 2026-09-03; immutable base digest plus current Debian security fixes.
 FROM python:3.13-slim@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -20,7 +20,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-RUN python -m pip install --no-cache-dir "uv==0.10.0"
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && rm -rf /var/lib/apt/lists/* \
+    && python -m pip install --no-cache-dir "uv==0.10.0"
 
 COPY pyproject.toml uv.lock ./
 RUN uv sync --locked --no-dev
