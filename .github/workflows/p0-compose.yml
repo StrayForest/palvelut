@@ -286,6 +286,13 @@ jobs:
             -e DJANGO_SECRET_KEY=ci-only-not-a-real-secret \
             -e DJANGO_ALLOWED_HOSTS=ci.example.invalid \
             -e PUBLIC_BASE_URL=https://ci.example.invalid/palvelut \
+            -e EMAIL_HOST=smtp.example.com \
+            -e EMAIL_PORT=587 \
+            -e EMAIL_HOST_USER=ci-only-smtp-user \
+            -e EMAIL_HOST_PASSWORD=ci-only-not-a-real-smtp-secret \
+            -e EMAIL_USE_TLS=1 \
+            -e EMAIL_USE_SSL=0 \
+            -e DEFAULT_FROM_EMAIL=ci@example.com \
             web python manage.py check --deploy --fail-level ERROR
 
       - name: Run P3 provider security and integration gate
