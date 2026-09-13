@@ -23,6 +23,18 @@ ALLOWED_HOSTS = [
 ]
 
 
+def _env_bool(name: str, default: bool = False) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    value = raw.strip().lower()
+    if value in {"1", "true", "yes", "on"}:
+        return True
+    if value in {"0", "false", "no", "off"}:
+        return False
+    raise RuntimeError(f"{name} must be a boolean value")
+
+
 def _public_base_url() -> str:
     value = os.getenv("PUBLIC_BASE_URL", "http://localhost:8000/palvelut").rstrip("/")
     parsed = urlsplit(value)
@@ -57,6 +69,27 @@ def _validate_environment() -> None:
         errors.append("DJANGO_ALLOWED_HOSTS must be explicitly configured")
     if urlsplit(PUBLIC_BASE_URL).scheme != "https":
         errors.append("PUBLIC_BASE_URL must use https")
+
+    email_host = os.getenv("EMAIL_HOST", "").strip().lower()
+    email_user = os.getenv("EMAIL_HOST_USER", "").strip()
+    email_password = os.getenv("EMAIL_HOST_PASSWORD", "")
+    default_from_email = os.getenv("DEFAULT_FROM_EMAIL", "").strip().lower()
+    email_use_tls = _env_bool("EMAIL_USE_TLS", False)
+    email_use_ssl = _env_bool("EMAIL_USE_SSL", False)
+
+    if not email_host or email_host in {"mailpit", "localhost", "127.0.0.1", "::1"}:
+        errors.append("EMAIL_HOST must be an external SMTP host")
+    if not email_user:
+        errors.append("EMAIL_HOST_USER must be explicitly configured")
+    if not email_password:
+        errors.append("EMAIL_HOST_PASSWORD must be explicitly configured")
+    if not default_from_email or default_from_email.endswith(".invalid"):
+        errors.append("DEFAULT_FROM_EMAIL must be a deliverable sender address")
+    if email_use_tls and email_use_ssl:
+        errors.append("EMAIL_USE_TLS and EMAIL_USE_SSL cannot both be enabled")
+    if not email_use_tls and not email_use_ssl:
+        errors.append("production SMTP must enable EMAIL_USE_TLS or EMAIL_USE_SSL")
+
     if errors:
         raise RuntimeError(f"Unsafe {ENVIRONMENT} configuration: " + "; ".join(errors))
 
@@ -162,7 +195,13 @@ CELERY_BEAT_SCHEDULE = {
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = os.getenv("EMAIL_HOST", "mailpit")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", "1025"))
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = _env_bool("EMAIL_USE_TLS", False)
+EMAIL_USE_SSL = _env_bool("EMAIL_USE_SSL", False)
+EMAIL_TIMEOUT = int(os.getenv("EMAIL_TIMEOUT", "10"))
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "palvelut@local.invalid")
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 OBJECT_STORAGE_ENDPOINT_URL = os.getenv("S3_ENDPOINT_URL", "http://minio:9000")
 OBJECT_STORAGE_ACCESS_KEY_ID = os.getenv("S3_ACCESS_KEY_ID", "palvelut-local")
