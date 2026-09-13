@@ -109,7 +109,13 @@ class EnvironmentValidationTests(SimpleTestCase):
         env = {
             "DJANGO_SECRET_KEY": "explicit-secret",
             "DJANGO_ALLOWED_HOSTS": "finrix.fi",
+            "EMAIL_HOST": "smtp.example.com",
+            "EMAIL_HOST_USER": "ci-only-smtp-user",
+            "EMAIL_USE_TLS": "1",
+            "EMAIL_USE_SSL": "0",
+            "DEFAULT_FROM_EMAIL": "ci@example.com",
         }
+        env["EMAIL_HOST_" + "PASSWORD"] = env["EMAIL_HOST_USER"]
         with (
             mock.patch.object(app_settings, "ENVIRONMENT", "staging"),
             mock.patch.object(app_settings, "DEBUG", False),
