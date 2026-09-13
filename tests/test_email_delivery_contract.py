@@ -23,14 +23,15 @@ def test_production_only_requires_smtp_when_delivery_is_enabled() -> None:
     settings = SETTINGS.read_text()
 
     assert "if EMAIL_DELIVERY_ENABLED:" in settings
-    assert 'email_host in {' in settings
+    assert "email_host in {" in settings
     assert '"mailpit"' in settings
     assert "EMAIL_HOST_USER must be explicitly configured" in settings
     assert "EMAIL_HOST_PASSWORD must be explicitly configured" in settings
     assert "production SMTP must enable EMAIL_USE_TLS or EMAIL_USE_SSL" in settings
     assert "DEFAULT_FROM_EMAIL must be a deliverable sender address" in settings
     assert (
-        "ACCOUNT_EMAIL_VERIFICATION_REQUIRED requires EMAIL_DELIVERY_ENABLED" in settings
+        "ACCOUNT_EMAIL_VERIFICATION_REQUIRED requires EMAIL_DELIVERY_ENABLED"
+        in settings
     )
 
 
