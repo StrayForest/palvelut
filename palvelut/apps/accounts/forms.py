@@ -17,13 +17,20 @@ class ProviderRegistrationForm(UserCreationForm):
 
     def clean_email(self):
         email = self.cleaned_data["email"].strip().lower()
-        if get_user_model().objects.filter(email__iexact=email).exists():
-            raise forms.ValidationError(
-                "Аккаунт с этой электронной почтой уже существует."
-            )
+        existing = get_user_model().objects.filter(email__iexact=email).first()
+        if existing is not None:
+            if existing.is_active:
+                raise forms.ValidationError(
+                    "Аккаунт с этой электронной почтой уже существует."
+                )
+            self.existing_unverified_user = existing
         return email
 
     def save(self, commit=True):
+        existing = getattr(self, "existing_unverified_user", None)
+        if existing is not None:
+            return existing
+
         user = super().save(commit=False)
         user.username = self.cleaned_data["email"].strip().lower()
         user.email = user.username
